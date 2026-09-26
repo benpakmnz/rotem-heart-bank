@@ -143,6 +143,19 @@ const HostControls = ({ actions, onAction, menu }) => {
   );
 };
 
+// The TV screen can also run on a phone that is mirrored to the TV. It is
+// landscape-only; CSS shows this over it when a small screen is upright.
+const RotateHint = () => (
+  <div className="hb-rotate" role="alert">
+    <div className="hb-rotate-phone" aria-hidden="true">
+      📱
+    </div>
+    <strong>סובבו את הטלפון לרוחב</strong>
+    <span>מסך הטלוויזיה בנוי לרוחב - ככה הוא גם ימלא את הטלוויזיה כשמשקפים אליה.</span>
+    <small>המסך לא מסתובב? בטלו את נעילת הסיבוב של הטלפון.</small>
+  </div>
+);
+
 const renderScreen = (props) => {
   switch (props.state.phase) {
     case 'lobby':
@@ -275,6 +288,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
           }}
         />
       )}
+      <RotateHint />
     </div>
   );
 };
