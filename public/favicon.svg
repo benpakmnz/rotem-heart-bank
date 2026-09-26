@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 92">
+  <defs>
+    <clipPath id="h">
+      <path d="M50 88 C 22 67, 3 49, 3 29 C 3 14, 14 3, 28 3 C 38 3, 46 9, 50 17 C 54 9, 62 3, 72 3 C 86 3, 97 14, 97 29 C 97 49, 78 67, 50 88 Z" />
+    </clipPath>
+  </defs>
+  <path d="M50 88 C 22 67, 3 49, 3 29 C 3 14, 14 3, 28 3 C 38 3, 46 9, 50 17 C 54 9, 62 3, 72 3 C 86 3, 97 14, 97 29 C 97 49, 78 67, 50 88 Z" fill="#E11D48" />
+  <path d="M-4 46 H31 L37.5 36 L45 58 L53 29 L59.5 46 H104" clip-path="url(#h)" fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

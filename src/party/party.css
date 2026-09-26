@@ -1,0 +1,570 @@
+/* בנק הלבבות - shared look (colors from the blueprint: rose, blush, navy, gold) */
+
+.hb-body {
+  margin: 0;
+  background: #fff5f7;
+  overscroll-behavior: none;
+}
+
+.hb-root {
+  --hb-rose: #e11d48;
+  --hb-rose-dark: #be123c;
+  --hb-pink: #ff5c8a;
+  --hb-pink-soft: #ff8fab;
+  --hb-blush: #ffe4ec;
+  --hb-blush-2: #fff1f4;
+  --hb-gold: #f5b301;
+  --hb-gold-light: #ffd166;
+  --hb-ink: #1e2433;
+  --hb-ink-soft: #5b6475;
+  --hb-muted: #9aa3b2;
+  --hb-green: #10b981;
+  --hb-card: #ffffff;
+  --hb-shadow: 0 0.8em 2.4em rgba(225, 29, 72, 0.12);
+  --hb-font: 'Rubik', 'Assistant', 'Segoe UI', system-ui, sans-serif;
+  --hb-display: 'Varela Round', 'Rubik', 'Segoe UI', system-ui, sans-serif;
+
+  direction: rtl;
+  font-family: var(--hb-font);
+  color: var(--hb-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hb-root *,
+.hb-root *::before,
+.hb-root *::after {
+  box-sizing: border-box;
+}
+
+.hb-root button {
+  font-family: inherit;
+}
+
+.hb-boot {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #fff5f7, #ffe4ec);
+}
+
+/* ---------- buttons, chips, inputs ---------- */
+
+.hb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7em 1.5em;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, opacity 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.hb-btn:active {
+  transform: scale(0.96);
+}
+
+.hb-btn:focus-visible,
+.hb-link-btn:focus-visible,
+.hb-icon-btn:focus-visible,
+.hb-menu-item:focus-visible,
+.hb-tab:focus-visible {
+  outline: 0.2em solid var(--hb-gold);
+  outline-offset: 0.2em;
+}
+
+.hb-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.hb-btn-primary {
+  background: linear-gradient(135deg, var(--hb-pink), var(--hb-rose));
+  color: #fff;
+  box-shadow: 0 0.5em 1.4em rgba(225, 29, 72, 0.35);
+}
+
+.hb-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0.7em 1.8em rgba(225, 29, 72, 0.45);
+}
+
+.hb-btn-soft {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--hb-rose);
+  box-shadow: 0 0.3em 1em rgba(225, 29, 72, 0.14);
+}
+
+.hb-btn-round {
+  width: 2.6em;
+  height: 2.6em;
+  padding: 0;
+  font-size: 1.1em;
+}
+
+.hb-btn-icon {
+  font-size: 1.05em;
+}
+
+.hb-link-btn {
+  background: none;
+  border: 0;
+  color: var(--hb-rose);
+  font-weight: 600;
+  font-size: 0.95em;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  padding: 0.3em;
+}
+
+.hb-icon-btn {
+  border: 0;
+  background: var(--hb-blush-2);
+  color: var(--hb-ink-soft);
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 0.6em;
+  cursor: pointer;
+  font-size: 0.95em;
+  flex: none;
+}
+
+.hb-icon-btn.is-danger:hover {
+  background: #ffe1e6;
+  color: var(--hb-rose);
+}
+
+.hb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  background: #fff;
+  color: var(--hb-rose);
+  border: 0.08em solid #ffd1dc;
+  border-radius: 999px;
+  padding: 0.35em 1em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hb-chip-gold {
+  background: linear-gradient(135deg, #fff7e0, #ffefc2);
+  border-color: #ffdf8a;
+  color: #9a6400;
+}
+
+.hb-chip-soft {
+  background: var(--hb-blush-2);
+  color: var(--hb-ink-soft);
+  border-color: transparent;
+  font-weight: 500;
+}
+
+.hb-input {
+  width: 100%;
+  font: inherit;
+  color: var(--hb-ink);
+  background: #fff;
+  border: 0.1em solid #ffd1dc;
+  border-radius: 0.8em;
+  padding: 0.6em 0.9em;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.hb-input:focus {
+  border-color: var(--hb-pink);
+  box-shadow: 0 0 0 0.25em rgba(255, 92, 138, 0.18);
+}
+
+.hb-muted {
+  color: var(--hb-muted);
+}
+
+/* ---------- hearts ---------- */
+
+.hb-heart-icon,
+.hb-logo-heart {
+  display: inline-block;
+  width: 1em;
+  height: 0.92em;
+  vertical-align: -0.1em;
+  overflow: visible;
+}
+
+/* ---------- avatars ---------- */
+
+.hb-avatar {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35em;
+  min-width: 0;
+  transition: opacity 0.3s, filter 0.3s;
+}
+
+.hb-avatar.is-offline {
+  opacity: 0.4;
+  filter: grayscale(0.8);
+}
+
+.hb-avatar-bubble {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3em;
+  height: 3em;
+  border-radius: 50%;
+  box-shadow: 0 0.25em 0.8em rgba(30, 36, 51, 0.12), inset 0 -0.2em 0 rgba(0, 0, 0, 0.06);
+  border: 0.14em solid #fff;
+}
+
+.hb-avatar-emoji {
+  font-size: 1.7em;
+  line-height: 1;
+}
+
+.hb-avatar-badge {
+  position: absolute;
+  bottom: -0.2em;
+  left: -0.2em;
+  background: var(--hb-green);
+  color: #fff;
+  border-radius: 999px;
+  min-width: 1.4em;
+  height: 1.4em;
+  display: grid;
+  place-items: center;
+  font-size: 0.55em;
+  font-weight: 800;
+  border: 0.12em solid #fff;
+}
+
+.hb-avatar-name {
+  font-weight: 700;
+  max-width: 7em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9em;
+}
+
+.hb-avatar-xs .hb-avatar-bubble {
+  width: 1.9em;
+  height: 1.9em;
+  border-width: 0.1em;
+}
+
+.hb-avatar-xs .hb-avatar-emoji {
+  font-size: 1.1em;
+}
+
+.hb-avatar-sm .hb-avatar-bubble {
+  width: 2.5em;
+  height: 2.5em;
+}
+
+.hb-avatar-sm .hb-avatar-emoji {
+  font-size: 1.4em;
+}
+
+.hb-avatar-lg .hb-avatar-bubble {
+  width: 4.4em;
+  height: 4.4em;
+}
+
+.hb-avatar-lg .hb-avatar-emoji {
+  font-size: 2.6em;
+}
+
+.hb-avatar-lg .hb-avatar-name {
+  font-size: 1.05em;
+}
+
+.hb-avatar-xl .hb-avatar-bubble {
+  width: 6.5em;
+  height: 6.5em;
+  border-width: 0.25em;
+}
+
+.hb-avatar-xl .hb-avatar-emoji {
+  font-size: 3.9em;
+}
+
+.hb-avatar-xl .hb-avatar-name {
+  font-size: 1.5em;
+}
+
+.hb-avatar-xxl .hb-avatar-bubble {
+  width: 10em;
+  height: 10em;
+  border-width: 0.35em;
+}
+
+.hb-avatar-xxl .hb-avatar-emoji {
+  font-size: 6em;
+}
+
+.hb-avatar-xxl .hb-avatar-name {
+  font-size: 2.2em;
+  max-width: 10em;
+}
+
+/* ---------- timer ring ---------- */
+
+.hb-timer {
+  position: relative;
+  width: 5.5em;
+  height: 5.5em;
+  flex: none;
+}
+
+.hb-timer svg {
+  width: 100%;
+  height: 100%;
+}
+
+.hb-timer-track {
+  fill: #fff;
+  stroke: #ffe0e8;
+  stroke-width: 8;
+}
+
+.hb-timer-bar {
+  fill: none;
+  stroke: var(--hb-pink);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.25s linear, stroke 0.3s;
+}
+
+.hb-timer-num {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--hb-display);
+  font-size: 2em;
+  color: var(--hb-ink);
+}
+
+.hb-timer-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 0.3em;
+  font-size: 0.75em;
+  font-weight: 700;
+  color: var(--hb-ink-soft);
+  white-space: nowrap;
+}
+
+.hb-timer.is-reading .hb-timer-bar {
+  stroke: var(--hb-gold);
+}
+
+.hb-timer.is-urgent .hb-timer-bar {
+  stroke: var(--hb-rose);
+}
+
+.hb-timer.is-urgent .hb-timer-num {
+  color: var(--hb-rose);
+  animation: hb-pulse 1s ease-in-out infinite;
+}
+
+/* ---------- the heart bank meter ---------- */
+
+.hb-meter {
+  width: 100%;
+}
+
+.hb-meter-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+  margin-bottom: 0.35em;
+}
+
+.hb-meter-title {
+  font-weight: 700;
+  color: var(--hb-ink);
+}
+
+.hb-meter-percent {
+  font-family: var(--hb-display);
+  font-size: 1.9em;
+  line-height: 1;
+  color: var(--hb-rose);
+}
+
+.hb-meter-track {
+  position: relative;
+  height: 1.3em;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0.15em 0.4em rgba(225, 29, 72, 0.15);
+  border: 0.1em solid #ffd1dc;
+  overflow: hidden;
+  display: flex;
+}
+
+.hb-meter-fill {
+  position: relative;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--hb-gold-light) 0%, var(--hb-pink) 35%, var(--hb-rose) 100%);
+  box-shadow: 0 0 1em rgba(255, 92, 138, 0.6);
+  overflow: hidden;
+}
+
+.hb-meter-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.55) 45%, transparent 60%);
+  background-size: 200% 100%;
+  animation: hb-shine 2.6s linear infinite;
+}
+
+.hb-meter-sub {
+  margin-top: 0.3em;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--hb-ink-soft);
+}
+
+.hb-meter.is-full .hb-meter-fill {
+  background: linear-gradient(90deg, #fff1b8, var(--hb-gold-light), var(--hb-gold));
+  box-shadow: 0 0 1.6em rgba(255, 197, 61, 0.9);
+}
+
+.hb-meter-xl {
+  font-size: 2em;
+}
+
+.hb-meter-xl .hb-meter-track {
+  height: 1.6em;
+}
+
+/* ---------- background hearts ---------- */
+
+.hb-floating {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hb-corner-heart {
+  position: absolute;
+  width: 36vmin;
+  height: 33vmin;
+  left: -6vmin;
+  bottom: -8vmin;
+  transform: rotate(-12deg);
+  opacity: 0.9;
+}
+
+.hb-floating-heart {
+  position: absolute;
+  bottom: -3em;
+  animation-name: hb-float-up;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.hb-floating-heart .hb-heart-icon {
+  display: block;
+}
+
+.hb-fx-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ---------- animations ---------- */
+
+@keyframes hb-float-up {
+  0% {
+    transform: translate(0, 0) rotate(-8deg);
+  }
+  50% {
+    transform: translate(var(--hb-sway, 3em), -55vh) rotate(8deg);
+  }
+  100% {
+    transform: translate(0, -115vh) rotate(-8deg);
+  }
+}
+
+@keyframes hb-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes hb-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.08);
+  }
+  30% {
+    transform: scale(0.98);
+  }
+  45% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes hb-shine {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes hb-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-0.5em);
+  }
+  40% {
+    transform: translateX(0.5em);
+  }
+  60% {
+    transform: translateX(-0.35em);
+  }
+  80% {
+    transform: translateX(0.35em);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-floating-heart,
+  .hb-meter-shine {
+    animation: none;
+  }
+}

@@ -1,0 +1,3 @@
+# A private family game - nothing to index
+User-agent: *
+Disallow: /
