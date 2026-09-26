@@ -345,7 +345,10 @@
 
 .hb-phone-timer-num {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: grid;
   place-items: center;
   font-weight: 800;
@@ -412,7 +415,10 @@
 
 .hb-tap-heart-label {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: grid;
   place-items: center;
   padding-bottom: 12%;
@@ -521,7 +527,10 @@
 
 .hb-answer-heart b {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: grid;
   place-items: center;
   padding-bottom: 0.3rem;

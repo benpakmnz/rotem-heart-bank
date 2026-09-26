@@ -3,8 +3,12 @@
 
 .hb-tv {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   overflow: hidden;
+  font-size: 1.0417vw; /* older TV browsers without min() */
   font-size: min(1.0417vw, 1.8519vh);
   background: linear-gradient(135deg, #fff5f7 0%, #ffffff 45%, #fff0f4 100%);
   display: flex;
@@ -210,7 +214,10 @@
 
 .hb-awards {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   pointer-events: none;
   z-index: 15;
 }
@@ -440,7 +447,8 @@
   top: 1em;
   left: 50%;
   transform: translateX(-50%);
-  width: min(92%, 70em);
+  width: 70em;
+  max-width: 92%;
   display: flex;
   align-items: center;
   gap: 1em;
@@ -830,7 +838,10 @@
 
 .hb-settings-backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 100;
   background: rgba(30, 36, 51, 0.45);
   display: grid;
@@ -839,8 +850,10 @@
 }
 
 .hb-settings {
-  width: min(64em, 94vw);
-  height: min(46em, 92vh);
+  width: 64em;
+  max-width: 94vw;
+  height: 46em;
+  max-height: 92vh;
   background: #fff;
   border-radius: 1.6em;
   display: flex;
