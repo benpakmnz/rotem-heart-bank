@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { play } from '../audio/sfx';
+import { isMuted, play } from '../audio/sfx';
+import { isMusicEnabled } from '../audio/music';
 import { celebrate, heartBurst } from '../shared/fx';
 import { tapCounts } from '../engine/engine';
 
@@ -72,7 +73,8 @@ const useHostEffects = (state, now) => {
         case 'finale:celebrate':
           play('fanfare');
           celebrate();
-          setTimeout(() => play('happyBirthday'), 1800);
+          // the finale music is Happy Birthday; without music, play the tune alone
+          if (!isMusicEnabled() || isMuted()) setTimeout(() => play('happyBirthday'), 1800);
           break;
         default:
           if (state.step === 'results') play('correct');

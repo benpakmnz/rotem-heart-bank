@@ -6,6 +6,8 @@ import { fmt } from '../../lib/format';
 import Avatar from '../../shared/Avatar';
 import BankMeter from '../../shared/BankMeter';
 import Fireworks from '../../shared/Fireworks';
+import GameTitle from '../../shared/GameTitle';
+import RotemPhoto from '../../shared/RotemPhoto';
 import WordCloud, { useCloudLayout } from '../../shared/WordCloud';
 import { saveSouvenir } from './BlessingsScreen';
 
@@ -46,9 +48,12 @@ const FinaleScreen = ({ state }) => {
   if (state.step === 'fill') {
     return (
       <div className="hb-finale is-filling">
-        <motion.h1 className="hb-finale-filling-title" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-          כל הלבבות נכנסים לבנק...
-        </motion.h1>
+        <motion.div className="hb-finale-fill-photo" initial={{ scale: 0.3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 90, damping: 12 }}>
+          <RotemPhoto size="lg" age={state.settings.age} beat />
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <GameTitle text="כל הלבבות נכנסים לבנק..." tone="white" className="hb-finale-filling-title" />
+        </motion.div>
         <div className="hb-finale-meter">
           <BankMeter
             fraction={1}
@@ -68,7 +73,7 @@ const FinaleScreen = ({ state }) => {
       <Fireworks onBurst={() => play('pop')} />
       {showCloud ? (
         <div className="hb-finale-cloud">
-          <h2>💌 הברכות של {name}</h2>
+          <GameTitle as="h2" text={`הברכות של ${name}`} />
           <WordCloud items={cloud} />
           <div className="hb-finale-cloud-actions">
             <button type="button" className="hb-btn hb-btn-primary" onClick={() => saveSouvenir(cloud, state.settings)}>
@@ -81,17 +86,19 @@ const FinaleScreen = ({ state }) => {
         </div>
       ) : (
         <>
-          <motion.h1
-            className="hb-finale-title"
-            initial={{ scale: 0.2, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 160, damping: 12 }}
-          >
-            100% אהבה!
-          </motion.h1>
-          <motion.p className="hb-finale-sub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-            הבנק מלא - {name} מוכנה לעוגה! 🎂
-          </motion.p>
+          <div className="hb-finale-hero">
+            <motion.div initial={{ scale: 0.2, opacity: 0, rotate: 20 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 120, damping: 10 }}>
+              <RotemPhoto size="lg" age={state.settings.age} beat />
+            </motion.div>
+            <div>
+              <motion.div initial={{ scale: 0.2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 160, damping: 12 }}>
+                <GameTitle text="100% אהבה!" tone="gold" className="hb-finale-title" />
+              </motion.div>
+              <motion.p className="hb-finale-sub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+                הבנק מלא - {name} מוכנה לעוגה! 🎂
+              </motion.p>
+            </div>
+          </div>
           <motion.div className="hb-finale-total" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}>
             כל המשפחה אספה יחד {fmt(state.bank)} לבבות 💖
           </motion.div>

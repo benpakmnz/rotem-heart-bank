@@ -18,6 +18,9 @@ const audio = () => {
   return ctx;
 };
 
+// The shared AudioContext (music.js plays through it too).
+export const audioContext = () => audio();
+
 export const unlockAudio = () => {
   const c = audio();
   if (c && c.state === 'suspended') c.resume().catch(() => {});

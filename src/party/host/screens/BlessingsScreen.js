@@ -2,6 +2,7 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { fmt } from '../../lib/format';
 import Avatar from '../../shared/Avatar';
+import GameTitle from '../../shared/GameTitle';
 import WordCloud, { downloadCloudPng, useCloudLayout } from '../../shared/WordCloud';
 import { StageIntro } from './common';
 
@@ -31,7 +32,7 @@ const BlessingsWall = ({ state, dispatch }) => {
   return (
     <div className="hb-bless">
       <div className="hb-bless-side">
-        <h1 className="hb-bless-title">💌 מה אנחנו מאחלים ל{name}?</h1>
+        <GameTitle text={`מה אנחנו מאחלים ל${name}?`} className="hb-bless-title" />
         <p className="hb-bless-sub">כתבו בטלפון מילה אחת של ברכה - והיא תעוף ישר ללב!</p>
         <div className="hb-bless-count">
           <strong>{fmt(list.length)}</strong> ברכות נשלחו

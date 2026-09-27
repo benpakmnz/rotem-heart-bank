@@ -4,6 +4,7 @@ import { useRoomValue, useServerNow } from '../net/hooks';
 import { fmt } from '../lib/format';
 import Avatar from '../shared/Avatar';
 import { Heart } from '../shared/Heart';
+import PartyBackdrop from '../shared/PartyBackdrop';
 import useAnimatedNumber from '../shared/useAnimatedNumber';
 import { LobbyWait, StagePrep, PhoneCountdown, StageDone } from './screens/common';
 import TapPad from './screens/TapPad';
@@ -23,7 +24,7 @@ const Header = ({ me, state }) => {
         <span className="hb-phone-name">{me.name}</span>
       </div>
       <div className="hb-phone-score" aria-label="הלבבות שלי">
-        <Heart color="#E11D48" className="hb-phone-score-heart" />
+        <Heart color="#F0145A" className="hb-phone-score-heart" />
         {fmt(score)}
       </div>
       <div className="hb-phone-meter" title="הבנק המשפחתי">
@@ -66,6 +67,7 @@ const PlayerGame = ({ conn, me }) => {
 
   return (
     <div className={`hb-phone hb-phone-game ${state ? `phase-${state.phase} step-${state.step}` : ''}`}>
+      <PartyBackdrop rays={false} hearts={8} balloons={Boolean(state && state.phase === 'finale')} />
       <Header me={me} state={state} />
       <main className="hb-phone-main">
         {state ? (

@@ -21,6 +21,24 @@ export const Heart = ({ color = 'currentColor', className = '', style, label, ch
   </svg>
 );
 
+// Candy heart: gradient fill, white outline and a shine spot.
+export const GlossyHeart = ({ from = '#FF8CC6', to = '#E0126A', stroke = '#fff', className = '', style, children }) => {
+  const grad = useSvgId('hb-glossy');
+  return (
+    <svg viewBox="-4 -4 108 100" className={`hb-heart-icon ${className}`} style={style} aria-hidden="true">
+      <defs>
+        <linearGradient id={grad} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={from} />
+          <stop offset="100%" stopColor={to} />
+        </linearGradient>
+      </defs>
+      <path d={HEART_PATH} fill={`url(#${grad})`} stroke={stroke} strokeWidth={stroke === 'none' ? 0 : 4} strokeLinejoin="round" />
+      <ellipse cx="27" cy="22" rx="11" ry="5.5" fill="rgba(255,255,255,0.45)" transform="rotate(-38 27 22)" />
+      {children}
+    </svg>
+  );
+};
+
 // The blueprint's logo: a red heart crossed by a white heartbeat line.
 export const LogoHeart = ({ className = '', style }) => {
   const clipId = useSvgId('hb-logo-clip');

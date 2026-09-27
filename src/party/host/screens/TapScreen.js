@@ -27,8 +27,8 @@ export const GoldenHeart = ({ fill, beating }) => {
             <path d={HEART_PATH} />
           </clipPath>
           <linearGradient id={pink} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FF9EB8" />
-            <stop offset="100%" stopColor="#E11D48" />
+            <stop offset="0%" stopColor="#FF9ECF" />
+            <stop offset="100%" stopColor="#E0126A" />
           </linearGradient>
           <linearGradient id={gold} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#FFF1B8" />
@@ -80,7 +80,7 @@ const TapArena = ({ state, now }) => {
   const active = state.step === 'active';
 
   return (
-    <div className="hb-tap">
+    <div className="hb-tap" style={{ '--hb-fill': Math.min(1, fill) }}>
       <HeartRain rateRef={rateRef} active={active} />
       <div className="hb-tap-side">
         {active ? (
@@ -88,7 +88,7 @@ const TapArena = ({ state, now }) => {
         ) : (
           <div className="hb-tap-over">⏱️ נגמר הזמן!</div>
         )}
-        <div className="hb-tap-top">
+        <div className="hb-tap-top hb-glass">
           <h3>הכי מהירים ⚡</h3>
           {top.map((pid) => (
             <div key={pid} className="hb-tap-row">

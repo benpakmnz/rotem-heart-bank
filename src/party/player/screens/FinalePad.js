@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { fmt } from '../../lib/format';
 import { phoneBurst } from '../../shared/fx';
+import GameTitle from '../../shared/GameTitle';
+import RotemPhoto from '../../shared/RotemPhoto';
 import { myRank } from './common';
 
 const FinalePad = ({ state, players, me }) => {
@@ -33,9 +35,12 @@ const FinalePad = ({ state, players, me }) => {
 
   return (
     <div className="hb-pad hb-finale-pad is-celebrating">
-      <motion.h1 className="hb-finale-pad-title" initial={{ scale: 0.3 }} animate={{ scale: 1 }} transition={{ type: 'spring' }}>
-        100% אהבה!
-      </motion.h1>
+      <motion.div initial={{ scale: 0.3, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 140, damping: 10 }}>
+        <RotemPhoto size="md" beat />
+      </motion.div>
+      <motion.div initial={{ scale: 0.3 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring' }}>
+        <GameTitle text="100% אהבה!" tone="gold" className="hb-finale-pad-title" />
+      </motion.div>
       <p className="hb-phone-text">הבנק מלא - {state.name} מוכנה לעוגה! 🎂</p>
       {iWon && <div className="hb-finale-pad-win">🏆 במקום הראשון!</div>}
       <div className="hb-done-score">

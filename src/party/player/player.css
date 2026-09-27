@@ -7,10 +7,47 @@
   max-width: 34rem;
   margin: 0 auto;
   padding: max(0.8rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
-  background: linear-gradient(170deg, #fff5f7 0%, #ffffff 40%, #ffe9ef 100%);
+  background-color: #2c0a4e;
+  background-image: radial-gradient(130% 70% at 50% 0%, #b0197a 0%, #6a1273 34%, #340b58 66%, #16042c 100%);
+  color: #fff;
   display: flex;
   flex-direction: column;
   font-size: 16px;
+  overflow: hidden;
+}
+
+.hb-phone > .hb-backdrop {
+  font-size: 12px;
+}
+
+.hb-phone > *:not(.hb-backdrop) {
+  position: relative;
+  z-index: 1;
+}
+
+/* same color worlds as the TV */
+.hb-phone-game.phase-tap {
+  background-image: radial-gradient(130% 70% at 50% 8%, #e0237f 0%, #8f136f 34%, #420a5c 66%, #17042c 100%);
+}
+
+.hb-phone-game.phase-trivia {
+  background-image: radial-gradient(130% 70% at 50% 0%, #7a36e0 0%, #43209f 36%, #211060 68%, #0c0428 100%);
+}
+
+.hb-phone-game.phase-charades {
+  background-image: radial-gradient(130% 70% at 50% 0%, #d11c55 0%, #820d3e 36%, #420726 68%, #170210 100%);
+}
+
+.hb-phone-game.phase-word {
+  background-image: radial-gradient(130% 70% at 50% 0%, #3276e0 0%, #3d2ca6 36%, #26125f 68%, #0d0428 100%);
+}
+
+.hb-phone-game.phase-blessings {
+  background-image: radial-gradient(130% 70% at 50% 0%, #ff5fa2 0%, #b02a8f 34%, #5a1a78 66%, #1e0836 100%);
+}
+
+.hb-phone-game.phase-finale {
+  background-image: radial-gradient(ellipse at 50% 20%, #6b1048 0%, #2e0a2a 60%, #10040f 100%);
 }
 
 .hb-phone-center {
@@ -24,17 +61,19 @@
   width: 5rem;
   height: 4.6rem;
   animation: hb-beat 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 0.8rem rgba(255, 77, 148, 0.7));
 }
 
 .hb-phone-title {
   text-wrap: balance;
   font-family: var(--hb-display);
-  font-weight: 400;
-  font-size: 1.75rem;
+  font-weight: 700;
+  font-size: 1.8rem;
   line-height: 1.2;
-  color: var(--hb-rose);
+  color: #fff;
   margin: 0.2rem 0;
   text-align: center;
+  text-shadow: 0 0 0.6rem rgba(255, 77, 148, 0.8), 0 0.1rem 0 #b0104a;
 }
 
 .hb-phone-text {
@@ -42,12 +81,12 @@
   line-height: 1.5;
   margin: 0.3rem 0;
   text-align: center;
-  color: var(--hb-ink);
+  color: #fff;
 }
 
 .hb-phone-hint {
   font-size: 0.95rem;
-  color: var(--hb-ink-soft);
+  color: var(--hb-text-soft);
   text-align: center;
   margin: 0.4rem 0;
 }
@@ -74,9 +113,15 @@
 }
 
 .hb-btn-success {
-  background: linear-gradient(135deg, #34d399, #059669);
+  background: linear-gradient(180deg, #6ff0bf 0%, #1fd598 50%, #0ea877 100%);
   color: #fff;
-  box-shadow: 0 0.5em 1.4em rgba(5, 150, 105, 0.35);
+  text-shadow: 0 0.06em 0 rgba(0, 80, 50, 0.45);
+  box-shadow: inset 0 0.12em 0 rgba(255, 255, 255, 0.45), 0 0.3em 0 #07734f, 0 0.7em 1.4em rgba(20, 200, 140, 0.4);
+}
+
+.hb-btn-success:active:not(:disabled) {
+  transform: translateY(0.22em);
+  box-shadow: inset 0 0.12em 0 rgba(255, 255, 255, 0.45), 0 0.08em 0 #07734f;
 }
 
 /* ---------- code entry + join ---------- */
@@ -91,6 +136,7 @@
 
 .hb-code-input {
   font-family: var(--hb-display);
+  font-weight: 700;
   font-size: 2.6rem;
   text-align: center;
   letter-spacing: 0.4em;
@@ -105,11 +151,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
+  padding-top: 0.6rem;
 }
 
-.hb-join-logo {
-  width: 3.6rem;
-  height: 3.3rem;
+.hb-join-title {
+  font-size: 2.1rem;
+  margin: 0.4rem 0 0;
 }
 
 .hb-join-form {
@@ -135,24 +183,24 @@
 
 .hb-avatar-option {
   aspect-ratio: 1;
-  border: 0.18rem solid transparent;
+  border: 0;
   border-radius: 50%;
   font-size: 1.6rem;
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s;
   padding: 0;
+  box-shadow: 0 0.2rem 0.5rem rgba(10, 0, 30, 0.35);
 }
 
 .hb-avatar-option.is-selected {
-  border-color: var(--hb-rose);
-  transform: scale(1.12);
-  box-shadow: 0 0.3rem 0.9rem rgba(225, 29, 72, 0.35);
+  transform: scale(1.15);
+  box-shadow: 0 0 0 0.2rem #fff, 0 0 0 0.4rem var(--hb-gold), 0 0 1rem rgba(255, 197, 61, 0.8);
 }
 
 .hb-join-go {
-  margin-top: 0.4rem;
+  margin-top: 0.6rem;
   font-size: 1.25rem;
   padding: 1rem;
 }
@@ -170,8 +218,12 @@
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 0.3rem 0.6rem;
-  padding-bottom: 0.4rem;
+  gap: 0.35rem 0.6rem;
+  padding: 0.35rem 0.5rem 0.5rem;
+  margin: 0 -0.3rem 0.2rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 
 .hb-phone-me {
@@ -194,12 +246,13 @@
   align-items: center;
   gap: 0.3rem;
   font-family: var(--hb-display);
+  font-weight: 700;
   font-size: 1.35rem;
-  color: var(--hb-rose);
-  background: #fff;
+  color: #8a3a00;
+  background: linear-gradient(180deg, #fff3c4, #ffd666);
   border-radius: 999px;
-  padding: 0.2rem 0.8rem;
-  box-shadow: 0 0.2rem 0.6rem rgba(225, 29, 72, 0.15);
+  padding: 0.15rem 0.8rem;
+  box-shadow: 0 0.15rem 0 #c98200, 0 0 0.8rem rgba(255, 197, 61, 0.45);
 }
 
 .hb-phone-score-heart {
@@ -209,15 +262,16 @@
 
 .hb-phone-meter {
   grid-column: 1 / -1;
-  height: 0.4rem;
+  height: 0.45rem;
   border-radius: 999px;
-  background: #ffe0e8;
+  background: rgba(0, 0, 0, 0.35);
   overflow: hidden;
   display: flex;
 }
 
 .hb-phone-meter span {
-  background: linear-gradient(90deg, var(--hb-gold-light), var(--hb-pink), var(--hb-rose));
+  background: linear-gradient(90deg, #ffe07a, #ffb300);
+  box-shadow: 0 0 0.5rem rgba(255, 200, 60, 0.9);
   border-radius: 999px;
   transition: width 1s ease-out;
 }
@@ -253,6 +307,7 @@
 
 .hb-look-tv {
   font-size: 3rem;
+  filter: drop-shadow(0 0 0.6rem rgba(120, 200, 255, 0.6));
 }
 
 .hb-lobby-wait .hb-wave-btn {
@@ -262,19 +317,28 @@
   cursor: pointer;
   font-size: 1rem;
   touch-action: manipulation;
+  color: inherit;
+}
+
+/* the avatar bobs, the button itself stays put (easier to tap) */
+.hb-lobby-wait .hb-wave-btn .hb-avatar {
+  animation: hb-bob 2.2s ease-in-out infinite;
 }
 
 .hb-prep-icon {
   font-size: 4.5rem;
   line-height: 1;
+  filter: drop-shadow(0 0 1rem rgba(255, 77, 148, 0.7));
 }
 
 .hb-prep-num {
-  background: var(--hb-rose);
-  color: #fff;
+  background: linear-gradient(180deg, #fff3c4, #ffd666);
+  color: #7a3300;
   border-radius: 999px;
   padding: 0.2rem 1rem;
+  font-family: var(--hb-display);
   font-weight: 700;
+  box-shadow: 0 0.15rem 0 #c98200;
 }
 
 .hb-prep-how {
@@ -283,9 +347,16 @@
   margin: 0.3rem 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  font-size: 1.1rem;
+  gap: 0.45rem;
+  font-size: 1.05rem;
   font-weight: 500;
+}
+
+.hb-prep-how li {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  border-radius: 0.9rem;
+  padding: 0.45rem 0.8rem;
 }
 
 .hb-prep-how li::before {
@@ -294,9 +365,11 @@
 
 .hb-phone-countdown-num {
   font-family: var(--hb-display);
+  font-weight: 700;
   font-size: 8rem;
-  color: var(--hb-rose);
+  color: #fff;
   line-height: 1;
+  text-shadow: 0 0 1.2rem rgba(255, 77, 148, 0.9), 0 0.3rem 0 #b0104a;
 }
 
 .hb-done-score {
@@ -304,9 +377,10 @@
   flex-direction: column;
   align-items: center;
   background: #fff;
+  color: var(--hb-ink);
   border-radius: 1.2rem;
   padding: 0.8rem 1.6rem;
-  box-shadow: 0 0.4rem 1.2rem rgba(225, 29, 72, 0.12);
+  box-shadow: 0 0 0 0.2rem rgba(255, 197, 61, 0.8), 0 0 1.6rem rgba(255, 197, 61, 0.45);
 }
 
 .hb-done-score span {
@@ -316,14 +390,15 @@
 
 .hb-done-score strong {
   font-family: var(--hb-display);
-  font-weight: 400;
+  font-weight: 700;
   font-size: 2.2rem;
-  color: var(--hb-rose);
+  color: #c0105a;
 }
 
 .hb-done-rank {
   font-size: 1.2rem;
   font-weight: 700;
+  color: var(--hb-gold-light);
 }
 
 .hb-phone-timer {
@@ -331,15 +406,16 @@
   width: 100%;
   height: 1.8rem;
   border-radius: 999px;
-  background: #fff;
-  border: 0.1rem solid #ffd1dc;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
   overflow: hidden;
   display: flex;
   flex: none;
 }
 
 .hb-phone-timer-bar {
-  background: linear-gradient(90deg, var(--hb-gold-light), var(--hb-pink));
+  background: linear-gradient(90deg, #ffe07a, #ff4d94);
+  box-shadow: 0 0 0.6rem rgba(255, 120, 170, 0.8);
   transition: width 0.25s linear;
 }
 
@@ -352,15 +428,12 @@
   display: grid;
   place-items: center;
   font-weight: 800;
-  color: var(--hb-ink);
+  color: #fff;
+  text-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.5);
 }
 
 .hb-phone-timer.is-urgent .hb-phone-timer-bar {
-  background: var(--hb-rose);
-}
-
-.hb-phone-timer.is-urgent .hb-phone-timer-num {
-  color: #fff;
+  background: #ff2d55;
 }
 
 /* ---------- stage 1: the giant heart ---------- */
@@ -373,7 +446,7 @@
 .hb-tap-pad-over {
   font-size: 1.4rem;
   font-weight: 800;
-  color: var(--hb-rose);
+  color: var(--hb-gold-light);
 }
 
 .hb-tap-heart {
@@ -385,7 +458,7 @@
   user-select: none;
   -webkit-touch-callout: none;
   cursor: pointer;
-  filter: drop-shadow(0 1rem 1.6rem rgba(225, 29, 72, 0.35));
+  filter: drop-shadow(0 0 1.6rem rgba(255, 77, 148, 0.75)) drop-shadow(0 1rem 1.4rem rgba(20, 0, 40, 0.5));
   animation: hb-beat 1.2s ease-in-out infinite;
 }
 
@@ -400,13 +473,13 @@
 }
 
 .hb-tap-heart.is-off {
-  filter: grayscale(0.5) opacity(0.6);
+  filter: grayscale(0.6) opacity(0.55);
   animation: none;
 }
 
 @keyframes hb-tap-hit {
   0% {
-    transform: scale(0.9);
+    transform: scale(0.88);
   }
   100% {
     transform: scale(1);
@@ -424,9 +497,10 @@
   padding-bottom: 12%;
   color: #fff;
   font-family: var(--hb-display);
-  font-size: 2.4rem;
+  font-weight: 700;
+  font-size: 2.6rem;
   pointer-events: none;
-  text-shadow: 0 0.15rem 0.4rem rgba(0, 0, 0, 0.15);
+  text-shadow: 0 0.15rem 0 #a00a45, 0 0.2rem 0.6rem rgba(0, 0, 0, 0.3);
 }
 
 .hb-tap-pop {
@@ -434,9 +508,10 @@
   pointer-events: none;
   transform: translate(-50%, -50%);
   font-family: var(--hb-display);
-  font-size: 1.5rem;
-  color: #fff;
-  text-shadow: 0 0 0.4rem rgba(225, 29, 72, 0.9);
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: #fff3c4;
+  text-shadow: 0 0 0.5rem rgba(255, 190, 40, 0.95), 0 0.1rem 0 #a35a00;
   animation: hb-pop-up 0.7s ease-out forwards;
 }
 
@@ -458,9 +533,10 @@
 
 .hb-tap-pad-count strong {
   font-family: var(--hb-display);
-  font-weight: 400;
-  font-size: 2rem;
-  color: var(--hb-rose);
+  font-weight: 700;
+  font-size: 2.2rem;
+  color: var(--hb-gold-light);
+  text-shadow: 0 0 0.5rem rgba(255, 197, 61, 0.7);
 }
 
 /* ---------- stage 2: answer hearts ---------- */
@@ -473,11 +549,12 @@
 .hb-trivia-pad-q {
   width: 100%;
   background: #fff;
+  color: var(--hb-ink);
   border-radius: 1rem;
   padding: 0.7rem 0.9rem;
   font-weight: 700;
   font-size: 1.1rem;
-  box-shadow: 0 0.3rem 0.9rem rgba(225, 29, 72, 0.1);
+  box-shadow: 0 0 1rem rgba(155, 93, 229, 0.7);
 }
 
 .hb-trivia-pad-num {
@@ -500,7 +577,8 @@
 .hb-answer {
   border: 0;
   border-radius: 1.3rem;
-  background: var(--hb-option);
+  background-color: var(--hb-option);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 55%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -509,7 +587,7 @@
   gap: 0.4rem;
   padding: 0.6rem;
   cursor: pointer;
-  box-shadow: 0 0.35rem 0 rgba(0, 0, 0, 0.18), 0 0.6rem 1.2rem rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 -0.35rem 0 rgba(0, 0, 0, 0.2), inset 0 0.1rem 0 rgba(255, 255, 255, 0.4), 0 0.6rem 1.2rem rgba(5, 0, 25, 0.4);
   touch-action: manipulation;
   min-height: 7rem;
 }
@@ -535,30 +613,35 @@
   place-items: center;
   padding-bottom: 0.3rem;
   color: var(--hb-option);
-  font-size: 1.3rem;
+  font-family: var(--hb-display);
+  font-size: 1.4rem;
 }
 
 .hb-answer-text {
   font-size: 1.15rem;
   font-weight: 700;
   line-height: 1.25;
-  text-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.15);
+  text-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.25);
 }
 
 .hb-answered-card {
   margin: auto 0;
   width: 100%;
   background: #fff;
+  color: var(--hb-ink);
   border-radius: 1.4rem;
   padding: 1.4rem 1rem;
-  box-shadow: 0 0.5rem 1.4rem rgba(225, 29, 72, 0.12);
-  border: 0.2rem solid var(--hb-option);
+  box-shadow: 0 0 0 0.25rem var(--hb-option), 0 0 1.6rem var(--hb-option);
+}
+
+.hb-answered-card .hb-phone-hint {
+  color: var(--hb-ink-soft);
 }
 
 .hb-answered-check {
   font-size: 1.4rem;
   font-weight: 800;
-  color: var(--hb-green);
+  color: #0e9f6e;
 }
 
 .hb-answered-choice {
@@ -577,16 +660,20 @@
 .hb-verdict-icon {
   font-size: 5rem;
   line-height: 1;
+  filter: drop-shadow(0 0 1rem rgba(255, 255, 255, 0.35));
 }
 
 .hb-verdict-points {
   font-family: var(--hb-display);
+  font-weight: 700;
   font-size: 2.4rem;
-  color: var(--hb-rose);
+  color: var(--hb-gold-light);
+  text-shadow: 0 0 0.6rem rgba(255, 197, 61, 0.7);
 }
 
 .hb-verdict.is-good .hb-phone-title {
-  color: var(--hb-green);
+  color: #b8ffe3;
+  text-shadow: 0 0 0.8rem rgba(31, 213, 152, 0.9);
 }
 
 .hb-verdict-answer {
@@ -594,10 +681,11 @@
   flex-direction: column;
   gap: 0.2rem;
   background: #fff;
+  color: var(--hb-ink);
   border-radius: 1rem;
   padding: 0.8rem 1.4rem;
-  box-shadow: 0 0.3rem 1rem rgba(225, 29, 72, 0.1);
-  border-inline-start: 0.4rem solid var(--hb-option, var(--hb-pink));
+  box-shadow: 0 0 1.2rem rgba(255, 255, 255, 0.25);
+  border-inline-start: 0.45rem solid var(--hb-option, var(--hb-pink));
 }
 
 .hb-verdict-answer span {
@@ -617,12 +705,12 @@
 .hb-secret-card {
   width: 100%;
   min-height: 9rem;
-  border: 0.2rem dashed #ffb3c6;
+  border: 0.2rem dashed rgba(255, 159, 203, 0.8);
   border-radius: 1.4rem;
-  background: repeating-linear-gradient(45deg, #fff5f7 0 1rem, #ffe9ef 1rem 2rem);
+  background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0 1rem, rgba(255, 255, 255, 0.14) 1rem 2rem);
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--hb-ink-soft);
+  color: #fff;
   cursor: pointer;
   padding: 1rem;
   font-family: inherit;
@@ -630,9 +718,9 @@
 
 .hb-secret-card.is-open {
   background: #fff;
-  border-style: solid;
-  border-color: var(--hb-gold);
-  box-shadow: 0 0.6rem 1.6rem rgba(245, 179, 1, 0.25);
+  color: var(--hb-ink);
+  border: 0;
+  box-shadow: 0 0 0 0.25rem var(--hb-gold), 0 0 2rem rgba(255, 197, 61, 0.6);
 }
 
 .hb-secret-text {
@@ -688,11 +776,12 @@
   width: var(--hb-slot-w, 3.4rem);
   height: calc(var(--hb-slot-w, 3.4rem) * 1.15);
   border-radius: 0.8rem;
-  border: 0.15rem dashed #ffb3c6;
-  background: #fff;
+  border: 0.15rem dashed rgba(255, 159, 203, 0.8);
+  background: rgba(255, 255, 255, 0.08);
   font-family: var(--hb-display);
+  font-weight: 700;
   font-size: calc(var(--hb-slot-w, 3.4rem) * 0.62);
-  color: var(--hb-rose);
+  color: #c0105a;
   display: grid;
   place-items: center;
   padding: 0;
@@ -701,20 +790,21 @@
 }
 
 .hb-slot.is-full {
-  border-style: solid;
-  border-color: var(--hb-pink);
+  border: 0;
+  background: linear-gradient(180deg, #fff, #ffe3f0);
+  box-shadow: inset 0 -0.25rem 0 rgba(224, 69, 126, 0.35);
 }
 
 .hb-slots.is-wrong .hb-slot {
-  border-color: var(--hb-rose);
-  background: #ffe4e6;
+  background: #ffd6de;
+  box-shadow: 0 0 0.8rem rgba(255, 45, 85, 0.8);
 }
 
 .hb-slots.is-solved .hb-slot {
-  border-style: solid;
-  border-color: var(--hb-green);
-  background: #ecfdf5;
-  color: #047857;
+  border: 0;
+  background: linear-gradient(180deg, #fff8dc, #ffd34d);
+  color: #9a3a00;
+  box-shadow: 0 0 1rem rgba(255, 197, 61, 0.8);
 }
 
 .hb-slot-ghost {
@@ -733,9 +823,10 @@
   height: 4.5rem;
   border: 0;
   border-radius: 1rem;
-  background: linear-gradient(170deg, #ffffff, #ffe4ec);
-  box-shadow: 0 0.35rem 0 #ffb3c6, 0 0.6rem 1rem rgba(225, 29, 72, 0.15);
+  background: linear-gradient(180deg, #ffffff, #ffe0ef);
+  box-shadow: 0 0.35rem 0 #e0457e, 0 0.6rem 1rem rgba(10, 0, 30, 0.4);
   font-family: var(--hb-display);
+  font-weight: 700;
   font-size: 2.3rem;
   color: var(--hb-ink);
   cursor: pointer;
@@ -745,7 +836,7 @@
 
 .hb-tile:active {
   transform: translateY(0.25rem);
-  box-shadow: 0 0.1rem 0 #ffb3c6;
+  box-shadow: 0 0.1rem 0 #e0457e;
 }
 
 .hb-tile.is-used {
@@ -756,7 +847,7 @@
 .hb-solved {
   font-size: 1.3rem;
   font-weight: 800;
-  color: var(--hb-green);
+  color: #b8ffe3;
 }
 
 /* ---------- stage 5: blessings ---------- */
@@ -792,15 +883,20 @@
 }
 
 .hb-suggestion {
-  border: 0.1rem solid #ffd1dc;
-  background: #fff;
+  border: 0;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
   border-radius: 999px;
   padding: 0.45rem 0.9rem;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--hb-rose);
+  color: #fff;
   cursor: pointer;
   touch-action: manipulation;
+}
+
+.hb-suggestion:active {
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .hb-bless-sent {
@@ -822,38 +918,23 @@
   translate: -50% 0;
   z-index: 40;
   font-family: var(--hb-display);
+  font-weight: 700;
   font-size: 2rem;
-  color: var(--hb-rose);
+  color: var(--hb-gold-light);
+  text-shadow: 0 0 0.6rem rgba(255, 197, 61, 0.9);
   pointer-events: none;
 }
 
 /* ---------- finale ---------- */
 
-.hb-phone-game.phase-finale.step-celebrate {
-  background: radial-gradient(ellipse at 50% 20%, #5b0f3a 0%, #2a0a1f 70%);
-  color: #fff;
-}
-
-.hb-phone-game.phase-finale.step-celebrate .hb-phone-text,
-.hb-phone-game.phase-finale.step-celebrate .hb-phone-name {
-  color: #fff;
-}
-
 .hb-finale-pad-title {
-  font-family: var(--hb-display);
-  font-weight: 400;
   font-size: 3.2rem;
   margin: 0;
-  color: #fff;
-  text-shadow: 0 0 0.6rem rgba(255, 92, 138, 0.9);
 }
 
 .hb-finale-pad-win {
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--hb-gold-light);
-}
-
-.hb-finale-pad .hb-done-score {
-  color: var(--hb-ink);
+  text-shadow: 0 0 0.6rem rgba(255, 197, 61, 0.7);
 }

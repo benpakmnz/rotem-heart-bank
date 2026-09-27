@@ -1,14 +1,18 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { STAGES, stageById } from '../config/game';
 import { useServerNow } from '../net/hooks';
-import { unlockAudio, setMuted } from '../audio/sfx';
+import { play, unlockAudio, setMuted } from '../audio/sfx';
+import { setMusicEnabled, setMusicTrack } from '../audio/music';
+import { trackFor } from '../audio/tracks';
 import { readJson, writeJson } from '../lib/storage';
 import { meterFraction } from '../lib/scoring';
 import { fmt } from '../lib/format';
 import BankMeter from '../shared/BankMeter';
-import FloatingHearts from '../shared/FloatingHearts';
+import PartyBackdrop from '../shared/PartyBackdrop';
+import HeartSwipe from '../shared/HeartSwipe';
+import RotemPhoto from '../shared/RotemPhoto';
 import Avatar from '../shared/Avatar';
-import { LogoHeart, Heart } from '../shared/Heart';
+import { Heart } from '../shared/Heart';
 import useWakeLock from '../shared/useWakeLock';
 import hostActions from './hostActions';
 import useHostEffects from './useHostEffects';
@@ -23,6 +27,7 @@ import BlessingsScreen from './screens/BlessingsScreen';
 import FinaleScreen from './screens/FinaleScreen';
 
 const MUTE_KEY = 'hb-muted';
+const MUSIC_KEY = 'hb-music-off';
 
 const StageDots = ({ phase }) => {
   const current = STAGES.findIndex((s) => s.id === phase);
@@ -30,7 +35,10 @@ const StageDots = ({ phase }) => {
   return (
     <div className="hb-stage-dots" aria-hidden="true">
       {STAGES.map((s, i) => (
-        <Heart key={s.id} className={`hb-stage-dot ${i < done ? 'is-done' : ''} ${i === current ? 'is-current' : ''}`} />
+        <div key={s.id} className={`hb-stage-dot ${i < done ? 'is-done' : ''} ${i === current ? 'is-current' : ''}`}>
+          <Heart />
+          <span>{i < done ? '✓' : s.num}</span>
+        </div>
       ))}
     </div>
   );
@@ -42,12 +50,12 @@ const TopBar = ({ state }) => {
   return (
     <header className="hb-topbar">
       <div className="hb-topbar-brand">
-        <LogoHeart className="hb-topbar-logo" />
+        <RotemPhoto size="sm" crown={false} sparkles={false} />
         <div>
           <div className="hb-topbar-title">בנק הלבבות של {name}</div>
           {stage && (
             <div className="hb-topbar-stage">
-              שלב {stage.num} · {stage.title}
+              {stage.icon} שלב {stage.num} · {stage.title}
             </div>
           )}
         </div>
@@ -77,7 +85,7 @@ const AwardsLayer = ({ awards, players, now }) => {
           >
             {who && <Avatar player={who} size="xs" />}
             <span>+{fmt(a.amount)}</span>
-            <Heart className="hb-award-heart" color="#E11D48" />
+            <Heart className="hb-award-heart" color="#F0145A" />
           </div>
         );
       })}
@@ -182,6 +190,7 @@ const isTyping = (el) => el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT
 const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
   const now = useServerNow(conn, 200);
   const [muted, setMutedState] = useState(() => readJson(MUTE_KEY) === true);
+  const [musicOn, setMusicOn] = useState(() => readJson(MUSIC_KEY) !== true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   useWakeLock(true);
   useHostEffects(state, now);
@@ -190,6 +199,15 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
     setMuted(muted);
     writeJson(MUTE_KEY, muted);
   }, [muted]);
+
+  useEffect(() => {
+    setMusicEnabled(musicOn);
+    writeJson(MUSIC_KEY, !musicOn);
+  }, [musicOn]);
+
+  // A soundtrack for every part of the game (see audio/tracks.js).
+  useEffect(() => setMusicTrack(trackFor(state.phase, state.step)), [state.phase, state.step]);
+  useEffect(() => () => setMusicTrack(null), []);
 
   // Audio may only start after a user gesture.
   useEffect(() => {
@@ -241,6 +259,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
 
   const menu = [
     { key: 'sound', icon: muted ? '🔇' : '🔊', label: muted ? 'הפעלת צלילים' : 'השתקה', run: () => setMutedState((m) => !m) },
+    { key: 'music', icon: musicOn ? '🎵' : '🎶', label: musicOn ? 'כיבוי המוזיקה' : 'הפעלת המוזיקה', run: () => setMusicOn((m) => !m) },
     { key: 'full', icon: '⛶', label: 'מסך מלא', run: toggleFullscreen },
     { key: 'settings', icon: '⚙️', label: 'עריכת תוכן המשחק', run: () => setSettingsOpen(true) },
     { key: 'd1', divider: true },
@@ -269,7 +288,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
 
   return (
     <div className={`hb-tv phase-${state.phase} step-${state.step}`}>
-      <FloatingHearts />
+      <PartyBackdrop balloons={state.phase === 'lobby' || state.phase === 'finale'} />
       {showTopBar && <TopBar state={state} />}
       <main className="hb-tv-main" key={`${state.phase}`}>
         {renderScreen(screenProps)}
@@ -288,6 +307,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
           }}
         />
       )}
+      <HeartSwipe stage={state.phase} onSwipe={() => play('whoosh')} />
       <RotateHint />
     </div>
   );

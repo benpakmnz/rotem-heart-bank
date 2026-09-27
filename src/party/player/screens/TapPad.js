@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { SCORING } from '../../config/game';
 import { fmt } from '../../lib/format';
-import { Heart } from '../../shared/Heart';
+import { GlossyHeart } from '../../shared/Heart';
 import { PhoneTimer } from './common';
 
 const SEND_EVERY_MS = 200;
@@ -87,14 +87,7 @@ const TapPad = ({ conn, state, me, now }) => {
         aria-label="לחצו על הלב"
         data-testid="tap-heart"
       >
-        <Heart color="url(#hb-tap-gradient)">
-          <defs>
-            <linearGradient id="hb-tap-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#FF9EB8" />
-              <stop offset="100%" stopColor="#E11D48" />
-            </linearGradient>
-          </defs>
-        </Heart>
+        <GlossyHeart from="#FF9ED2" to="#E0126A" />
         <span className="hb-tap-heart-label">{active ? 'לחצו!' : ''}</span>
         {pops.map((p) => (
           <span key={p.id} className="hb-tap-pop" style={{ left: p.x, top: p.y }}>

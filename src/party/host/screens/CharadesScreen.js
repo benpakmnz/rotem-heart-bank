@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { SCORING } from '../../config/game';
 import { fmt } from '../../lib/format';
 import Avatar from '../../shared/Avatar';
+import GameTitle from '../../shared/GameTitle';
 import TimerRing from '../../shared/TimerRing';
 import { StageIntro, StageResults } from './common';
 
@@ -43,13 +44,34 @@ const Roulette = ({ pool, performerId, players }) => {
 
   return (
     <div className="hb-roulette">
-      <h1 className="hb-roulette-title">🎭 מי יציג עכשיו?</h1>
+      <GameTitle text="מי יציג עכשיו?" className="hb-roulette-title" />
       <motion.div className={`hb-roulette-window ${done ? 'is-done' : ''}`} animate={done ? { scale: [1, 1.18, 1] } : {}}>
+        <MarqueeBulbs />
         <Avatar player={players[shown]} size="xxl" showName />
       </motion.div>
     </div>
   );
 };
+
+// Blinking light bulbs around the roulette, like a TV game show sign.
+const BULBS = Array.from({ length: 22 }, (_, i) => {
+  // walk around the rectangle: top, left side, bottom, right side
+  const t = i / 22;
+  if (t < 0.3) return { left: `${(t / 0.3) * 100}%`, top: '0%' };
+  if (t < 0.5) return { left: '100%', top: `${((t - 0.3) / 0.2) * 100}%` };
+  if (t < 0.8) return { left: `${100 - ((t - 0.5) / 0.3) * 100}%`, top: '100%' };
+  return { left: '0%', top: `${100 - ((t - 0.8) / 0.2) * 100}%` };
+});
+
+const MarqueeBulbs = () => (
+  <div className="hb-bulbs" aria-hidden="true">
+    {BULBS.map((pos, i) => (
+      <span key={i} className="hb-bulb" style={pos} />
+    ))}
+  </div>
+);
+
+const Spotlight = () => <div className="hb-spotlight" aria-hidden="true" />;
 
 const Curtains = () => (
   <>
@@ -71,11 +93,12 @@ const CharadesRound = ({ state, now }) => {
     return (
       <div className="hb-charades">
         <Curtains />
+        <Spotlight />
         <span className="hb-chip">{roundLabel}</span>
         <motion.div initial={{ scale: 0.4 }} animate={{ scale: 1 }} transition={{ type: 'spring' }}>
           <Avatar player={performer} size="xxl" />
         </motion.div>
-        <h1 className="hb-charades-title">התור של {name} להציג!</h1>
+        <GameTitle text={`התור של ${name} להציג!`} className="hb-charades-title" />
         <p className="hb-charades-sub">🤫 המושג הסודי מחכה בטלפון של {name} - בלי להראות לאף אחד!</p>
         <p className="hb-charades-hint">כשמוכנים לוחצים בטלפון על "מתחילים" והשעון יוצא לדרך</p>
       </div>
@@ -86,6 +109,7 @@ const CharadesRound = ({ state, now }) => {
     return (
       <div className="hb-charades is-performing">
         <Curtains />
+        <Spotlight />
         <span className="hb-chip">{roundLabel}</span>
         <div className="hb-charades-stage">
           <motion.div animate={{ y: [0, -14, 0], rotate: [0, 4, -4, 0] }} transition={{ repeat: Infinity, duration: 1.6 }}>
@@ -93,7 +117,7 @@ const CharadesRound = ({ state, now }) => {
           </motion.div>
           <TimerRing endsAt={state.endsAt} total={seconds * 1000} now={now} className="hb-charades-timer" />
         </div>
-        <h1 className="hb-charades-title">🗣️ נחשו בקול רם!</h1>
+        <GameTitle text="נחשו בקול רם!" className="hb-charades-title" />
         <p className="hb-charades-sub">רק תנועות, בלי מילים - מי יגלה ראשון?</p>
       </div>
     );
@@ -103,9 +127,9 @@ const CharadesRound = ({ state, now }) => {
   return (
     <div className={`hb-charades hb-charades-outcome ${cur.success ? 'is-success' : 'is-fail'}`}>
       <Curtains />
-      <motion.h1 className="hb-charades-title" initial={{ scale: 0.3 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }}>
-        {cur.success ? '🎉 הצלחה!' : '⏰ נגמר הזמן!'}
-      </motion.h1>
+      <motion.div initial={{ scale: 0.3 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220, damping: 11 }}>
+        <GameTitle text={cur.success ? 'הצלחה!' : 'נגמר הזמן!'} tone={cur.success ? 'gold' : 'pink'} className="hb-charades-title" />
+      </motion.div>
       <div className="hb-charades-concept">
         <span>המושג היה:</span>
         <strong>{cur.concept}</strong>

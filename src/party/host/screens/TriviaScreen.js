@@ -17,7 +17,7 @@ const OptionCard = ({ index, text, status, voters, players }) => (
     transition={{ delay: 0.08 * index }}
   >
     <div className="hb-option-heart">
-      <Heart color={ANSWER_COLORS[index]} />
+      <Heart color="#fff" />
       <span>{index + 1}</span>
     </div>
     <div className="hb-option-text">{text}</div>

@@ -5,7 +5,8 @@ import { useConnectionStatus, useRoomValue } from '../net/hooks';
 import { isValidRoomCode, JOIN_PATH, ROOM_CODE_LENGTH } from '../routes';
 import { readJson, writeJson } from '../lib/storage';
 import { randomId } from '../lib/random';
-import { LogoHeart } from '../shared/Heart';
+import PartyBackdrop from '../shared/PartyBackdrop';
+import RotemPhoto from '../shared/RotemPhoto';
 import useWakeLock from '../shared/useWakeLock';
 import JoinScreen from './JoinScreen';
 import PlayerGame from './PlayerGame';
@@ -18,7 +19,8 @@ const identityKey = (code) => `hb-player-${code}`;
 
 const Centered = ({ children }) => (
   <div className="hb-phone hb-phone-center">
-    <LogoHeart className="hb-phone-logo" />
+    <PartyBackdrop rays={false} hearts={8} />
+    <RotemPhoto size="md" beat />
     {children}
   </div>
 );

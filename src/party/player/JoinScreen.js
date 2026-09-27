@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { AVATARS } from '../config/avatars';
 import { MAX_NAME_LENGTH } from '../config/game';
 import { cleanText } from '../lib/text';
-import { LogoHeart } from '../shared/Heart';
+import GameTitle from '../shared/GameTitle';
+import PartyBackdrop from '../shared/PartyBackdrop';
+import RotemPhoto from '../shared/RotemPhoto';
 
 const JoinScreen = ({ name: birthdayName, defaults, onJoin, removed }) => {
   const [name, setName] = useState((defaults && defaults.name) || '');
@@ -13,9 +15,10 @@ const JoinScreen = ({ name: birthdayName, defaults, onJoin, removed }) => {
 
   return (
     <div className="hb-phone hb-join">
+      <PartyBackdrop rays={false} hearts={8} />
       <header className="hb-join-head">
-        <LogoHeart className="hb-join-logo" />
-        <h1 className="hb-phone-title">בנק הלבבות של {birthdayName}</h1>
+        <RotemPhoto size="md" beat />
+        <GameTitle text={`בנק הלבבות של ${birthdayName}`} className="hb-join-title" />
         {removed ? <p className="hb-phone-text">יצאת מהמשחק - אפשר להצטרף שוב 😊</p> : <p className="hb-phone-text">ממלאים את הבנק ב-100% אהבה! 💖</p>}
       </header>
       <form

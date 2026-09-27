@@ -1,32 +1,50 @@
-/* בנק הלבבות - shared look (colors from the blueprint: rose, blush, navy, gold) */
+/* בנק הלבבות - shared look: a birthday game show at night.
+   Deep purple / magenta stages, hot pink hearts, gold for the bank. */
 
 .hb-body {
   margin: 0;
-  background: #fff5f7;
+  background: #1a0630;
   overscroll-behavior: none;
 }
 
 .hb-root {
-  --hb-rose: #e11d48;
-  --hb-rose-dark: #be123c;
-  --hb-pink: #ff5c8a;
-  --hb-pink-soft: #ff8fab;
-  --hb-blush: #ffe4ec;
-  --hb-blush-2: #fff1f4;
-  --hb-gold: #f5b301;
-  --hb-gold-light: #ffd166;
-  --hb-ink: #1e2433;
-  --hb-ink-soft: #5b6475;
-  --hb-muted: #9aa3b2;
-  --hb-green: #10b981;
+  --hb-bg-0: #14042a;
+  --hb-bg-1: #2c0a4e;
+  --hb-bg-2: #5a0f6a;
+  --hb-bg-3: #a0176e;
+
+  --hb-rose: #f0145a;
+  --hb-rose-dark: #a80b40;
+  --hb-pink: #ff4d94;
+  --hb-pink-soft: #ff9fcb;
+  --hb-purple: #9b5de5;
+  --hb-gold: #ffc53d;
+  --hb-gold-light: #ffe08a;
+  --hb-gold-dark: #d98a00;
+  --hb-green: #1fd598;
+  --hb-cyan: #4cc9f0;
+
+  /* text on the dark stage */
+  --hb-text: #ffffff;
+  --hb-text-soft: rgba(255, 228, 244, 0.82);
+  /* text on white cards */
+  --hb-ink: #2a0f3d;
+  --hb-ink-soft: #6d5a80;
+  --hb-muted: #a795b8;
+  --hb-blush: #ffe4ef;
+  --hb-blush-2: #fff1f7;
+
   --hb-card: #ffffff;
-  --hb-shadow: 0 0.8em 2.4em rgba(225, 29, 72, 0.12);
+  --hb-glass: rgba(255, 255, 255, 0.09);
+  --hb-glass-strong: rgba(255, 255, 255, 0.15);
+  --hb-glass-border: rgba(255, 255, 255, 0.2);
+  --hb-shadow: 0 0.8em 2.4em rgba(12, 0, 30, 0.45);
   --hb-font: 'Rubik', 'Assistant', 'Segoe UI', system-ui, sans-serif;
-  --hb-display: 'Varela Round', 'Rubik', 'Segoe UI', system-ui, sans-serif;
+  --hb-display: 'Fredoka', 'Rubik', 'Segoe UI', system-ui, sans-serif;
 
   direction: rtl;
   font-family: var(--hb-font);
-  color: var(--hb-ink);
+  color: var(--hb-text);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -46,12 +64,70 @@
   right: 0;
   bottom: 0;
   left: 0;
-  background: linear-gradient(135deg, #fff5f7, #ffe4ec);
+  background: radial-gradient(120% 90% at 50% 0%, #a0176e 0%, #5a0f6a 32%, #2c0a4e 65%, #14042a 100%);
+}
+
+/* ---------- game-logo titles: gradient letters with a thick white outline ---------- */
+
+.hb-gt {
+  position: relative;
+  display: inline-block;
+  font-family: var(--hb-display);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: 0.01em;
+}
+
+/* the outline + 3D shadow sits behind the colored letters */
+.hb-gt::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 0;
+  color: #fff;
+  -webkit-text-stroke: 0.17em #fff;
+  text-shadow: 0 0.09em 0 #ffc2dc, 0 0.15em 0 rgba(110, 8, 70, 0.9), 0 0.24em 0.5em rgba(20, 0, 40, 0.55);
+}
+
+.hb-gt-fill {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #ff86c1 0%, #ff3d8b 45%, #d40f58 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hb-gt-gold .hb-gt-fill {
+  background: linear-gradient(180deg, #fff4c2 0%, #ffd34d 45%, #e79a00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.hb-gt-gold::before {
+  -webkit-text-stroke-color: #7a1a4a;
+  color: #7a1a4a;
+  text-shadow: 0 0.1em 0 #4a0a2e, 0 0.22em 0.5em rgba(20, 0, 40, 0.6);
+}
+
+.hb-gt-white .hb-gt-fill {
+  background: linear-gradient(180deg, #ffffff 0%, #ffe6f2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.hb-gt-white::before {
+  -webkit-text-stroke-color: #e0126a;
+  color: #e0126a;
+  text-shadow: 0 0.1em 0 #8a0a44, 0 0.22em 0.5em rgba(20, 0, 40, 0.6);
 }
 
 /* ---------- buttons, chips, inputs ---------- */
 
 .hb-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -63,14 +139,10 @@
   font-weight: 700;
   line-height: 1.1;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, opacity 0.15s;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease, opacity 0.15s;
   -webkit-user-select: none;
   user-select: none;
   touch-action: manipulation;
-}
-
-.hb-btn:active {
-  transform: scale(0.96);
 }
 
 .hb-btn:focus-visible,
@@ -85,23 +157,49 @@
 .hb-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  transform: none;
 }
 
+/* candy button: glossy top, darker "3D" edge underneath */
 .hb-btn-primary {
-  background: linear-gradient(135deg, var(--hb-pink), var(--hb-rose));
+  background: linear-gradient(180deg, #ff74b0 0%, #f7307e 50%, #e5125c 100%);
   color: #fff;
-  box-shadow: 0 0.5em 1.4em rgba(225, 29, 72, 0.35);
+  text-shadow: 0 0.06em 0 rgba(120, 0, 50, 0.45);
+  box-shadow: inset 0 0.12em 0 rgba(255, 255, 255, 0.45), 0 0.3em 0 #9e0a3f, 0 0.7em 1.4em rgba(240, 20, 90, 0.45);
 }
 
 .hb-btn-primary:hover:not(:disabled) {
-  box-shadow: 0 0.7em 1.8em rgba(225, 29, 72, 0.45);
+  box-shadow: inset 0 0.12em 0 rgba(255, 255, 255, 0.45), 0 0.3em 0 #9e0a3f, 0 0.8em 1.8em rgba(255, 61, 139, 0.6);
 }
 
+.hb-btn-primary:active:not(:disabled) {
+  transform: translateY(0.22em);
+  box-shadow: inset 0 0.12em 0 rgba(255, 255, 255, 0.45), 0 0.08em 0 #9e0a3f, 0 0.3em 0.8em rgba(240, 20, 90, 0.4);
+}
+
+.hb-btn-gold {
+  background: linear-gradient(180deg, #fff0b3 0%, #ffcf3d 50%, #f5a800 100%);
+  color: #5a2600;
+  box-shadow: inset 0 0.12em 0 rgba(255, 255, 255, 0.6), 0 0.3em 0 #b86e00, 0 0.7em 1.4em rgba(255, 180, 0, 0.4);
+}
+
+.hb-btn-gold:active:not(:disabled) {
+  transform: translateY(0.22em);
+  box-shadow: inset 0 0.12em 0 rgba(255, 255, 255, 0.6), 0 0.08em 0 #b86e00, 0 0.3em 0.8em rgba(255, 180, 0, 0.35);
+}
+
+/* glass button for the dark stage */
 .hb-btn-soft {
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--hb-rose);
-  box-shadow: 0 0.3em 1em rgba(225, 29, 72, 0.14);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.3), 0 0.4em 1em rgba(10, 0, 30, 0.3);
+}
+
+.hb-btn-soft:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.hb-btn-soft:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .hb-btn-round {
@@ -118,7 +216,7 @@
 .hb-link-btn {
   background: none;
   border: 0;
-  color: var(--hb-rose);
+  color: var(--hb-pink-soft);
   font-weight: 600;
   font-size: 0.95em;
   cursor: pointer;
@@ -148,9 +246,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
-  background: #fff;
-  color: var(--hb-rose);
-  border: 0.08em solid #ffd1dc;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.28);
   border-radius: 999px;
   padding: 0.35em 1em;
   font-weight: 700;
@@ -158,15 +256,15 @@
 }
 
 .hb-chip-gold {
-  background: linear-gradient(135deg, #fff7e0, #ffefc2);
-  border-color: #ffdf8a;
-  color: #9a6400;
+  background: linear-gradient(180deg, #fff3c4, #ffd666);
+  color: #6b3300;
+  box-shadow: 0 0.2em 0 #c98200, 0 0.5em 1.2em rgba(255, 190, 40, 0.3);
 }
 
 .hb-chip-soft {
-  background: var(--hb-blush-2);
-  color: var(--hb-ink-soft);
-  border-color: transparent;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--hb-text-soft);
+  box-shadow: none;
   font-weight: 500;
 }
 
@@ -175,7 +273,7 @@
   font: inherit;
   color: var(--hb-ink);
   background: #fff;
-  border: 0.1em solid #ffd1dc;
+  border: 0.12em solid #ffc2dc;
   border-radius: 0.8em;
   padding: 0.6em 0.9em;
   outline: none;
@@ -184,11 +282,11 @@
 
 .hb-input:focus {
   border-color: var(--hb-pink);
-  box-shadow: 0 0 0 0.25em rgba(255, 92, 138, 0.18);
+  box-shadow: 0 0 0 0.25em rgba(255, 77, 148, 0.3);
 }
 
 .hb-muted {
-  color: var(--hb-muted);
+  color: var(--hb-text-soft);
 }
 
 /* ---------- hearts ---------- */
@@ -225,8 +323,7 @@
   width: 3em;
   height: 3em;
   border-radius: 50%;
-  box-shadow: 0 0.25em 0.8em rgba(30, 36, 51, 0.12), inset 0 -0.2em 0 rgba(0, 0, 0, 0.06);
-  border: 0.14em solid #fff;
+  box-shadow: 0 0 0 0.14em #fff, 0 0.3em 0.9em rgba(10, 0, 30, 0.45), inset 0 -0.25em 0 rgba(0, 0, 0, 0.08);
 }
 
 .hb-avatar-emoji {
@@ -257,12 +354,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.9em;
+  text-shadow: 0 0.1em 0.3em rgba(10, 0, 30, 0.5);
 }
 
 .hb-avatar-xs .hb-avatar-bubble {
   width: 1.9em;
   height: 1.9em;
-  border-width: 0.1em;
+  box-shadow: 0 0 0 0.1em #fff, 0 0.2em 0.5em rgba(10, 0, 30, 0.4);
 }
 
 .hb-avatar-xs .hb-avatar-emoji {
@@ -281,6 +379,7 @@
 .hb-avatar-lg .hb-avatar-bubble {
   width: 4.4em;
   height: 4.4em;
+  box-shadow: 0 0 0 0.18em #fff, 0 0.4em 1.2em rgba(10, 0, 30, 0.45), inset 0 -0.3em 0 rgba(0, 0, 0, 0.08);
 }
 
 .hb-avatar-lg .hb-avatar-emoji {
@@ -294,7 +393,7 @@
 .hb-avatar-xl .hb-avatar-bubble {
   width: 6.5em;
   height: 6.5em;
-  border-width: 0.25em;
+  box-shadow: 0 0 0 0.25em #fff, 0 0 0 0.5em rgba(255, 77, 148, 0.45), 0 0.6em 1.6em rgba(10, 0, 30, 0.5);
 }
 
 .hb-avatar-xl .hb-avatar-emoji {
@@ -308,7 +407,7 @@
 .hb-avatar-xxl .hb-avatar-bubble {
   width: 10em;
   height: 10em;
-  border-width: 0.35em;
+  box-shadow: 0 0 0 0.35em #fff, 0 0 0 0.75em rgba(255, 77, 148, 0.45), 0 0 3em rgba(255, 77, 148, 0.6), 0 1em 2.4em rgba(10, 0, 30, 0.5);
 }
 
 .hb-avatar-xxl .hb-avatar-emoji {
@@ -327,6 +426,8 @@
   width: 5.5em;
   height: 5.5em;
   flex: none;
+  border-radius: 50%;
+  box-shadow: 0 0 1.6em rgba(255, 77, 148, 0.35);
 }
 
 .hb-timer svg {
@@ -335,8 +436,8 @@
 }
 
 .hb-timer-track {
-  fill: #fff;
-  stroke: #ffe0e8;
+  fill: rgba(30, 5, 50, 0.72);
+  stroke: rgba(255, 255, 255, 0.14);
   stroke-width: 8;
 }
 
@@ -357,8 +458,9 @@
   display: grid;
   place-items: center;
   font-family: var(--hb-display);
+  font-weight: 700;
   font-size: 2em;
-  color: var(--hb-ink);
+  color: #fff;
 }
 
 .hb-timer-label {
@@ -366,27 +468,35 @@
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  margin-top: 0.3em;
+  margin-top: 0.4em;
   font-size: 0.75em;
   font-weight: 700;
-  color: var(--hb-ink-soft);
+  color: var(--hb-text-soft);
   white-space: nowrap;
+}
+
+.hb-timer.is-reading {
+  box-shadow: 0 0 1.6em rgba(255, 197, 61, 0.35);
 }
 
 .hb-timer.is-reading .hb-timer-bar {
   stroke: var(--hb-gold);
 }
 
-.hb-timer.is-urgent .hb-timer-bar {
-  stroke: var(--hb-rose);
-}
-
-.hb-timer.is-urgent .hb-timer-num {
-  color: var(--hb-rose);
+.hb-timer.is-urgent {
+  box-shadow: 0 0 2em rgba(255, 40, 90, 0.8);
   animation: hb-pulse 1s ease-in-out infinite;
 }
 
-/* ---------- the heart bank meter ---------- */
+.hb-timer.is-urgent .hb-timer-bar {
+  stroke: #ff2d55;
+}
+
+.hb-timer.is-urgent .hb-timer-num {
+  color: #ffd0dc;
+}
+
+/* ---------- the heart bank meter: a chunky golden power bar ---------- */
 
 .hb-meter {
   width: 100%;
@@ -397,28 +507,29 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 1em;
-  margin-bottom: 0.35em;
+  margin-bottom: 0.3em;
 }
 
 .hb-meter-title {
   font-weight: 700;
-  color: var(--hb-ink);
+  color: var(--hb-text);
 }
 
 .hb-meter-percent {
   font-family: var(--hb-display);
+  font-weight: 700;
   font-size: 1.9em;
   line-height: 1;
-  color: var(--hb-rose);
+  color: var(--hb-gold-light);
+  text-shadow: 0 0 0.4em rgba(255, 197, 61, 0.6), 0 0.08em 0 #a35a00;
 }
 
 .hb-meter-track {
   position: relative;
-  height: 1.3em;
+  height: 1.4em;
   border-radius: 999px;
-  background: #fff;
-  box-shadow: inset 0 0.15em 0.4em rgba(225, 29, 72, 0.15);
-  border: 0.1em solid #ffd1dc;
+  background: rgba(20, 2, 40, 0.65);
+  box-shadow: inset 0 0.15em 0.35em rgba(0, 0, 0, 0.5), 0 0 0 0.12em rgba(255, 255, 255, 0.28);
   overflow: hidden;
   display: flex;
 }
@@ -427,9 +538,21 @@
   position: relative;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--hb-gold-light) 0%, var(--hb-pink) 35%, var(--hb-rose) 100%);
-  box-shadow: 0 0 1em rgba(255, 92, 138, 0.6);
+  background: linear-gradient(180deg, #fff1b3 0%, #ffc93c 45%, #ff8a1f 100%);
+  box-shadow: 0 0 1em rgba(255, 190, 40, 0.8), inset 0 -0.2em 0 rgba(170, 70, 0, 0.35);
   overflow: hidden;
+}
+
+/* moving candy stripes inside the fill */
+.hb-meter-fill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: -2em;
+  background: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.28) 0 0.45em, transparent 0.45em 0.9em);
+  animation: hb-stripes 1s linear infinite;
 }
 
 .hb-meter-shine {
@@ -438,7 +561,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.55) 45%, transparent 60%);
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.6) 45%, transparent 60%);
   background-size: 200% 100%;
   animation: hb-shine 2.6s linear infinite;
 }
@@ -447,12 +570,12 @@
   margin-top: 0.3em;
   font-size: 0.85em;
   font-weight: 600;
-  color: var(--hb-ink-soft);
+  color: var(--hb-text-soft);
 }
 
 .hb-meter.is-full .hb-meter-fill {
-  background: linear-gradient(90deg, #fff1b8, var(--hb-gold-light), var(--hb-gold));
-  box-shadow: 0 0 1.6em rgba(255, 197, 61, 0.9);
+  background: linear-gradient(180deg, #ffffff 0%, #ffe07a 45%, #ffb300 100%);
+  box-shadow: 0 0 1.8em rgba(255, 210, 80, 1);
 }
 
 .hb-meter-xl {
@@ -463,9 +586,120 @@
   height: 1.6em;
 }
 
-/* ---------- background hearts ---------- */
+/* ---------- Rotem's photo in a golden heart ---------- */
 
-.hb-floating {
+.hb-photo {
+  position: relative;
+  width: 10em;
+  height: 9.4em;
+  flex: none;
+}
+
+.hb-photo-glow {
+  position: absolute;
+  top: -18%;
+  right: -18%;
+  bottom: -18%;
+  left: -18%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 90, 160, 0.75), rgba(255, 90, 160, 0.25) 55%, transparent 100%);
+  animation: hb-glow-pulse 2.4s ease-in-out infinite;
+}
+
+.hb-photo-svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0.5em 0.9em rgba(20, 0, 40, 0.5));
+}
+
+.hb-photo-beat .hb-photo-svg {
+  animation: hb-beat 1.8s ease-in-out infinite;
+}
+
+.hb-photo-crown {
+  position: absolute;
+  top: -22%;
+  left: 11%;
+  width: 34%;
+  transform: rotate(-16deg);
+  filter: drop-shadow(0 0.2em 0.3em rgba(40, 0, 30, 0.45));
+}
+
+.hb-photo-age {
+  position: absolute;
+  bottom: 2%;
+  left: 2%;
+  width: 30%;
+  height: 32%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6cc, #ffcc33 55%, #e08e00);
+  box-shadow: 0 0 0 0.12em #fff, 0 0.3em 0.8em rgba(30, 0, 30, 0.45);
+  font-family: var(--hb-display);
+  font-weight: 700;
+  color: #7a2c00;
+  font-size: 1.9em;
+  line-height: 1;
+}
+
+/* the crown sticks out above the frame: keep room for it */
+.hb-photo.has-art {
+  margin-top: 2em;
+}
+
+.hb-photo-sm.has-art {
+  margin-top: 0.7em;
+}
+
+.hb-photo-lg.has-art {
+  margin-top: 3.6em;
+}
+
+.hb-photo-xl.has-art {
+  margin-top: 4.7em;
+}
+
+.hb-photo-sparkle {
+  position: absolute;
+  width: 14%;
+  height: 14%;
+  animation: hb-twinkle 2.2s ease-in-out infinite;
+}
+
+.hb-photo-sm {
+  width: 3.6em;
+  height: 3.4em;
+}
+
+.hb-photo-sm .hb-photo-age {
+  font-size: 0.7em;
+}
+
+.hb-photo-lg {
+  width: 18em;
+  height: 16.9em;
+}
+
+.hb-photo-lg .hb-photo-age {
+  font-size: 3.4em;
+}
+
+.hb-photo-xl {
+  width: 24em;
+  height: 22.5em;
+}
+
+.hb-photo-xl .hb-photo-age {
+  font-size: 4.4em;
+}
+
+/* ---------- the party stage behind everything ---------- */
+
+.hb-backdrop {
   position: absolute;
   top: 0;
   right: 0;
@@ -476,26 +710,72 @@
   z-index: 0;
 }
 
-.hb-corner-heart {
+.hb-bd-rays {
   position: absolute;
-  width: 36vmin;
-  height: 33vmin;
-  left: -6vmin;
-  bottom: -8vmin;
-  transform: rotate(-12deg);
-  opacity: 0.9;
+  left: 50%;
+  top: 38%;
+  width: 190vmax;
+  height: 190vmax;
+  margin: -95vmax 0 0 -95vmax;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.07) 0deg 6deg, rgba(255, 255, 255, 0) 6deg 15deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.6) 22%, transparent 48%);
+  mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.6) 22%, transparent 48%);
+  animation: hb-spin 120s linear infinite;
+  will-change: transform;
 }
 
-.hb-floating-heart {
+.hb-bd-bokeh {
+  position: absolute;
+  border-radius: 50%;
+  animation: hb-drift ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.hb-bd-heart {
   position: absolute;
   bottom: -3em;
   animation-name: hb-float-up;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
+  will-change: transform;
 }
 
-.hb-floating-heart .hb-heart-icon {
+.hb-bd-heart .hb-heart-icon {
   display: block;
+}
+
+.hb-bd-sparkle {
+  position: absolute;
+  width: 1.1em;
+  height: 1.1em;
+  animation: hb-twinkle ease-in-out infinite;
+}
+
+.hb-bd-balloon {
+  position: absolute;
+  bottom: -9em;
+  width: 4.2em;
+  animation-name: hb-balloon-up;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.hb-bd-balloon svg {
+  display: block;
+  transform-origin: 50% 20%;
+  width: 100%;
+  overflow: visible;
+  animation: hb-sway 3.4s ease-in-out infinite alternate;
+}
+
+.hb-bd-vignette {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(8, 0, 20, 0.55) 100%);
 }
 
 .hb-fx-canvas {
@@ -523,6 +803,75 @@
   }
 }
 
+@keyframes hb-balloon-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-125vh);
+  }
+}
+
+@keyframes hb-sway {
+  from {
+    transform: rotate(-7deg) translateX(-0.6em);
+  }
+  to {
+    transform: rotate(7deg) translateX(0.6em);
+  }
+}
+
+@keyframes hb-drift {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(var(--hb-dx, 4em), var(--hb-dy, -3em)) scale(1.15);
+  }
+}
+
+@keyframes hb-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.2) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+}
+
+@keyframes hb-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hb-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes hb-stripes {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(1.27em);
+  }
+}
+
 @keyframes hb-pulse {
   0%,
   100% {
@@ -546,6 +895,16 @@
   }
   45% {
     transform: scale(1.05);
+  }
+}
+
+@keyframes hb-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.35em);
   }
 }
 
@@ -578,8 +937,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hb-floating-heart,
-  .hb-meter-shine {
+  .hb-bd-heart,
+  .hb-bd-balloon,
+  .hb-bd-rays,
+  .hb-bd-bokeh,
+  .hb-bd-sparkle,
+  .hb-meter-shine,
+  .hb-meter-fill::before,
+  .hb-photo-glow {
     animation: none;
   }
 }
