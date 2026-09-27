@@ -948,3 +948,148 @@
     animation: none;
   }
 }
+
+/* ---------- badges (found hearts, perfect basket) ---------- */
+
+.hb-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15em;
+  vertical-align: middle;
+}
+
+.hb-badge {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.02em;
+  line-height: 1;
+  filter: drop-shadow(0 0.08em 0.15em rgba(10, 0, 30, 0.5));
+}
+
+.hb-badge .hb-heart-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hb-badge-gold {
+  filter: drop-shadow(0 0 0.3em rgba(255, 200, 60, 0.9));
+}
+
+.hb-badge-basket {
+  width: auto;
+  height: auto;
+  font-size: 0.95em;
+}
+
+/* ---------- "who found it?" picker ---------- */
+
+.hb-picker-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 120;
+  background: rgba(10, 0, 25, 0.65);
+  display: grid;
+  place-items: center;
+  padding: 1em;
+}
+
+.hb-picker {
+  width: 60em;
+  max-width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #3a1060, #22073c);
+  color: #fff;
+  border-radius: 1.6em;
+  padding: 1.2em 1.4em 1.4em;
+  box-shadow: inset 0 0 0 0.1em rgba(255, 255, 255, 0.2), 0 2em 5em rgba(0, 0, 0, 0.5);
+}
+
+.hb-picker-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.4em;
+  margin-bottom: 0.8em;
+}
+
+.hb-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5em, 1fr));
+  gap: 0.8em;
+}
+
+.hb-picker-player {
+  border: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-radius: 1em;
+  padding: 0.7em 0.3em 0.5em;
+  cursor: pointer;
+  font-size: 1em;
+  touch-action: manipulation;
+}
+
+.hb-picker-player:hover,
+.hb-picker-player:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.hb-picker-player.is-selected {
+  background: rgba(255, 197, 61, 0.3);
+  box-shadow: inset 0 0 0 0.15em var(--hb-gold);
+}
+
+.hb-picker-clear {
+  margin-top: 1em;
+}
+
+/* ---------- basket throws: pending / in / missed (TV + phones) ---------- */
+
+.hb-throws {
+  display: flex;
+  gap: 1em;
+}
+
+.hb-throw {
+  position: relative;
+  width: 6em;
+  height: 5.5em;
+  display: grid;
+  place-items: center;
+}
+
+.hb-throw .hb-heart-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hb-throw b {
+  position: relative;
+  font-family: var(--hb-display);
+  font-size: 2em;
+  padding-bottom: 0.2em;
+  color: #fff;
+}
+
+.hb-throw.is-wait .hb-heart-icon {
+  opacity: 0.3;
+}
+
+.hb-throw.is-next .hb-heart-icon {
+  opacity: 0.6;
+  animation: hb-beat 1.2s ease-in-out infinite;
+}
+
+.hb-throw.is-hit {
+  filter: drop-shadow(0 0 1em rgba(255, 120, 180, 0.9));
+}

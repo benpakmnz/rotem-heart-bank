@@ -538,8 +538,60 @@
   margin: 1em 0 0;
 }
 
-.hb-lobby-hero .hb-link-btn {
+.hb-lobby-links {
+  display: flex;
+  gap: 1.6em;
   margin-top: 0.8em;
+}
+
+.hb-admin-invite {
+  width: 40em;
+  max-width: 94vw;
+  max-height: 94vh;
+  overflow-y: auto;
+  background: #fff;
+  color: var(--hb-ink);
+  border-radius: 1.6em;
+  padding: 1.4em 2em 1.6em;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+  box-shadow: 0 2em 5em rgba(0, 0, 0, 0.5);
+}
+
+.hb-admin-invite h2 {
+  margin: 0;
+  color: var(--hb-rose);
+}
+
+.hb-admin-invite p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--hb-ink-soft);
+}
+
+.hb-admin-invite .hb-qr {
+  width: 16em;
+  height: 16em;
+}
+
+.hb-admin-invite-codes {
+  display: flex;
+  gap: 2em;
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+.hb-admin-invite-codes strong {
+  font-family: var(--hb-display);
+  color: var(--hb-rose);
+  letter-spacing: 0.1em;
+}
+
+.hb-admin-invite-note {
+  font-size: 0.9em;
 }
 
 .hb-lobby-join {
@@ -867,6 +919,28 @@
   width: 85%;
 }
 
+.hb-pp-hunt {
+  display: grid;
+  grid-template-columns: repeat(3, 3.2em);
+  gap: 0.6em;
+}
+
+.hb-pp-hunt span {
+  width: 3.2em;
+  height: 3em;
+  opacity: 0.4;
+}
+
+.hb-pp-hunt span.is-found {
+  opacity: 1;
+  filter: drop-shadow(0 0 0.6em rgba(255, 220, 120, 0.9));
+}
+
+.hb-pp-hunt .hb-heart-icon {
+  width: 100%;
+  height: 100%;
+}
+
 .hb-pp-card {
   width: 100%;
   background: #fff;
@@ -1022,7 +1096,7 @@
 
 .hb-leader-row {
   display: grid;
-  grid-template-columns: 2.4em auto 8em 1fr 6em;
+  grid-template-columns: 2.4em auto 11em 1fr 6em;
   align-items: center;
   gap: 0.7em;
   font-size: 1.25em;
@@ -1281,6 +1355,33 @@
   width: 1.4em;
   height: 1.3em;
   flex: none;
+}
+
+.hb-set-question strong {
+  display: block;
+  margin-bottom: 0.5em;
+}
+
+.hb-set-question .hb-field + .hb-field {
+  margin-top: 0.6em;
+}
+
+.hb-set-stages {
+  grid-column: 1 / -1;
+}
+
+.hb-set-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 600;
+  padding: 0.25em 0;
+}
+
+.hb-set-check input {
+  width: 1.2em;
+  height: 1.2em;
+  accent-color: var(--hb-rose);
 }
 
 .hb-input-short {

@@ -50,7 +50,7 @@ export const StagePrep = ({ stage, name }) => (
     <motion.div className="hb-prep-icon" initial={{ scale: 0 }} animate={{ scale: 1, rotate: [0, -10, 10, 0] }}>
       {stage.icon}
     </motion.div>
-    <div className="hb-prep-num">שלב {stage.num}</div>
+    <div className="hb-prep-num">{stage.num ? `שלב ${stage.num} מתוך ${stage.total}` : 'שלב בונוס'}</div>
     <h1 className="hb-phone-title">{stage.title}</h1>
     <ul className="hb-prep-how">
       {stage.how.map((line) => (
@@ -79,7 +79,7 @@ export const StageDone = ({ state, players, me, stage }) => {
   return (
     <div className="hb-pad hb-done">
       <div className="hb-prep-icon">{stage.icon}</div>
-      <h1 className="hb-phone-title">סוף שלב {stage.num}!</h1>
+      <h1 className="hb-phone-title">סוף {stage.num ? `שלב ${stage.num}` : 'השלב'}!</h1>
       <div className="hb-done-score">
         <span>בבנק האישי שלך</span>
         <strong>{fmt(score)} ❤️</strong>

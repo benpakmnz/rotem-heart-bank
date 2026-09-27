@@ -2,10 +2,13 @@ import { useEffect, useRef } from 'react';
 import { isMuted, play } from '../audio/sfx';
 import { isMusicEnabled } from '../audio/music';
 import { celebrate, heartBurst } from '../shared/fx';
-import { tapCounts } from '../engine/engine';
+import { basketThrower, tapCounts } from '../engine/engine';
 
 const totalWaves = (inputs) => Object.values(inputs || {}).reduce((sum, v) => sum + (Number(v && v.waves) || 0), 0);
 const totalTaps = (s) => Object.values(tapCounts(s)).reduce((a, b) => a + b, 0);
+const heartsFound = (s) => (s.hunt ? Object.keys(s.hunt.found).length : 0);
+const throwsOf = (s, pid) => (s.basket && pid && s.basket.throws[pid]) || [];
+const perfects = (s) => (s.basket ? s.basket.perfect.length : 0);
 
 // Sounds and confetti on the TV, driven by state changes.
 const useHostEffects = (state, now) => {
@@ -29,7 +32,15 @@ const useHostEffects = (state, now) => {
         case 'charades:intro':
         case 'word:intro':
         case 'blessings:intro':
+        case 'hunt:intro':
+        case 'basket:intro':
           play('reveal');
+          break;
+        case 'hunt:search':
+          play('go');
+          break;
+        case 'basket:throw':
+          play('ding');
           break;
         case 'tap:active':
         case 'word:play':
@@ -90,6 +101,26 @@ const useHostEffects = (state, now) => {
       if (state.word.current.revealed > p.word.current.revealed) play('ding');
     }
     if (state.blessings && p.blessings && state.blessings.list.length > p.blessings.list.length) play('whoosh');
+    if (state.phase === 'hunt' && heartsFound(state) > heartsFound(p)) {
+      play('fanfare');
+      celebrate();
+    }
+    if (state.phase === 'basket') {
+      const pid = basketThrower(state);
+      const list = throwsOf(state, pid);
+      if (list.length > throwsOf(p, pid).length) {
+        if (list[list.length - 1]) {
+          play('correct');
+          heartBurst({ particleCount: 60, origin: { x: 0.3, y: 0.55 } });
+        } else {
+          play('wrong');
+        }
+      }
+      if (perfects(state) > perfects(p)) {
+        play('fanfare');
+        celebrate();
+      }
+    }
   }, [state]);
 
   // 3-2-1 beeps and ticking in the last seconds of a timer.

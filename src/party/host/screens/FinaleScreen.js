@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { play } from '../../audio/sfx';
 import { meterFraction } from '../../lib/scoring';
 import { fmt } from '../../lib/format';
+import { playerBadges } from '../../engine/engine';
 import Avatar from '../../shared/Avatar';
+import Badges from '../../shared/Badges';
 import BankMeter from '../../shared/BankMeter';
 import Fireworks from '../../shared/Fireworks';
 import GameTitle from '../../shared/GameTitle';
@@ -17,6 +19,7 @@ const Podium = ({ state }) => {
   // 2nd - 1st - 3rd, like a real podium (RTL: first item on the right)
   const order = [top[1], top[0], top[2]].filter(Boolean);
   const place = (pid) => top.indexOf(pid);
+  const badges = playerBadges(state);
   return (
     <div className="hb-podium">
       {order.map((pid) => (
@@ -29,6 +32,7 @@ const Podium = ({ state }) => {
         >
           {place(pid) === 0 && <div className="hb-podium-crown">👑</div>}
           <Avatar player={state.players[pid]} size={place(pid) === 0 ? 'xl' : 'lg'} showName />
+          <Badges list={badges[pid]} />
           <div className="hb-podium-score">{fmt(state.scores[pid] || 0)} ❤️</div>
           <div className="hb-podium-block">{place(pid) + 1}</div>
         </motion.div>

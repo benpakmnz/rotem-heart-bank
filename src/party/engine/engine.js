@@ -10,6 +10,10 @@ import {
   FINALE_FILL_MS,
   MAX_TAPS_PER_SECOND,
   MAX_BLESSING_LENGTH,
+  HEART_KINDS,
+  huntKind,
+  basketSettings,
+  stageOrder,
 } from '../config/game';
 import { tapPoints, triviaPoints, topTappers, computeBankTarget, meterFraction } from '../lib/scoring';
 import { pick, shuffle } from '../lib/random';
@@ -18,17 +22,31 @@ import { cleanText, normalizeWord, scrambleLetters, wordLetters, wordShape } fro
 // The TV is the single source of truth: it runs this reducer, phones only
 // send inputs (taps, answers, words...) and render the published state.
 //
-// Phases: lobby -> tap -> trivia -> charades -> word -> blessings -> finale.
+// Phases: lobby -> the stages in settings.stages (default: tap -> trivia ->
+// hunt -> word -> charades -> basket -> blessings) -> finale.
 // Steps per phase:
 //   lobby:     waiting
 //   tap:       intro -> countdown -> active -> tally -> results
 //   trivia:    intro -> (question -> reveal) x N -> results
-//   charades:  intro -> (pick -> ready -> perform -> outcome) x N -> results
+//   hunt:      intro -> search -> results        (the admin assigns found hearts)
 //   word:      intro -> (countdown -> play -> outcome) x N -> results
+//   charades:  intro -> (pick -> ready -> perform -> outcome) x N -> results
+//   basket:    intro -> throw x players -> results (the admin marks every throw)
 //   blessings: intro -> write
 //   finale:    fill -> celebrate
 
 export const PHASES = ['lobby', ...STAGE_IDS, 'finale'];
+
+// The phase after `phase` in this game's stage order.
+export const nextPhase = (s, phase) => {
+  const order = stageOrder(s.settings);
+  if (phase === 'lobby') return order[0];
+  const at = order.indexOf(phase);
+  if (at >= 0) return order[at + 1] || 'finale';
+  // a stage that was turned off but reached through the menu
+  const rest = STAGE_IDS.slice(STAGE_IDS.indexOf(phase) + 1).filter((id) => order.includes(id));
+  return rest[0] || 'finale';
+};
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -108,6 +126,8 @@ export const createGame = ({ roomCode, settings, now }) => ({
   charades: null,
   word: null,
   blessings: null,
+  hunt: null,
+  basket: null,
   finale: null,
 });
 
@@ -136,18 +156,36 @@ const award = (s, pid, amount, reason, now, extra = {}) => {
   if (s.awards.length > 40) s.awards.splice(0, s.awards.length - 40);
 };
 
+// Takes back points given by mistake (the admin fixed who found a heart...).
+const unaward = (s, pid, amount) => {
+  if (!amount) return;
+  s.bank = Math.max(0, s.bank - amount);
+  if (pid && s.scores[pid] != null) s.scores[pid] = Math.max(0, s.scores[pid] - amount);
+  const stats = s.stageStats[s.phase];
+  if (stats) {
+    stats.gained -= amount;
+    if (pid && stats.byPlayer[pid]) stats.byPlayer[pid] -= amount;
+  }
+};
+
 const ensureTarget = (s) => {
   if (s.target) return;
   const { settings } = s;
+  const on = stageOrder(settings);
+  const basket = basketSettings(settings);
   s.target =
     settings.bankTarget > 0
       ? settings.bankTarget
       : computeBankTarget({
           players: playerIds(s).length,
-          questions: playableQuestions(settings).length,
-          charadesRounds: Math.max(1, Number(settings.timings.charadesRounds) || 1),
-          words: playableWords(settings).length,
-          tapSeconds: Number(settings.timings.tapSeconds) || 60,
+          questions: on.includes('trivia') ? playableQuestions(settings).length : 0,
+          charadesRounds: on.includes('charades') ? Math.max(1, Number(settings.timings.charadesRounds) || 1) : 0,
+          words: on.includes('word') ? playableWords(settings).length : 0,
+          tapSeconds: on.includes('tap') ? Number(settings.timings.tapSeconds) || 60 : 0,
+          blessings: on.includes('blessings'),
+          huntPoints: on.includes('hunt') ? huntHearts(settings).reduce((sum, h) => sum + h.points, 0) : 0,
+          basketThrows: on.includes('basket') ? basket.throws : 0,
+          basketHitPoints: basket.hitPoints,
         });
 };
 
@@ -193,6 +231,132 @@ const enterPhase = (s, phase, now) => {
   }
   if (phase === 'word') s.word = { total: playableWords(s.settings).length, current: null, results: [] };
   if (phase === 'blessings' && !s.blessings) s.blessings = { list: [], seen: {}, hidden: {} };
+  if (phase === 'hunt') s.hunt = { hearts: huntHearts(s.settings), found: {}, startedAt: 0 };
+  if (phase === 'basket') {
+    const b = basketSettings(s.settings);
+    s.basket = {
+      perPlayer: b.throws,
+      hitPoints: b.hitPoints,
+      perfectBonus: b.perfectBonus,
+      order: onlinePlayerIds(s).length ? onlinePlayerIds(s) : playerIds(s),
+      turn: 0,
+      throws: {}, // pid -> [true = in the basket, false = missed]
+      perfect: [],
+    };
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Stage "מחפשי הלבבות" (hidden hearts; the admin says who found which)
+
+export const huntHearts = (settings) => {
+  const list = [];
+  HEART_KINDS.forEach(({ id }) => {
+    const { count, points } = huntKind(settings, id);
+    for (let i = 1; i <= count; i += 1) list.push({ id: `${id}-${i}`, kind: id, points });
+  });
+  return list;
+};
+
+const startHunt = (s, now) => {
+  const minutes = Math.max(0, Number(s.settings.hunt && s.settings.hunt.minutes) || 0);
+  s.roundId = newRoundId(s, 'hunt');
+  s.inputs = {};
+  s.hunt.startedAt = now;
+  setStep(s, 'search', now, minutes ? now + minutes * 60000 : 0);
+};
+
+// pid = null takes the heart back (a mistake).
+const assignHeart = (s, heartId, pid, now) => {
+  const heart = s.hunt.hearts.find((h) => h.id === heartId);
+  if (!heart) return false;
+  const who = pid && s.players[pid] ? pid : null;
+  const prev = s.hunt.found[heartId];
+  if ((prev ? prev.pid : null) === who) return false;
+  if (prev) unaward(s, prev.pid, heart.points);
+  if (who) {
+    s.hunt.found[heartId] = { pid: who, at: now };
+    award(s, who, heart.points, 'hunt', now, { kind: heart.kind });
+  } else {
+    delete s.hunt.found[heartId];
+  }
+  return true;
+};
+
+// ---------------------------------------------------------------------------
+// Stage "קליעה ללב" (throwing hearts into a basket; the admin marks the throws)
+
+export const basketThrower = (s) => (s.basket && s.step === 'throw' ? s.basket.order[s.basket.turn] || null : null);
+
+const startBasketTurn = (s, turn, now) => {
+  const b = s.basket;
+  // latecomers get a turn at the end
+  onlinePlayerIds(s).forEach((pid) => {
+    if (!b.order.includes(pid)) b.order.push(pid);
+  });
+  let next = turn;
+  while (next < b.order.length && !s.players[b.order[next]]) next += 1;
+  if (next >= b.order.length) {
+    setStep(s, 'results', now);
+    return;
+  }
+  b.turn = next;
+  s.round = next;
+  s.roundId = newRoundId(s, 'basket');
+  s.inputs = {};
+  setStep(s, 'throw', now);
+};
+
+const basketThrow = (s, hit, now) => {
+  const pid = basketThrower(s);
+  if (!pid) return false;
+  const b = s.basket;
+  const list = b.throws[pid] || [];
+  if (list.length >= b.perPlayer) return false;
+  list.push(Boolean(hit));
+  b.throws[pid] = list;
+  if (hit) award(s, pid, b.hitPoints, 'basket', now);
+  if (list.length === b.perPlayer && list.every(Boolean)) {
+    b.perfect.push(pid);
+    award(s, pid, b.perfectBonus, 'basketPerfect', now);
+  }
+  return true;
+};
+
+const basketUndo = (s) => {
+  const pid = basketThrower(s);
+  const b = s.basket;
+  const list = pid && b.throws[pid];
+  if (!list || !list.length) return false;
+  if (b.perfect.includes(pid)) {
+    b.perfect = b.perfect.filter((p) => p !== pid);
+    unaward(s, pid, b.perfectBonus);
+  }
+  if (list.pop()) unaward(s, pid, b.hitPoints);
+  return true;
+};
+
+// ---------------------------------------------------------------------------
+// Badges: the hearts each player found, a perfect basket.
+
+const BADGE_ORDER = ['gold', 'silver', 'red', 'basket'];
+
+export const playerBadges = (s) => {
+  const out = {};
+  const add = (pid, badge) => {
+    if (!s.players[pid]) return;
+    out[pid] = out[pid] || [];
+    out[pid].push(badge);
+  };
+  if (s.hunt) {
+    Object.keys(s.hunt.found).forEach((heartId) => {
+      const heart = s.hunt.hearts.find((h) => h.id === heartId);
+      if (heart) add(s.hunt.found[heartId].pid, heart.kind);
+    });
+  }
+  if (s.basket) s.basket.perfect.forEach((pid) => add(pid, 'basket'));
+  Object.values(out).forEach((list) => list.sort((a, b) => BADGE_ORDER.indexOf(a) - BADGE_ORDER.indexOf(b)));
+  return out;
 };
 
 // ---------------------------------------------------------------------------
@@ -532,9 +696,9 @@ const onNext = (s, now, rng) => {
     if (!playerIds(s).length) return false;
     s.target = 0;
     ensureTarget(s);
-    enterPhase(s, 'tap', now);
+    enterPhase(s, nextPhase(s, 'lobby'), now);
   } else if (step === 'results') {
-    enterPhase(s, PHASES[PHASES.indexOf(phase) + 1], now);
+    enterPhase(s, nextPhase(s, phase), now);
   } else if (phase === 'tap') {
     if (step !== 'intro') return false;
     startTapCountdown(s, now);
@@ -553,6 +717,14 @@ const onNext = (s, now, rng) => {
     if (step === 'intro') startWordRound(s, 0, now, rng);
     else if (step === 'outcome') startWordRound(s, s.round + 1, now, rng);
     else return false;
+  } else if (phase === 'hunt') {
+    if (step === 'intro') startHunt(s, now);
+    else if (step === 'search') setStep(s, 'results', now);
+    else return false;
+  } else if (phase === 'basket') {
+    if (step === 'intro') startBasketTurn(s, 0, now);
+    else if (step === 'throw') startBasketTurn(s, s.basket.turn + 1, now);
+    else return false;
   } else if (phase === 'blessings') {
     if (step === 'intro') startBlessings(s, now);
     else if (step === 'write') enterPhase(s, 'finale', now);
@@ -569,6 +741,7 @@ const onSkip = (s, now) => {
   else if (phase === 'trivia' && step === 'question') revealTrivia(s, now);
   else if (phase === 'charades' && ['pick', 'ready', 'perform'].includes(step)) finishCharades(s, false, now);
   else if (phase === 'word' && (step === 'countdown' || step === 'play')) finishWord(s, null, now);
+  else if (phase === 'basket' && step === 'throw') startBasketTurn(s, s.basket.turn + 1, now);
   else return false;
   return true;
 };
@@ -630,6 +803,15 @@ export const reduce = (state, action, ctx) => {
     case 'goto':
       changed = PHASES.includes(action.phase);
       if (changed) enterPhase(s, action.phase, now);
+      break;
+    case 'huntAssign':
+      changed = s.phase === 'hunt' && (s.step === 'search' || s.step === 'results') && assignHeart(s, action.heartId, action.pid, now);
+      break;
+    case 'basketThrow':
+      changed = s.phase === 'basket' && basketThrow(s, action.hit, now);
+      break;
+    case 'basketUndo':
+      changed = s.phase === 'basket' && basketUndo(s);
       break;
     case 'hideBlessing':
       changed = !!s.blessings;
@@ -700,6 +882,27 @@ const publicData = (s) => {
         suggestions: s.settings.blessingSuggestions || [],
         count: s.blessings ? s.blessings.list.length : 0,
       };
+    case 'hunt':
+      return s.hunt
+        ? {
+            hearts: s.hunt.hearts.map((h) => ({ ...h, pid: s.hunt.found[h.id] ? s.hunt.found[h.id].pid : null })),
+            startedAt: s.hunt.startedAt,
+          }
+        : {};
+    case 'basket': {
+      const b = s.basket;
+      if (!b) return {};
+      return {
+        order: b.order,
+        turn: b.turn,
+        thrower: basketThrower(s),
+        throws: b.throws,
+        perPlayer: b.perPlayer,
+        hitPoints: b.hitPoints,
+        perfectBonus: b.perfectBonus,
+        perfect: b.perfect,
+      };
+    }
     case 'finale':
       return s.finale ? { ranking: s.finale.ranking, winners: s.finale.winners } : {};
     default:
@@ -719,6 +922,8 @@ export const toPublic = (s) => ({
   meter: meterFraction(s.bank, s.target, { full: s.phase === 'finale' }),
   scores: s.scores,
   name: s.settings.birthdayName,
+  stages: stageOrder(s.settings),
+  badges: playerBadges(s),
   data: publicData(s),
 });
 

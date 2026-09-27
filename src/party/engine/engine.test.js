@@ -1,4 +1,4 @@
-import { createGame, reduce, toPublic, privateMessages, nextDueAt, playableQuestions } from './engine';
+import { createGame, reduce, toPublic, privateMessages, nextDueAt, playableQuestions, nextPhase, playerBadges } from './engine';
 import { createDefaultSettings } from '../config/content';
 import { SCORING, CHARADES_PICK_MS, COUNTDOWN_MS, TAP_TALLY_MS, FINALE_FILL_MS, TRIVIA_GRACE_MS } from '../config/game';
 import { createRng } from '../lib/random';
@@ -184,7 +184,7 @@ describe('stage 2 - trivia', () => {
     }
     expect(g.state.step).toBe('results');
     g.dispatch({ type: 'next' });
-    expect(g.state.phase).toBe('charades');
+    expect(g.state.phase).toBe('hunt');
   });
 
   test('broken questions from the editor are skipped or remapped', () => {
@@ -200,7 +200,7 @@ describe('stage 2 - trivia', () => {
   });
 });
 
-describe('stage 3 - charades', () => {
+describe('stage 5 - charades', () => {
   const openRound = () => {
     const g = startGame();
     goToPhase(g, 'charades');
@@ -261,7 +261,7 @@ describe('stage 3 - charades', () => {
     expect(g.state.charades.current.performerId).not.toBe(first);
   });
 
-  test('after the configured rounds, results then stage 4', () => {
+  test('after the configured rounds, results then the basket', () => {
     const g = openRound();
     for (let r = 0; r < 3; r += 1) {
       expect(g.state.step).toBe('pick');
@@ -275,7 +275,7 @@ describe('stage 3 - charades', () => {
     const performers = g.state.charades.results.map((r) => r.performerId);
     expect(new Set(performers).size).toBe(3); // everyone performed once
     g.dispatch({ type: 'next' });
-    expect(g.state.phase).toBe('word');
+    expect(g.state.phase).toBe('basket');
   });
 });
 
@@ -423,5 +423,149 @@ describe('public state', () => {
     const pub = toPublic(g.state);
     expect(JSON.parse(JSON.stringify(pub))).toEqual(pub);
     expect(JSON.stringify(g.state)).not.toMatch(/undefined|NaN|Infinity/);
+  });
+});
+
+describe('stage order', () => {
+  test('default order includes the real-life stages', () => {
+    const g = startGame();
+    const seen = [g.state.phase];
+    for (let i = 0; i < 6; i += 1) seen.push(nextPhase(g.state, seen[seen.length - 1]));
+    expect(seen).toEqual(['tap', 'trivia', 'hunt', 'word', 'charades', 'basket', 'blessings']);
+    expect(nextPhase(g.state, 'blessings')).toBe('finale');
+  });
+
+  test('stages turned off in the settings are skipped', () => {
+    const settings = createDefaultSettings();
+    settings.stages = ['trivia', 'basket'];
+    const g = makeGame(settings);
+    g.dispatch({ type: 'next' });
+    expect(g.state.phase).toBe('trivia');
+    expect(nextPhase(g.state, 'trivia')).toBe('basket');
+    expect(nextPhase(g.state, 'basket')).toBe('finale');
+    // reached through the menu even though it's off: continue with the next enabled one
+    expect(nextPhase(g.state, 'hunt')).toBe('basket');
+    expect(toPublic(g.state).stages).toEqual(['trivia', 'basket']);
+  });
+});
+
+describe('stage "hunt" - hidden hearts', () => {
+  const startHunt = () => {
+    const g = startGame();
+    goToPhase(g, 'hunt');
+    g.dispatch({ type: 'next' });
+    return g;
+  };
+
+  test('builds 1 gold, 3 silver and 2 red hearts by default', () => {
+    const g = startHunt();
+    expect(g.state.step).toBe('search');
+    expect(g.state.hunt.hearts.map((h) => h.kind)).toEqual(['gold', 'silver', 'silver', 'silver', 'red', 'red']);
+    expect(g.state.endsAt).toBe(g.now + 5 * 60000);
+  });
+
+  test('assigning a heart gives its points to the finder and the family bank', () => {
+    const g = startHunt();
+    const bank = g.state.bank;
+    g.dispatch({ type: 'huntAssign', heartId: 'gold-1', pid: 'b' });
+    expect(g.state.scores.b).toBe(3000);
+    expect(g.state.bank).toBe(bank + 3000);
+    expect(playerBadges(g.state)).toEqual({ b: ['gold'] });
+    const pub = toPublic(g.state);
+    expect(pub.data.hearts.find((h) => h.id === 'gold-1').pid).toBe('b');
+    expect(pub.badges).toEqual({ b: ['gold'] });
+  });
+
+  test('fixing a mistake moves the points (and the badge) to the right player', () => {
+    const g = startHunt();
+    const bank = g.state.bank;
+    g.dispatch({ type: 'huntAssign', heartId: 'silver-2', pid: 'a' });
+    g.dispatch({ type: 'huntAssign', heartId: 'silver-2', pid: 'c' });
+    expect(g.state.scores.a).toBe(0);
+    expect(g.state.scores.c).toBe(1500);
+    expect(g.state.bank).toBe(bank + 1500);
+    g.dispatch({ type: 'huntAssign', heartId: 'silver-2', pid: null });
+    expect(g.state.scores.c).toBe(0);
+    expect(g.state.bank).toBe(bank);
+    expect(playerBadges(g.state)).toEqual({});
+  });
+
+  test('the same assignment twice changes nothing; unknown hearts are ignored', () => {
+    const g = startHunt();
+    g.dispatch({ type: 'huntAssign', heartId: 'red-1', pid: 'a' });
+    const before = g.state;
+    expect(g.dispatch({ type: 'huntAssign', heartId: 'red-1', pid: 'a' })).toBe(before);
+    expect(g.dispatch({ type: 'huntAssign', heartId: 'purple-9', pid: 'a' })).toBe(before);
+  });
+
+  test('custom hearts and points from the settings; next ends the search', () => {
+    const settings = createDefaultSettings();
+    settings.hunt = { minutes: 0, gold: { count: 2, points: 5000 }, silver: { count: 0, points: 0 }, red: { count: 1, points: 100 } };
+    const g = makeGame(settings);
+    g.dispatch({ type: 'next' });
+    goToPhase(g, 'hunt');
+    g.dispatch({ type: 'next' });
+    expect(g.state.endsAt).toBe(0);
+    expect(g.state.hunt.hearts.map((h) => `${h.id}:${h.points}`)).toEqual(['gold-1:5000', 'gold-2:5000', 'red-1:100']);
+    g.dispatch({ type: 'next' });
+    expect(g.state.step).toBe('results');
+    g.dispatch({ type: 'huntAssign', heartId: 'red-1', pid: 'c' }); // late fixes still count
+    expect(g.state.scores.c).toBe(100);
+    g.dispatch({ type: 'next' });
+    expect(g.state.phase).toBe('word');
+  });
+});
+
+describe('stage "basket" - throwing hearts', () => {
+  const startBasket = () => {
+    const g = startGame();
+    goToPhase(g, 'basket');
+    g.dispatch({ type: 'next' });
+    return g;
+  };
+
+  test('players throw in turn; every hit scores', () => {
+    const g = startBasket();
+    expect(g.state.step).toBe('throw');
+    expect(toPublic(g.state).data.thrower).toBe('a');
+    g.dispatch({ type: 'basketThrow', hit: true });
+    g.dispatch({ type: 'basketThrow', hit: false });
+    g.dispatch({ type: 'basketThrow', hit: true });
+    expect(g.state.scores.a).toBe(1400);
+    const full = g.state;
+    expect(g.dispatch({ type: 'basketThrow', hit: true })).toBe(full); // only 3 throws
+    g.dispatch({ type: 'next' });
+    expect(toPublic(g.state).data.thrower).toBe('b');
+  });
+
+  test('3 out of 3 earns the bonus and a badge; undo takes them back', () => {
+    const g = startBasket();
+    [1, 2, 3].forEach(() => g.dispatch({ type: 'basketThrow', hit: true }));
+    expect(g.state.scores.a).toBe(3 * 700 + 1000);
+    expect(playerBadges(g.state)).toEqual({ a: ['basket'] });
+    g.dispatch({ type: 'basketUndo' });
+    expect(g.state.scores.a).toBe(2 * 700);
+    expect(playerBadges(g.state)).toEqual({});
+    expect(g.state.basket.throws.a).toEqual([true, true]);
+  });
+
+  test('skip moves on; after the last player come the results', () => {
+    const g = startBasket();
+    g.dispatch({ type: 'skip' });
+    g.dispatch({ type: 'skip' });
+    expect(toPublic(g.state).data.thrower).toBe('c');
+    g.dispatch({ type: 'next' });
+    expect(g.state.step).toBe('results');
+    g.dispatch({ type: 'next' });
+    expect(g.state.phase).toBe('blessings');
+  });
+
+  test('a player who joins during the stage gets a turn at the end', () => {
+    const g = startBasket();
+    g.dispatch({ type: 'players', players: { ...PLAYERS, d: { name: 'דן', avatar: 'owl', joinedAt: 9, online: true } } });
+    g.dispatch({ type: 'next' });
+    g.dispatch({ type: 'next' });
+    g.dispatch({ type: 'next' });
+    expect(toPublic(g.state).data.thrower).toBe('d');
   });
 });

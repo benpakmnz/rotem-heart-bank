@@ -938,3 +938,101 @@
   color: var(--hb-gold-light);
   text-shadow: 0 0 0.6rem rgba(255, 197, 61, 0.7);
 }
+
+/* ---------- stage: hunt ---------- */
+
+.hb-hunt-pad {
+  gap: 0.6rem;
+}
+
+.hb-hunt-mine {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #6b3300;
+  background: linear-gradient(180deg, #fff3c4, #ffd666);
+  border-radius: 999px;
+  padding: 0.4rem 1.1rem;
+  box-shadow: 0 0.2rem 0 #c98200, 0 0 1.4rem rgba(255, 197, 61, 0.6);
+}
+
+.hb-hunt-mine b {
+  color: #c0105a;
+}
+
+.hb-hunt-mini {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 0.8rem;
+  margin: 0.4rem 0;
+}
+
+.hb-hunt-mini-heart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  width: 4.6rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.hb-hunt-mini-heart span:last-child {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hb-hunt-mini-shape {
+  position: relative;
+  width: 4rem;
+  height: 3.7rem;
+  display: grid;
+  place-items: center;
+}
+
+.hb-hunt-mini-shape .hb-heart-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hb-hunt-mini-heart:not(.is-found) .hb-heart-icon {
+  opacity: 0.35;
+}
+
+.hb-hunt-mini-shape b {
+  position: relative;
+  font-family: var(--hb-display);
+  font-size: 1.6rem;
+  padding-bottom: 0.3rem;
+}
+
+.hb-hunt-mini-shape .hb-avatar {
+  position: relative;
+  padding-bottom: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.hb-hunt-mini-heart.is-mine .hb-hunt-mini-shape {
+  filter: drop-shadow(0 0 0.7rem rgba(255, 220, 120, 0.95));
+}
+
+/* ---------- stage: basket ---------- */
+
+.hb-basket-pad {
+  gap: 0.8rem;
+}
+
+.hb-basket-pad .hb-throws {
+  font-size: 0.8rem;
+}
+
+.hb-phone-me .hb-badges {
+  font-size: 1rem;
+}

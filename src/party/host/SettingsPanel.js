@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ANSWER_COLORS, DEFAULT_TIMINGS } from '../config/game';
+import { ANSWER_COLORS, DEFAULT_BASKET, DEFAULT_TIMINGS, HEART_KINDS, STAGES, basketSettings, huntKind } from '../config/game';
 import { createDefaultSettings, normalizeSettings } from '../config/content';
 import { Heart } from '../shared/Heart';
 
@@ -9,6 +9,8 @@ const TABS = [
   { id: 'charades', label: '🎭 מושגים לפנטומימה' },
   { id: 'words', label: '🔤 מילים לפיצוח' },
   { id: 'blessings', label: '💌 הצעות לברכות' },
+  { id: 'hunt', label: '🔎 מחפשי הלבבות' },
+  { id: 'basket', label: '🧺 קליעה ללב' },
   { id: 'timings', label: '⏱ זמנים' },
 ];
 
@@ -133,7 +135,73 @@ const ListEditor = ({ help, items, onChange, rows = 14 }) => {
   );
 };
 
-const SettingsPanel = ({ settings, started, onClose, onSave }) => {
+const NumberField = ({ label, value, min, max, step = 1, onChange, help }) => (
+  <label className="hb-field">
+    <span>{label}</span>
+    <input
+      className="hb-input"
+      type="number"
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      onChange={(e) => onChange(Math.min(max, Math.max(min, Number(e.target.value) || 0)))}
+    />
+    {help && <small>{help}</small>}
+  </label>
+);
+
+const HuntEditor = ({ hunt, onChange }) => {
+  const settings = { hunt };
+  const setKind = (kind, patch) => onChange({ ...hunt, [kind]: { ...huntKind(settings, kind), ...patch } });
+  return (
+    <div>
+      <p className="hb-set-help">כמה לבבות מכל צבע מחביאים בבית, וכמה כל לב שווה. כשמישהו מוצא לב - משייכים אותו אליו מהטלפון של המנהל (או בלחיצה על הלב בטלוויזיה).</p>
+      <div className="hb-set-grid">
+        {HEART_KINDS.map((k) => (
+          <div key={k.id} className="hb-set-question">
+            <strong>{k.label}</strong>
+            <NumberField label="כמה לבבות" value={huntKind(settings, k.id).count} min={0} max={12} onChange={(count) => setKind(k.id, { count })} />
+            <NumberField label="לבבות לבנק על כל אחד" value={huntKind(settings, k.id).points} min={0} max={50000} step={100} onChange={(points) => setKind(k.id, { points })} />
+          </div>
+        ))}
+        <NumberField label="זמן לחיפוש בדקות (0 = בלי שעון)" value={Number(hunt.minutes) || 0} min={0} max={60} onChange={(minutes) => onChange({ ...hunt, minutes })} />
+      </div>
+    </div>
+  );
+};
+
+const BasketEditor = ({ basket, onChange }) => {
+  const b = basketSettings({ basket });
+  return (
+    <div>
+      <p className="hb-set-help">כל משתתף בתורו זורק לבבות לסל, והמנהל מסמן כל זריקה (נכנס / פספוס).</p>
+      <div className="hb-set-grid">
+        <NumberField label="זריקות לכל משתתף" value={b.throws} min={1} max={10} onChange={(throws) => onChange({ ...b, throws })} help={`ברירת מחדל: ${DEFAULT_BASKET.throws}`} />
+        <NumberField label="לבבות על כל קליעה" value={b.hitPoints} min={0} max={20000} step={100} onChange={(hitPoints) => onChange({ ...b, hitPoints })} help={`ברירת מחדל: ${DEFAULT_BASKET.hitPoints}`} />
+        <NumberField label="בונוס כשהכל נכנס" value={b.perfectBonus} min={0} max={20000} step={100} onChange={(perfectBonus) => onChange({ ...b, perfectBonus })} help={`ברירת מחדל: ${DEFAULT_BASKET.perfectBonus}`} />
+      </div>
+    </div>
+  );
+};
+
+const StagesPicker = ({ stages, onChange }) => (
+  <div className="hb-field hb-set-stages">
+    <span>השלבים במשחק (אפשר לכבות שלב)</span>
+    {STAGES.map((st) => (
+      <label key={st.id} className="hb-set-check">
+        <input
+          type="checkbox"
+          checked={stages.includes(st.id)}
+          onChange={(e) => onChange(e.target.checked ? [...stages, st.id] : stages.filter((id) => id !== st.id))}
+        />
+        {st.icon} {st.title}
+      </label>
+    ))}
+  </div>
+);
+
+const SettingsPanel = ({ settings, started, onClose, onSave, className = '' }) => {
   const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(settings)));
   const [tab, setTab] = useState('general');
   const [resetKey, setResetKey] = useState(0);
@@ -141,7 +209,7 @@ const SettingsPanel = ({ settings, started, onClose, onSave }) => {
   const setTiming = (key, value) => setDraft((d) => ({ ...d, timings: { ...d.timings, [key]: value } }));
 
   return (
-    <div className="hb-settings-backdrop" role="dialog" aria-modal="true" aria-label="עריכת תוכן המשחק">
+    <div className={`hb-settings-backdrop ${className}`} role="dialog" aria-modal="true" aria-label="עריכת תוכן המשחק">
       <div className="hb-settings">
         <header className="hb-settings-head">
           <h2>⚙️ עריכת תוכן המשחק</h2>
@@ -179,8 +247,21 @@ const SettingsPanel = ({ settings, started, onClose, onSave }) => {
                   onChange={(e) => set({ bankTarget: Math.max(0, Number(e.target.value) || 0) })}
                 />
               </label>
+              <label className="hb-field">
+                <span>קוד מנהל (4-6 ספרות) - לכניסה מהטלפון</span>
+                <input
+                  className="hb-input"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={draft.adminPin || ''}
+                  onChange={(e) => set({ adminPin: e.target.value.replace(/\D/g, '') })}
+                />
+              </label>
+              <StagesPicker stages={draft.stages || STAGES.map((st) => st.id)} onChange={(stages) => set({ stages })} />
             </div>
           )}
+          {tab === 'hunt' && <HuntEditor hunt={draft.hunt || {}} onChange={(hunt) => set({ hunt })} />}
+          {tab === 'basket' && <BasketEditor basket={draft.basket || {}} onChange={(basket) => set({ basket })} />}
           {tab === 'trivia' && <TriviaEditor trivia={draft.trivia} onChange={(trivia) => set({ trivia })} />}
           {tab === 'charades' && (
             <ListEditor

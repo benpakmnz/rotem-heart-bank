@@ -163,6 +163,36 @@ export const TRACKS = {
     ],
   },
 
+  // hidden hearts: a sneaky treasure hunt
+  hunt: {
+    bpm: 112,
+    swing: 0.12,
+    bars: 4,
+    parts: [
+      { inst: 'pluck', vol: 1, res: 8, notes: 'E5 . . C5 D5 E5 . . | F5 . . D5 E5 F5 . . | E5 . G#5 . B5 . G#5 E5 | A5 . E5 . C5 . A4 .' },
+      { inst: 'bell', vol: 0.4, res: 8, notes: '. . . . . . A5 . | . . . . . . D6 . | . . . . . . B5 . | . . . . . . . .' },
+      { inst: 'bass', vol: 0.9, res: 8, notes: 'A2 . C3 . E3 . C3 . | D2 . F2 . A2 . F2 . | E2 . G#2 . B2 . G#2 . | A2 . E2 . A2 . . .' },
+      { inst: 'drums', vol: 0.55, res: 16, notes: 'k . h w . . h . s . h w . . h .' },
+    ],
+  },
+
+  // throwing hearts into the basket: stadium cheer
+  basket: {
+    bpm: 128,
+    bars: 4,
+    parts: [
+      { inst: 'brass', vol: 0.7, res: 8, notes: 'E5 . G5 . C6 - - . | D6 . B5 . G5 - - . | C6 . A5 . E5 - - . | F5 . A5 . C6 - D6 .' },
+      {
+        inst: 'pluck',
+        vol: 0.45,
+        res: 8,
+        notes: '. C4+E4+G4 . C4+E4+G4 . C4+E4+G4 . C4+E4+G4 | . B3+D4+G4 . B3+D4+G4 . B3+D4+G4 . B3+D4+G4 | . A3+C4+E4 . A3+C4+E4 . A3+C4+E4 . A3+C4+E4 | . A3+C4+F4 . A3+C4+F4 . A3+C4+F4 . A3+C4+F4',
+      },
+      { inst: 'bass', vol: 0.9, res: 8, notes: 'C2 C2 . C2 C3 . C2 . | G1 G1 . G1 G2 . G1 . | A1 A1 . A1 A2 . A1 . | F1 F1 . F1 F2 . F1 .' },
+      { inst: 'drums', vol: 0.75, res: 16, notes: 'k . k . c . h . k . k . c . h h' },
+    ],
+  },
+
   // end of a stage: victory lap
   results: {
     bpm: 124,
@@ -229,6 +259,10 @@ export const trackFor = (phase, step) => {
       return 'word';
     case 'blessings':
       return 'blessings';
+    case 'hunt':
+      return 'hunt';
+    case 'basket':
+      return 'basket';
     case 'finale':
       return step === 'celebrate' ? 'finale' : null;
     default:

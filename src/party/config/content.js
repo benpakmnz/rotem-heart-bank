@@ -1,4 +1,4 @@
-import { DEFAULT_TIMINGS } from './game';
+import { DEFAULT_BASKET, DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS } from './game';
 
 // Default content of "בנק הלבבות של רותם". Everything here can be edited from
 // the TV screen (⚙️ עריכת תוכן) before the party - especially the trivia,
@@ -86,12 +86,31 @@ export const DEFAULT_CONTENT = {
   ],
 };
 
+// The admin's phone logs in with this PIN (see README). Random per TV.
+export const randomPin = () => String(1000 + Math.floor(Math.random() * 9000));
+
 export const createDefaultSettings = () => ({
   ...JSON.parse(JSON.stringify(DEFAULT_CONTENT)),
   timings: { ...DEFAULT_TIMINGS },
   // 0 = computed from the number of players when the game starts.
   bankTarget: 0,
+  stages: STAGE_IDS.slice(),
+  hunt: JSON.parse(JSON.stringify(DEFAULT_HUNT)),
+  basket: { ...DEFAULT_BASKET },
+  adminPin: randomPin(),
 });
+
+const cleanHunt = (hunt) => {
+  const out = { minutes: Math.max(0, Math.min(60, Number(hunt && hunt.minutes) || 0)) };
+  HEART_KINDS.forEach(({ id }) => {
+    const k = (hunt && hunt[id]) || DEFAULT_HUNT[id];
+    out[id] = {
+      count: Math.max(0, Math.min(12, Math.floor(Number(k.count) || 0))),
+      points: Math.max(0, Math.floor(Number(k.points) || 0)),
+    };
+  });
+  return out;
+};
 
 // Fill in anything missing from older saved settings.
 export const normalizeSettings = (saved) => {
@@ -108,5 +127,9 @@ export const normalizeSettings = (saved) => {
     blessingSuggestions: list(saved.blessingSuggestions, defaults.blessingSuggestions),
     timings: { ...defaults.timings, ...(saved.timings || {}) },
     bankTarget: Math.max(0, Number(saved.bankTarget) || 0),
+    stages: Array.isArray(saved.stages) ? STAGE_IDS.filter((id) => saved.stages.includes(id)) : defaults.stages,
+    hunt: saved.hunt ? cleanHunt({ ...defaults.hunt, ...saved.hunt }) : defaults.hunt,
+    basket: { ...defaults.basket, ...(saved.basket || {}) },
+    adminPin: /^\d{4,6}$/.test(String(saved.adminPin || '')) ? String(saved.adminPin) : defaults.adminPin,
   };
 };

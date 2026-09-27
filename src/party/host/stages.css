@@ -1129,3 +1129,344 @@
     animation: none;
   }
 }
+
+/* ---------- stage: hunt (hidden hearts) ---------- */
+
+.hb-hunt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6em;
+}
+
+.hb-hunt-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2em;
+}
+
+.hb-hunt-title {
+  font-size: 4.2em;
+  margin: 0;
+}
+
+.hb-hunt-status {
+  display: flex;
+  align-items: center;
+  gap: 1.4em;
+  font-size: 1.3em;
+}
+
+.hb-hunt-count {
+  font-size: 1.5em;
+  font-weight: 700;
+}
+
+.hb-hunt-count b {
+  font-family: var(--hb-display);
+  font-size: 1.6em;
+  color: var(--hb-gold-light);
+  text-shadow: 0 0 0.3em rgba(255, 197, 61, 0.6);
+}
+
+.hb-hunt-board {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.4em 2.2em;
+}
+
+.hb-hunt-heart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+  border: 0;
+  background: none;
+  color: #fff;
+  padding: 0;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.hb-hunt-heart:disabled {
+  cursor: default;
+}
+
+.hb-hunt-shape {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 11em;
+  height: 10.2em;
+}
+
+.hb-hunt-lg .hb-hunt-shape {
+  width: 15em;
+  height: 13.8em;
+}
+
+.hb-hunt-shape .hb-heart-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* not found yet: a dim, breathing heart with a question mark */
+.hb-hunt-heart:not(.is-found) .hb-heart-icon {
+  opacity: 0.35;
+  filter: saturate(0.6);
+  animation: hb-glow-pulse 2.4s ease-in-out infinite;
+}
+
+.hb-hunt-heart.is-found .hb-hunt-shape {
+  filter: drop-shadow(0 0 1.6em rgba(255, 255, 255, 0.55));
+}
+
+.hb-hunt-gold.is-found .hb-hunt-shape {
+  filter: drop-shadow(0 0 2.4em rgba(255, 200, 60, 0.95));
+}
+
+.hb-hunt-q {
+  position: relative;
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 4.5em;
+  padding-bottom: 0.15em;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hb-hunt-finder {
+  position: relative;
+  padding-bottom: 0.6em;
+}
+
+.hb-hunt-label {
+  font-weight: 800;
+  font-size: 1.35em;
+}
+
+.hb-hunt-gold .hb-hunt-label {
+  color: var(--hb-gold-light);
+}
+
+.hb-hunt-points {
+  font-size: 1.15em;
+  color: var(--hb-text-soft);
+  font-weight: 600;
+}
+
+.hb-hunt-heart.is-found .hb-hunt-points {
+  color: #fff;
+  font-weight: 800;
+}
+
+.hb-hunt-latest {
+  min-height: 4em;
+  display: grid;
+  place-items: center;
+}
+
+.hb-hunt-latest-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  font-size: 1.8em;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 0.06em rgba(255, 255, 255, 0.3), 0 0 2em rgba(255, 197, 61, 0.35);
+  border-radius: 999px;
+  padding: 0.3em 1.2em 0.3em 0.4em;
+}
+
+.hb-hunt-latest-points {
+  color: var(--hb-gold-light);
+}
+
+.hb-hunt-latest-hint {
+  font-size: 1.6em;
+  color: var(--hb-text-soft);
+  font-weight: 600;
+}
+
+.hb-hunt-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55em;
+}
+
+.hb-hunt-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1em;
+  padding: 0.4em 0.9em;
+  font-size: 1.25em;
+}
+
+.hb-hunt-summary-row.is-found {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.hb-hunt-summary-heart {
+  width: 1.8em;
+  height: 1.65em;
+  flex: none;
+}
+
+.hb-hunt-summary-heart .hb-heart-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.hb-hunt-summary-kind {
+  font-weight: 700;
+  width: 5.5em;
+  flex: none;
+}
+
+/* ---------- stage: basket ---------- */
+
+.hb-basket-stage {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  align-items: center;
+  gap: 3em;
+}
+
+.hb-basket-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
+  text-align: center;
+}
+
+.hb-basket-title {
+  font-size: 4em;
+  margin: 0;
+}
+
+.hb-basket-line {
+  font-size: 1.6em;
+  font-weight: 700;
+  min-height: 2em;
+}
+
+.hb-basket-perfect {
+  font-size: 1.1em;
+}
+
+.hb-basket-next {
+  font-size: 1.3em;
+  color: var(--hb-text-soft);
+}
+
+.hb-basket-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4em;
+}
+
+.hb-basket {
+  position: relative;
+  width: 22em;
+}
+
+.hb-basket-svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 1em 1.4em rgba(10, 0, 30, 0.5));
+}
+
+.hb-basket-pile {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 78%;
+  height: 7em;
+}
+
+.hb-basket-heart {
+  position: absolute;
+  width: 3.4em;
+  height: 3.1em;
+}
+
+.hb-basket-heart .hb-heart-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.hb-basket-board {
+  width: 100%;
+  max-width: 28em;
+  padding: 0.8em 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+}
+
+.hb-basket-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 1.1em;
+  opacity: 0.75;
+}
+
+.hb-basket-row.is-current {
+  opacity: 1;
+  font-weight: 800;
+  color: var(--hb-gold-light);
+}
+
+.hb-basket-row-name {
+  flex: 1;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hb-basket-row-hits {
+  font-family: var(--hb-display);
+  font-weight: 700;
+}
+
+.hb-basket-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.hb-basket-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 1em;
+  padding: 0.35em 0.9em;
+  font-size: 1.1em;
+}
+
+.hb-basket-summary-row .hb-throw {
+  width: 2.6em;
+  height: 2.4em;
+}
+
+.hb-basket-summary-row .hb-throw b {
+  font-size: 1em;
+}

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { STAGES, stageById } from '../config/game';
+import { stageInfo, stageOrder } from '../config/game';
 import { useServerNow } from '../net/hooks';
 import { play, unlockAudio, setMuted } from '../audio/sfx';
 import { setMusicEnabled, setMusicTrack } from '../audio/music';
@@ -17,6 +17,8 @@ import useWakeLock from '../shared/useWakeLock';
 import hostActions from './hostActions';
 import useHostEffects from './useHostEffects';
 import SettingsPanel from './SettingsPanel';
+import AdminInvite from './AdminInvite';
+import useAdminBridge from './useAdminBridge';
 import { saveSettings } from './settingsStore';
 import LobbyScreen from './screens/LobbyScreen';
 import TapScreen from './screens/TapScreen';
@@ -25,19 +27,22 @@ import CharadesScreen from './screens/CharadesScreen';
 import WordScreen from './screens/WordScreen';
 import BlessingsScreen from './screens/BlessingsScreen';
 import FinaleScreen from './screens/FinaleScreen';
+import HuntScreen from './screens/HuntScreen';
+import BasketScreen from './screens/BasketScreen';
+import { playerBadges } from '../engine/engine';
 
 const MUTE_KEY = 'hb-muted';
 const MUSIC_KEY = 'hb-music-off';
 
-const StageDots = ({ phase }) => {
-  const current = STAGES.findIndex((s) => s.id === phase);
-  const done = phase === 'finale' ? STAGES.length : current;
+const StageDots = ({ phase, order }) => {
+  const current = order.indexOf(phase);
+  const done = phase === 'finale' ? order.length : current;
   return (
     <div className="hb-stage-dots" aria-hidden="true">
-      {STAGES.map((s, i) => (
-        <div key={s.id} className={`hb-stage-dot ${i < done ? 'is-done' : ''} ${i === current ? 'is-current' : ''}`}>
+      {order.map((id, i) => (
+        <div key={id} className={`hb-stage-dot ${i < done ? 'is-done' : ''} ${i === current ? 'is-current' : ''}`}>
           <Heart />
-          <span>{i < done ? '✓' : s.num}</span>
+          <span>{i < done ? '✓' : i + 1}</span>
         </div>
       ))}
     </div>
@@ -45,7 +50,8 @@ const StageDots = ({ phase }) => {
 };
 
 const TopBar = ({ state }) => {
-  const stage = stageById(state.phase);
+  const order = stageOrder(state.settings);
+  const stage = stageInfo(state.phase, order);
   const name = state.settings.birthdayName;
   return (
     <header className="hb-topbar">
@@ -55,12 +61,13 @@ const TopBar = ({ state }) => {
           <div className="hb-topbar-title">בנק הלבבות של {name}</div>
           {stage && (
             <div className="hb-topbar-stage">
-              {stage.icon} שלב {stage.num} · {stage.title}
+              {stage.icon} {stage.num ? `שלב ${stage.num} · ` : ''}
+              {stage.title}
             </div>
           )}
         </div>
       </div>
-      <StageDots phase={state.phase} />
+      <StageDots phase={state.phase} order={order} />
       <div className="hb-topbar-meter">
         <BankMeter fraction={meterFraction(state.bank, state.target)} bank={state.bank} name={name} />
       </div>
@@ -110,7 +117,7 @@ const HostControls = ({ actions, onAction, menu }) => {
         </button>
       )}
       {secondary.map((b) => (
-        <button key={b.label} type="button" className="hb-btn hb-btn-soft" onClick={() => onAction(b.action)}>
+        <button key={b.label} type="button" className="hb-btn hb-btn-soft" disabled={b.disabled} onClick={() => onAction(b.action)}>
           <span className="hb-btn-icon">{b.icon}</span> {b.label}
         </button>
       ))}
@@ -176,6 +183,10 @@ const renderScreen = (props) => {
       return <CharadesScreen {...props} />;
     case 'word':
       return <WordScreen {...props} />;
+    case 'hunt':
+      return <HuntScreen {...props} />;
+    case 'basket':
+      return <BasketScreen {...props} />;
     case 'blessings':
       return <BlessingsScreen {...props} />;
     case 'finale':
@@ -192,6 +203,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
   const [muted, setMutedState] = useState(() => readJson(MUTE_KEY) === true);
   const [musicOn, setMusicOn] = useState(() => readJson(MUSIC_KEY) !== true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
   useWakeLock(true);
   useHostEffects(state, now);
 
@@ -257,18 +269,28 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
     [conn, dispatch]
   );
 
+  const applySettings = useCallback(
+    (settings) => {
+      saveSettings(settings);
+      dispatch({ type: 'settings', settings });
+    },
+    [dispatch]
+  );
+  useAdminBridge({ conn, state, dispatch, onSaveSettings: applySettings, onRemovePlayer: removePlayer });
+
   const menu = [
     { key: 'sound', icon: muted ? '🔇' : '🔊', label: muted ? 'הפעלת צלילים' : 'השתקה', run: () => setMutedState((m) => !m) },
     { key: 'music', icon: musicOn ? '🎵' : '🎶', label: musicOn ? 'כיבוי המוזיקה' : 'הפעלת המוזיקה', run: () => setMusicOn((m) => !m) },
     { key: 'full', icon: '⛶', label: 'מסך מלא', run: toggleFullscreen },
     { key: 'settings', icon: '⚙️', label: 'עריכת תוכן המשחק', run: () => setSettingsOpen(true) },
+    { key: 'admin', icon: '📱', label: 'שליטה מהטלפון (מנהל/ת)', run: () => setAdminOpen(true) },
     { key: 'd1', divider: true },
-    ...STAGES.map((s) => ({
-      key: `goto-${s.id}`,
-      icon: s.icon,
-      label: `קפיצה לשלב ${s.num}: ${s.title}`,
-      active: state.phase === s.id,
-      run: () => dispatch({ type: 'goto', phase: s.id }),
+    ...stageOrder(state.settings).map((id, i) => ({
+      key: `goto-${id}`,
+      icon: stageInfo(id).icon,
+      label: `קפיצה לשלב ${i + 1}: ${stageInfo(id).title}`,
+      active: state.phase === id,
+      run: () => dispatch({ type: 'goto', phase: id }),
     })),
     { key: 'goto-finale', icon: '🎂', label: 'קפיצה לגמר', active: state.phase === 'finale', run: () => dispatch({ type: 'goto', phase: 'finale' }) },
     { key: 'd2', divider: true },
@@ -284,7 +306,17 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
   ];
 
   const showTopBar = state.phase !== 'lobby' && state.phase !== 'finale';
-  const screenProps = { conn, state, dispatch, now, mode, onRemovePlayer: removePlayer, onOpenSettings: () => setSettingsOpen(true) };
+  const screenProps = {
+    conn,
+    state,
+    dispatch,
+    now,
+    mode,
+    badges: playerBadges(state),
+    onRemovePlayer: removePlayer,
+    onOpenSettings: () => setSettingsOpen(true),
+    onOpenAdmin: () => setAdminOpen(true),
+  };
 
   return (
     <div className={`hb-tv phase-${state.phase} step-${state.step}`}>
@@ -301,12 +333,12 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
           started={state.phase !== 'lobby'}
           onClose={() => setSettingsOpen(false)}
           onSave={(settings) => {
-            saveSettings(settings);
-            dispatch({ type: 'settings', settings });
+            applySettings(settings);
             setSettingsOpen(false);
           }}
         />
       )}
+      {adminOpen && <AdminInvite code={state.roomCode} pin={state.settings.adminPin} local={mode === 'local'} onClose={() => setAdminOpen(false)} />}
       <HeartSwipe stage={state.phase} onSwipe={() => play('whoosh')} />
       <RotateHint />
     </div>

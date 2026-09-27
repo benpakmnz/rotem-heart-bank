@@ -54,7 +54,7 @@ const LocalModeBanner = ({ code }) => (
   </div>
 );
 
-const LobbyScreen = ({ state, mode, onRemovePlayer, onOpenSettings }) => {
+const LobbyScreen = ({ state, mode, onRemovePlayer, onOpenSettings, onOpenAdmin }) => {
   const { roomCode, settings, players } = state;
   const isLocal = mode === 'local';
   const qr = useQrDataUrl(joinUrl(roomCode, { local: isLocal }));
@@ -99,9 +99,14 @@ const LobbyScreen = ({ state, mode, onRemovePlayer, onOpenSettings }) => {
           {!ids.length && <p className="hb-lobby-empty">עוד אין אף אחד... סרקו את הקוד והצטרפו! 📱</p>}
         </div>
 
-        <button type="button" className="hb-link-btn" onClick={onOpenSettings}>
-          ⚙️ עריכת השאלות, המושגים והמילים
-        </button>
+        <div className="hb-lobby-links">
+          <button type="button" className="hb-link-btn" onClick={onOpenSettings}>
+            ⚙️ עריכת השאלות, המושגים והמילים
+          </button>
+          <button type="button" className="hb-link-btn" onClick={onOpenAdmin}>
+            📱 שליטה מהטלפון (מנהל/ת)
+          </button>
+        </div>
       </section>
 
       <section className="hb-lobby-join">

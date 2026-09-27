@@ -1,4 +1,5 @@
-import { playerIds } from '../engine/engine';
+import { stageOrder } from '../config/game';
+import { basketThrower, nextPhase, playerIds } from '../engine/engine';
 
 const NEXT = { type: 'next' };
 const SKIP = { type: 'skip' };
@@ -15,10 +16,12 @@ const hostActions = (s) => {
   if (s.phase === 'finale') return { primary: null, secondary: [] };
   if (s.step === 'intro') return { primary: { icon: '▶', label: 'יאללה, מתחילים!', action: NEXT }, secondary: [] };
   if (s.step === 'results') {
-    return {
-      primary: { icon: '▶', label: s.phase === 'word' ? 'לשלב האחרון' : 'לשלב הבא', action: NEXT },
-      secondary: [],
-    };
+    const order = stageOrder(s.settings);
+    const next = nextPhase(s, s.phase);
+    let label = 'לשלב הבא';
+    if (next === 'finale') label = 'לגמר! 🎂';
+    else if (next === order[order.length - 1]) label = 'לשלב האחרון';
+    return { primary: { icon: '▶', label, action: NEXT }, secondary: [] };
   }
 
   const lastTrivia = s.trivia && s.trivia.current && s.trivia.current.index + 1 >= s.trivia.total;
@@ -52,6 +55,23 @@ const hostActions = (s) => {
       return { primary: null, secondary: [{ icon: '⏭', label: 'דילוג על המילה', action: SKIP }] };
     case 'word:outcome':
       return { primary: { icon: '▶', label: lastWord ? 'לסיכום השלב' : 'למילה הבאה', action: NEXT }, secondary: [] };
+    case 'hunt:search':
+      return { primary: { icon: '🏁', label: 'סיום החיפוש', action: NEXT }, secondary: [] };
+    case 'basket:throw': {
+      const b = s.basket;
+      const pid = basketThrower(s);
+      const done = pid ? (b.throws[pid] || []).length : 0;
+      const full = done >= b.perPlayer;
+      const last = !b.order.slice(b.turn + 1).some((id) => s.players[id]);
+      return {
+        primary: { icon: '▶', label: last ? 'לסיכום השלב' : 'לשחקן הבא', action: NEXT },
+        secondary: [
+          { icon: '✅', label: 'נכנס!', action: { type: 'basketThrow', hit: true }, disabled: full },
+          { icon: '❌', label: 'פספוס', action: { type: 'basketThrow', hit: false }, disabled: full },
+          { icon: '↩️', label: 'ביטול זריקה', action: { type: 'basketUndo' }, disabled: !done },
+        ],
+      };
+    }
     case 'blessings:write':
       return { primary: { icon: '💖', label: 'למילוי הבנק!', action: NEXT }, secondary: [] };
     default:

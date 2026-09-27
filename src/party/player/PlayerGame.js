@@ -1,5 +1,5 @@
 import React from 'react';
-import { stageById } from '../config/game';
+import { STAGE_IDS, stageInfo } from '../config/game';
 import { useRoomValue, useServerNow } from '../net/hooks';
 import { fmt } from '../lib/format';
 import Avatar from '../shared/Avatar';
@@ -13,6 +13,9 @@ import CharadesPad from './screens/CharadesPad';
 import WordPad from './screens/WordPad';
 import BlessingPad from './screens/BlessingPad';
 import FinalePad from './screens/FinalePad';
+import HuntPad from './screens/HuntPad';
+import BasketPad from './screens/BasketPad';
+import Badges from '../shared/Badges';
 
 const Header = ({ me, state }) => {
   const score = useAnimatedNumber((state && state.scores && state.scores[me.id]) || 0, 800);
@@ -22,6 +25,7 @@ const Header = ({ me, state }) => {
       <div className="hb-phone-me">
         <Avatar player={me} size="sm" />
         <span className="hb-phone-name">{me.name}</span>
+        <Badges list={state && state.badges ? state.badges[me.id] : null} />
       </div>
       <div className="hb-phone-score" aria-label="הלבבות שלי">
         <Heart color="#F0145A" className="hb-phone-score-heart" />
@@ -37,7 +41,7 @@ const Header = ({ me, state }) => {
 const screenFor = (props) => {
   const { state } = props;
   const { phase, step } = state;
-  const stage = stageById(phase);
+  const stage = stageInfo(phase, state.stages || STAGE_IDS);
   if (phase === 'lobby') return <LobbyWait {...props} />;
   if (phase === 'finale') return <FinalePad {...props} />;
   if (step === 'intro') return <StagePrep stage={stage} name={state.name} />;
@@ -52,6 +56,10 @@ const screenFor = (props) => {
       return <CharadesPad {...props} />;
     case 'word':
       return <WordPad {...props} />;
+    case 'hunt':
+      return <HuntPad {...props} />;
+    case 'basket':
+      return <BasketPad {...props} />;
     case 'blessings':
       return <BlessingPad {...props} />;
     default:
