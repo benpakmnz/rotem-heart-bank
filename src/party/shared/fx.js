@@ -1,4 +1,5 @@
 import confetti from 'canvas-confetti';
+import { isLiteFx } from '../lib/effects';
 
 const COLORS = ['#E11D48', '#FF5C8A', '#FF8FAB', '#FFC53D', '#FFFFFF', '#C026D3'];
 
@@ -18,7 +19,9 @@ const hearts = () => {
 
 const fire = (opts) => {
   try {
-    confetti({ colors: COLORS, shapes: hearts(), disableForReducedMotion: true, zIndex: 50, ...opts });
+    const lite = isLiteFx();
+    const particleCount = Math.round((opts.particleCount || 50) * (lite ? 0.5 : 1));
+    confetti({ colors: COLORS, shapes: hearts(), disableForReducedMotion: true, zIndex: 50, ...opts, particleCount });
   } catch (e) {
     // effects are optional
   }

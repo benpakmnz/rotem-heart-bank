@@ -23,8 +23,9 @@ const HEARTS = (() => {
 
 const DURATION_MS = 1500;
 
-// A wave of big hearts sweeps across the screen whenever `stage` changes.
-const HeartSwipe = ({ stage, onSwipe }) => {
+// A wave of big hearts sweeps across the screen whenever `stage` changes
+// (only the sound in lite mode: 16 big glowing layers are a lot for a TV).
+const HeartSwipe = ({ stage, onSwipe, lite = false }) => {
   const [run, setRun] = useState(0);
   const last = useRef(stage);
   const onSwipeRef = useRef(onSwipe);
@@ -33,11 +34,12 @@ const HeartSwipe = ({ stage, onSwipe }) => {
   useEffect(() => {
     if (stage === last.current) return undefined;
     last.current = stage;
-    setRun((n) => n + 1);
     if (onSwipeRef.current) onSwipeRef.current();
+    if (lite) return undefined;
+    setRun((n) => n + 1);
     const id = setTimeout(() => setRun(0), DURATION_MS);
     return () => clearTimeout(id);
-  }, [stage]);
+  }, [stage, lite]);
 
   if (!run) return null;
   return (

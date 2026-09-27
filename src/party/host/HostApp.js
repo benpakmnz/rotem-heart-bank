@@ -5,6 +5,7 @@ import { readJson, removeKey } from '../lib/storage';
 import { LogoHeart } from '../shared/Heart';
 import HostGame from './HostGame';
 import useHostGame, { SESSION_KEY } from './useHostGame';
+import ErrorBoundary from '../shared/ErrorBoundary';
 import { loadSettings } from './settingsStore';
 import './host.css';
 import './stages.css';
@@ -61,7 +62,11 @@ const HostApp = () => {
   }, []);
 
   if (boot.status === 'ready') {
-    return <HostRoom key={boot.conn.code} conn={boot.conn} initialState={boot.initialState} mode={boot.mode} onNewGame={newGame} />;
+    return (
+      <ErrorBoundary variant="tv" resetKey={SESSION_KEY}>
+        <HostRoom key={boot.conn.code} conn={boot.conn} initialState={boot.initialState} mode={boot.mode} onNewGame={newGame} />
+      </ErrorBoundary>
+    );
   }
 
   return (

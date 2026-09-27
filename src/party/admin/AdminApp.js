@@ -13,6 +13,7 @@ import PartyBackdrop from '../shared/PartyBackdrop';
 import PlayerPicker from '../shared/PlayerPicker';
 import ThrowSlots from '../shared/ThrowSlots';
 import SettingsPanel from '../host/SettingsPanel';
+import ErrorBoundary from '../shared/ErrorBoundary';
 import '../player/player.css';
 import '../host/host.css';
 import './admin.css';
@@ -438,7 +439,7 @@ const hashPin = () => {
   return m ? m[1] : null;
 };
 
-const AdminApp = ({ initialCode }) => {
+const AdminScreens = ({ initialCode }) => {
   const search = useMemo(() => window.location.search, []);
   const [code, setCode] = useState(initialCode);
   const [pin, setPin] = useState(() => {
@@ -493,5 +494,11 @@ const AdminApp = ({ initialCode }) => {
     />
   );
 };
+
+const AdminApp = (props) => (
+  <ErrorBoundary variant="phone">
+    <AdminScreens {...props} />
+  </ErrorBoundary>
+);
 
 export default AdminApp;

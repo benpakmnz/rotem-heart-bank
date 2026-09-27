@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { isLiteFx } from '../lib/effects';
 
 // Runs draw(ctx, { w, h, dt, t }) every animation frame on a full-size,
 // device-pixel-ratio aware canvas while `active` is true.
@@ -14,7 +15,8 @@ const useCanvasLoop = (draw, active = true) => {
     let w = 0;
     let h = 0;
     const resize = () => {
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      // a 4K canvas is 33 MB; lite mode (TVs) draws at 1x
+      const dpr = Math.min(isLiteFx() ? 1 : 2, window.devicePixelRatio || 1);
       w = canvas.clientWidth;
       h = canvas.clientHeight;
       canvas.width = Math.round(w * dpr);

@@ -710,18 +710,33 @@
   z-index: 0;
 }
 
+/* Only as big as the rays are visible: a spinning layer is held whole by the
+   GPU (it was 3648px square = 51 MB, or 200 MB on a 4K screen). */
 .hb-bd-rays {
   position: absolute;
   left: 50%;
   top: 38%;
-  width: 190vmax;
-  height: 190vmax;
-  margin: -95vmax 0 0 -95vmax;
+  width: 130vmax;
+  height: 130vmax;
+  margin: -65vmax 0 0 -65vmax;
   background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.07) 0deg 6deg, rgba(255, 255, 255, 0) 6deg 15deg);
-  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.6) 22%, transparent 48%);
-  mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.6) 22%, transparent 48%);
+  -webkit-mask-image: radial-gradient(circle closest-side, #000 0%, rgba(0, 0, 0, 0.6) 46%, transparent 100%);
+  mask-image: radial-gradient(circle closest-side, #000 0%, rgba(0, 0, 0, 0.6) 46%, transparent 100%);
   animation: hb-spin 120s linear infinite;
   will-change: transform;
+}
+
+/* lite effects (TV browsers): the rays and the lights stand still, so they
+   are painted once with the background instead of held as big GPU layers */
+.hb-backdrop.is-lite .hb-bd-rays,
+.hb-backdrop.is-lite .hb-bd-bokeh {
+  animation: none;
+  will-change: auto;
+}
+
+.hb-backdrop.is-lite .hb-bd-heart,
+.hb-backdrop.is-lite .hb-bd-balloon {
+  will-change: auto;
 }
 
 .hb-bd-bokeh {
@@ -1092,4 +1107,53 @@
 
 .hb-throw.is-hit {
   filter: drop-shadow(0 0 1em rgba(255, 120, 180, 0.9));
+}
+
+/* ---------- crash card (see ErrorBoundary) ---------- */
+
+.hb-crash-card {
+  margin: auto;
+  max-width: 36em;
+  text-align: center;
+  background: rgba(30, 6, 56, 0.85);
+  color: #fff;
+  border-radius: 1.6em;
+  padding: 2em 2.4em;
+  box-shadow: inset 0 0 0 0.1em rgba(255, 255, 255, 0.2), 0 1em 3em rgba(0, 0, 0, 0.5);
+}
+
+.hb-crash-card h1 {
+  font-family: var(--hb-display);
+  font-weight: 700;
+  color: var(--hb-pink-soft);
+  margin: 0.3em 0;
+}
+
+.hb-crash-card p {
+  line-height: 1.5;
+}
+
+.hb-tv .hb-crash-card {
+  font-size: 1.5em;
+}
+
+.hb-crash-icon {
+  font-size: 3.4em;
+  line-height: 1;
+}
+
+.hb-crash-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.8em;
+  margin-top: 0.6em;
+}
+
+.hb-crash-error {
+  font-family: monospace;
+  font-size: 0.8em;
+  color: var(--hb-muted);
+  direction: ltr;
+  word-break: break-word;
 }

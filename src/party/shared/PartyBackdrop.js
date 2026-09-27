@@ -31,12 +31,13 @@ const Balloon = ({ colors }) => (
 
 // The party stage behind every screen: light rays, bokeh lights, hearts
 // drifting up, twinkles and (for the lobby and the finale) balloons.
-// Everything is CSS transform/opacity animation, cheap enough for TV browsers.
-const PartyBackdrop = ({ balloons = false, rays = true, hearts = 12, className = '' }) => {
+// `lite` (TV browsers): the rays and bokeh stand still and there are fewer
+// moving things - every moving element is a graphics layer the TV must hold.
+const PartyBackdrop = ({ balloons = false, rays = true, hearts = 12, lite = false, className = '' }) => {
   const layout = useMemo(() => {
     const rng = createRng(7);
     return {
-      bokeh: Array.from({ length: 9 }, (_, i) => ({
+      bokeh: Array.from({ length: lite ? 5 : 9 }, (_, i) => ({
         id: i,
         left: rng() * 100,
         top: rng() * 100,
@@ -48,7 +49,7 @@ const PartyBackdrop = ({ balloons = false, rays = true, hearts = 12, className =
         duration: 14 + rng() * 14,
         delay: -rng() * 20,
       })),
-      hearts: Array.from({ length: hearts }, (_, i) => ({
+      hearts: Array.from({ length: lite ? Math.min(hearts, 5) : hearts }, (_, i) => ({
         id: i,
         left: rng() * 100,
         size: 1 + rng() * 2.6,
@@ -58,7 +59,7 @@ const PartyBackdrop = ({ balloons = false, rays = true, hearts = 12, className =
         color: HEART_COLORS[i % HEART_COLORS.length],
         opacity: 0.18 + rng() * 0.32,
       })),
-      sparkles: Array.from({ length: 16 }, (_, i) => ({
+      sparkles: Array.from({ length: lite ? 6 : 16 }, (_, i) => ({
         id: i,
         left: 3 + rng() * 94,
         top: 3 + rng() * 90,
@@ -66,19 +67,19 @@ const PartyBackdrop = ({ balloons = false, rays = true, hearts = 12, className =
         duration: 1.8 + rng() * 2.4,
         delay: -rng() * 4,
       })),
-      balloons: Array.from({ length: 7 }, (_, i) => ({
+      balloons: Array.from({ length: lite ? 3 : 7 }, (_, i) => ({
         id: i,
-        left: (i / 7) * 100 + rng() * 8,
+        left: (i / (lite ? 3 : 7)) * 100 + rng() * 8,
         size: 3.4 + rng() * 2.2,
         duration: 20 + rng() * 14,
         delay: -rng() * 34,
         colors: BALLOON_COLORS[i % BALLOON_COLORS.length],
       })),
     };
-  }, [hearts]);
+  }, [hearts, lite]);
 
   return (
-    <div className={`hb-backdrop ${className}`} aria-hidden="true">
+    <div className={`hb-backdrop ${lite ? 'is-lite' : ''} ${className}`} aria-hidden="true">
       {rays && <div className="hb-bd-rays" />}
       {layout.bokeh.map((b) => (
         <span
@@ -138,7 +139,7 @@ const PartyBackdrop = ({ balloons = false, rays = true, hearts = 12, className =
             <Balloon colors={b.colors} />
           </span>
         ))}
-      <div className="hb-bd-vignette" />
+      {!lite && <div className="hb-bd-vignette" />}
     </div>
   );
 };

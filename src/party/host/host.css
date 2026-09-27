@@ -123,6 +123,29 @@
   }
 }
 
+/* ---------- lite effects (TV browsers): no glow filters or ever-running
+   repaints on the big elements; see lib/effects.js ---------- */
+
+.fx-lite .hb-golden-heart,
+.fx-lite .hb-countdown-heart,
+.fx-lite .hb-cloud-heart,
+.fx-lite .hb-photo-svg,
+.fx-lite .hb-intro-medal,
+.fx-lite .hb-hunt-heart.is-found .hb-hunt-shape,
+.fx-lite .hb-basket-svg,
+.fx-lite .hb-throw.is-hit,
+.fx-lite .hb-stage-dot.is-current {
+  filter: none;
+}
+
+.fx-lite .hb-photo-glow,
+.fx-lite .hb-spotlight,
+.fx-lite .hb-controls .hb-btn-primary:not(:disabled),
+.fx-lite .hb-hunt-heart:not(.is-found) .hb-heart-icon,
+.fx-lite .hb-phone-preview {
+  animation: none;
+}
+
 /* ---------- boot / error ---------- */
 
 .hb-boot-card {

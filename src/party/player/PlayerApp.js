@@ -6,6 +6,7 @@ import { isValidRoomCode, JOIN_PATH, ROOM_CODE_LENGTH } from '../routes';
 import { readJson, writeJson } from '../lib/storage';
 import { randomId } from '../lib/random';
 import PartyBackdrop from '../shared/PartyBackdrop';
+import ErrorBoundary from '../shared/ErrorBoundary';
 import RotemPhoto from '../shared/RotemPhoto';
 import useWakeLock from '../shared/useWakeLock';
 import JoinScreen from './JoinScreen';
@@ -163,8 +164,11 @@ const PlayerApp = ({ initialCode }) => {
     setCode(next);
   };
 
-  if (!code) return <CodeEntry onSubmit={go} />;
-  return <PlayerRoom key={code} code={code} onChangeCode={() => go(null)} />;
+  return (
+    <ErrorBoundary variant="phone">
+      {code ? <PlayerRoom key={code} code={code} onChangeCode={() => go(null)} /> : <CodeEntry onSubmit={go} />}
+    </ErrorBoundary>
+  );
 };
 
 export default PlayerApp;

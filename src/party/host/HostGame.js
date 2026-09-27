@@ -14,6 +14,7 @@ import RotemPhoto from '../shared/RotemPhoto';
 import Avatar from '../shared/Avatar';
 import { Heart } from '../shared/Heart';
 import useWakeLock from '../shared/useWakeLock';
+import { initialLiteFx, saveLiteFx, setLiteFx } from '../lib/effects';
 import hostActions from './hostActions';
 import useHostEffects from './useHostEffects';
 import SettingsPanel from './SettingsPanel';
@@ -79,6 +80,8 @@ const TopBar = ({ state }) => {
 const AwardsLayer = ({ awards, players, now }) => {
   const [mountedAt] = useState(now);
   const recent = awards.filter((a) => a.at >= mountedAt && now - a.at < 2600).slice(-8);
+  // an empty full-screen layer still costs the TV a screenful of graphics memory
+  if (!recent.length) return null;
   return (
     <div className="hb-awards" aria-hidden="true">
       {recent.map((a, i) => {
@@ -204,6 +207,8 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
   const [musicOn, setMusicOn] = useState(() => readJson(MUSIC_KEY) !== true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [liteFx, setLiteFxState] = useState(initialLiteFx);
+  setLiteFx(liteFx); // canvases and confetti read it outside React
   useWakeLock(true);
   useHostEffects(state, now);
 
@@ -282,6 +287,16 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
     { key: 'sound', icon: muted ? '🔇' : '🔊', label: muted ? 'הפעלת צלילים' : 'השתקה', run: () => setMutedState((m) => !m) },
     { key: 'music', icon: musicOn ? '🎵' : '🎶', label: musicOn ? 'כיבוי המוזיקה' : 'הפעלת המוזיקה', run: () => setMusicOn((m) => !m) },
     { key: 'full', icon: '⛶', label: 'מסך מלא', run: toggleFullscreen },
+    {
+      key: 'fx',
+      icon: liteFx ? '✨' : '🪶',
+      label: liteFx ? 'אפקטים מלאים (למחשב)' : 'אפקטים חסכוניים (לטלוויזיה)',
+      run: () =>
+        setLiteFxState((v) => {
+          saveLiteFx(!v);
+          return !v;
+        }),
+    },
     { key: 'settings', icon: '⚙️', label: 'עריכת תוכן המשחק', run: () => setSettingsOpen(true) },
     { key: 'admin', icon: '📱', label: 'שליטה מהטלפון (מנהל/ת)', run: () => setAdminOpen(true) },
     { key: 'd1', divider: true },
@@ -319,8 +334,8 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
   };
 
   return (
-    <div className={`hb-tv phase-${state.phase} step-${state.step}`}>
-      <PartyBackdrop balloons={state.phase === 'lobby' || state.phase === 'finale'} />
+    <div className={`hb-tv phase-${state.phase} step-${state.step} ${liteFx ? 'fx-lite' : ''}`}>
+      <PartyBackdrop lite={liteFx} balloons={state.phase === 'lobby' || state.phase === 'finale'} />
       {showTopBar && <TopBar state={state} />}
       <main className="hb-tv-main" key={`${state.phase}`}>
         {renderScreen(screenProps)}
@@ -339,7 +354,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
         />
       )}
       {adminOpen && <AdminInvite code={state.roomCode} pin={state.settings.adminPin} local={mode === 'local'} onClose={() => setAdminOpen(false)} />}
-      <HeartSwipe stage={state.phase} onSwipe={() => play('whoosh')} />
+      <HeartSwipe stage={state.phase} lite={liteFx} onSwipe={() => play('whoosh')} />
       <RotateHint />
     </div>
   );

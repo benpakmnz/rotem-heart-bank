@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import useCanvasLoop from './useCanvasLoop';
+import { isLiteFx } from '../lib/effects';
 
 const COLORS = ['#FF5C8A', '#FF8FAB', '#E11D48', '#FFB3C6', '#FFC53D'];
 
@@ -21,7 +22,8 @@ const HeartRain = ({ rateRef, active = true }) => {
     ctx.clearRect(0, 0, w, h);
     const rate = Math.min(45, 2 + (rateRef.current || 0) * 0.8);
     s.carry += rate * dt;
-    while (s.carry >= 1 && s.hearts.length < 160) {
+    const max = isLiteFx() ? 60 : 160;
+    while (s.carry >= 1 && s.hearts.length < max) {
       s.carry -= 1;
       s.hearts.push({
         x: Math.random() * w,
