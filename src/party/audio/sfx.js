@@ -1,3 +1,5 @@
+import { isLiteFx } from '../lib/effects';
+
 // All sounds are synthesized with the Web Audio API - no audio files.
 // Browsers only allow audio after a user gesture, so the TV calls unlock()
 // on its first click/keypress.
@@ -179,7 +181,7 @@ export const play = (name, arg) => {
   const c = ready();
   const sound = sounds[name];
   if (!c || !sound) return;
-  if (name === 'tap' && !throttle('tap', 55)) return;
+  if (name === 'tap' && !throttle('tap', isLiteFx() ? 160 : 55)) return;
   if (name === 'tick' && !throttle('tick', 400)) return;
   if (name === 'pop' && !throttle('pop', 90)) return;
   try {

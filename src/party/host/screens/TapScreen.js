@@ -5,7 +5,8 @@ import { onlinePlayerIds, tapCounts } from '../../engine/engine';
 import { fmt } from '../../lib/format';
 import { HEART_PATH, useSvgId } from '../../shared/Heart';
 import Avatar from '../../shared/Avatar';
-import HeartRain from '../../shared/HeartRain';
+import HeartRain, { SoftHeartRain } from '../../shared/HeartRain';
+import { isLiteFx } from '../../lib/effects';
 import TimerRing from '../../shared/TimerRing';
 import useAnimatedNumber from '../../shared/useAnimatedNumber';
 import { BigCountdown, PlayerChip, StageIntro, StageResults } from './common';
@@ -81,7 +82,7 @@ const TapArena = ({ state, now }) => {
 
   return (
     <div className="hb-tap" style={{ '--hb-fill': Math.min(1, fill) }}>
-      <HeartRain rateRef={rateRef} active={active} />
+      {isLiteFx() ? <SoftHeartRain active={active} /> : <HeartRain rateRef={rateRef} active={active} />}
       <div className="hb-tap-side">
         {active ? (
           <TimerRing endsAt={state.endsAt} total={seconds * 1000} now={now} className="hb-tap-timer" />

@@ -7,9 +7,11 @@ import { readJson, writeJson } from './storage';
 const KEY = 'hb-fx';
 const TV_BROWSER = /web0s|webos|tizen|smart-?tv|netcast|hbbtv|viera|bravia|crkey|googletv|android tv|aft[bmst]|roku|playstation|xbox/i;
 
+export const isTvBrowser = () => typeof navigator !== 'undefined' && TV_BROWSER.test(navigator.userAgent || '');
+
 export const autoLiteFx = () => {
   if (typeof navigator === 'undefined') return false;
-  if (TV_BROWSER.test(navigator.userAgent || '')) return true;
+  if (isTvBrowser()) return true;
   if (navigator.deviceMemory && navigator.deviceMemory <= 4) return true;
   // a phone or tablet running the TV screen (mirrored to the TV)
   return Boolean(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
@@ -28,6 +30,12 @@ export const initialLiteFx = () => {
 };
 
 export const saveLiteFx = (lite) => writeJson(KEY, lite ? 'lite' : 'full');
+
+// Was the level picked by hand (menu / ?fx=)? Then the game won't change it.
+export const liteFxChosen = () => {
+  const saved = readJson(KEY);
+  return saved === 'lite' || saved === 'full';
+};
 
 // Read by the canvas effects and confetti (outside React).
 let lite = false;

@@ -14,7 +14,8 @@ import RotemPhoto from '../shared/RotemPhoto';
 import Avatar from '../shared/Avatar';
 import { Heart } from '../shared/Heart';
 import useWakeLock from '../shared/useWakeLock';
-import { initialLiteFx, saveLiteFx, setLiteFx } from '../lib/effects';
+import { initialLiteFx, isTvBrowser, liteFxChosen, saveLiteFx, setLiteFx } from '../lib/effects';
+import useAutoLite from './useAutoLite';
 import hostActions from './hostActions';
 import useHostEffects from './useHostEffects';
 import SettingsPanel from './SettingsPanel';
@@ -33,7 +34,8 @@ import BasketScreen from './screens/BasketScreen';
 import { playerBadges } from '../engine/engine';
 
 const MUTE_KEY = 'hb-muted';
-const MUSIC_KEY = 'hb-music-off';
+// 'on' / 'off'; never set: on, except in TV browsers (they struggle with it)
+const MUSIC_KEY = 'hb-music-v2';
 
 const StageDots = ({ phase, order }) => {
   const current = order.indexOf(phase);
@@ -202,14 +204,29 @@ const renderScreen = (props) => {
 const isTyping = (el) => el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(el.tagName));
 
 const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
-  const now = useServerNow(conn, 200);
-  const [muted, setMutedState] = useState(() => readJson(MUTE_KEY) === true);
-  const [musicOn, setMusicOn] = useState(() => readJson(MUSIC_KEY) !== true);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
   const [liteFx, setLiteFxState] = useState(initialLiteFx);
   setLiteFx(liteFx); // canvases and confetti read it outside React
+  // fewer re-renders of the whole screen in lite mode
+  const now = useServerNow(conn, liteFx ? 500 : 200);
+  const [muted, setMutedState] = useState(() => readJson(MUTE_KEY) === true);
+  const [musicOn, setMusicOn] = useState(() => {
+    const saved = readJson(MUSIC_KEY);
+    return saved ? saved === 'on' : !isTvBrowser();
+  });
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [notice, setNotice] = useState(null);
   useWakeLock(true);
+  // a screen that can't keep up switches to lite effects by itself
+  useAutoLite(!liteFx && !liteFxChosen(), () => {
+    setLiteFxState(true);
+    setNotice('🪶 המסך הזה עובד לאט - עברנו לאפקטים חסכוניים (אפשר לשנות בתפריט ☰)');
+  });
+  useEffect(() => {
+    if (!notice) return undefined;
+    const id = setTimeout(() => setNotice(null), 7000);
+    return () => clearTimeout(id);
+  }, [notice]);
   useHostEffects(state, now);
 
   useEffect(() => {
@@ -219,7 +236,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
 
   useEffect(() => {
     setMusicEnabled(musicOn);
-    writeJson(MUSIC_KEY, !musicOn);
+    writeJson(MUSIC_KEY, musicOn ? 'on' : 'off');
   }, [musicOn]);
 
   // A soundtrack for every part of the game (see audio/tracks.js).
@@ -355,6 +372,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
       )}
       {adminOpen && <AdminInvite code={state.roomCode} pin={state.settings.adminPin} local={mode === 'local'} onClose={() => setAdminOpen(false)} />}
       <HeartSwipe stage={state.phase} lite={liteFx} onSwipe={() => play('whoosh')} />
+      {notice && <div className="hb-tv-notice">{notice}</div>}
       <RotateHint />
     </div>
   );

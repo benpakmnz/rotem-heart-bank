@@ -8,6 +8,7 @@ import Avatar from '../../shared/Avatar';
 import Badges from '../../shared/Badges';
 import BankMeter from '../../shared/BankMeter';
 import Fireworks from '../../shared/Fireworks';
+import { isLiteFx } from '../../lib/effects';
 import GameTitle from '../../shared/GameTitle';
 import RotemPhoto from '../../shared/RotemPhoto';
 import WordCloud, { useCloudLayout } from '../../shared/WordCloud';
@@ -74,7 +75,7 @@ const FinaleScreen = ({ state }) => {
 
   return (
     <div className="hb-finale is-celebrating">
-      <Fireworks onBurst={() => play('pop')} />
+      {!isLiteFx() && <Fireworks onBurst={() => play('pop')} />}
       {showCloud ? (
         <div className="hb-finale-cloud">
           <GameTitle as="h2" text={`הברכות של ${name}`} />

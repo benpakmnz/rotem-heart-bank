@@ -17,11 +17,15 @@ const hearts = () => {
   return heartShape ? [heartShape, 'circle'] : ['circle', 'square'];
 };
 
+// Our own confetti cannon drawing on the page itself: the library's default
+// hands its canvas to a background worker (OffscreenCanvas), which TV
+// browsers handle badly. In lite mode (TV browsers) there's no confetti.
+let cannon = null;
 const fire = (opts) => {
+  if (isLiteFx()) return;
   try {
-    const lite = isLiteFx();
-    const particleCount = Math.round((opts.particleCount || 50) * (lite ? 0.5 : 1));
-    confetti({ colors: COLORS, shapes: hearts(), disableForReducedMotion: true, zIndex: 50, ...opts, particleCount });
+    if (!cannon) cannon = confetti.create(null, { useWorker: false, resize: true, disableForReducedMotion: true });
+    cannon({ colors: COLORS, shapes: hearts(), zIndex: 50, ...opts });
   } catch (e) {
     // effects are optional
   }

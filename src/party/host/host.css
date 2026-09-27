@@ -140,10 +140,28 @@
 
 .fx-lite .hb-photo-glow,
 .fx-lite .hb-spotlight,
+.fx-lite .hb-gh-wave,
+.fx-lite .hb-golden-heart.is-beating svg,
 .fx-lite .hb-controls .hb-btn-primary:not(:disabled),
 .fx-lite .hb-hunt-heart:not(.is-found) .hb-heart-icon,
 .fx-lite .hb-phone-preview {
   animation: none;
+}
+
+.hb-tv-notice {
+  position: absolute;
+  top: 1em;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  background: #fff8e1;
+  color: #6b4e00;
+  border-radius: 999px;
+  padding: 0.6em 1.4em;
+  font-size: 1.2em;
+  font-weight: 700;
+  box-shadow: 0 0.4em 1.2em rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
 }
 
 /* ---------- boot / error ---------- */

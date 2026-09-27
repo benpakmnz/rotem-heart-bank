@@ -1157,3 +1157,35 @@
   direction: ltr;
   word-break: break-word;
 }
+
+/* ---------- lite mode's heart rain: a few CSS hearts, no canvas ---------- */
+
+.hb-soft-rain {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hb-soft-drop {
+  position: absolute;
+  top: -1.5em;
+  line-height: 1;
+  opacity: 0.85;
+  animation-name: hb-soft-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes hb-soft-fall {
+  from {
+    transform: translateY(0) rotate(-10deg);
+  }
+  to {
+    transform: translateY(110vh) rotate(10deg);
+  }
+}

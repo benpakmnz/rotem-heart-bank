@@ -57,4 +57,28 @@ const HeartRain = ({ rateRef, active = true }) => {
   return <canvas ref={canvasRef} className="hb-fx-canvas hb-heart-rain" aria-hidden="true" />;
 };
 
+// Lite mode (TV browsers): a few CSS hearts instead of a full-screen canvas.
+const SOFT = Array.from({ length: 9 }, (_, i) => ({
+  left: 4 + ((i * 37) % 92),
+  size: 1.6 + ((i * 7) % 5) * 0.5,
+  delay: -((i * 1.3) % 6),
+  duration: 5 + ((i * 3) % 4),
+  color: COLORS[i % COLORS.length],
+}));
+
+export const SoftHeartRain = ({ active = true }) =>
+  active ? (
+    <div className="hb-soft-rain" aria-hidden="true">
+      {SOFT.map((h, i) => (
+        <span
+          key={i}
+          className="hb-soft-drop"
+          style={{ left: `${h.left}%`, fontSize: `${h.size}em`, animationDelay: `${h.delay}s`, animationDuration: `${h.duration}s`, color: h.color }}
+        >
+          ♥
+        </span>
+      ))}
+    </div>
+  ) : null;
+
 export default HeartRain;
