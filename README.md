@@ -27,48 +27,44 @@
 
 ---
 
-## ⚡ ניסיון מהיר - בלי שום הגדרה
+## 🔥 Firebase - כבר מחובר
 
-```bash
-npm install
-npm start
-```
+המשחק משתמש ב-**Firebase Realtime Database** כדי לסנכרן את הטלפונים עם הטלוויזיה, והוא כבר מחובר למסד של הפרויקט `rotem-heart-bank`:
+`https://rotem-heart-bank-default-rtdb.europe-west1.firebasedatabase.app` (הכתובת נמצאת ב-[`src/party/net/firebaseConfig.js`](src/party/net/firebaseConfig.js)).
 
-הדפדפן ייפתח על `http://localhost:3000` - זה מסך הטלוויזיה. יופיע פס צהוב **"מצב הדגמה מקומי"** עם כפתור **"➕ פתיחת שחקן לניסיון"** - כל לחיצה פותחת חלון של "טלפון" נוסף, ואפשר לשחק את כל המשחק על מחשב אחד.
+**הדבר היחיד שצריך לוודא - שכללי המשחק פורסמו:**
+ב-[console.firebase.google.com](https://console.firebase.google.com) פותחים את הפרויקט `rotem-heart-bank` ← **Realtime Database** ← הלשונית **Rules**, מוחקים את מה שיש, מדביקים את כל התוכן של הקובץ [`database.rules.json`](database.rules.json) ולוחצים **Publish**.
+הכללים מאפשרים לקרוא ולכתוב רק בתוך `rooms/<קוד בן 4 ספרות>`, ואי אפשר לראות רשימה של כל המשחקים. בלי זה הטלוויזיה תציג **"Firebase חוסם את המשחק"**.
 
-> במצב הזה טלפונים אמיתיים **לא** יכולים להתחבר. בשביל זה צריך Firebase (למטה).
+אין צורך ב-API key או בהתחברות. הטלפונים יכולים להצטרף מכל רשת (WiFi או סלולרי), והתוכנית החינמית של Firebase מספיקה בקלות (עד 100 חיבורים בו-זמנית).
 
----
+<details>
+<summary>מעבר למסד Firebase אחר</summary>
 
-## 🔥 הגדרת Firebase (פעם אחת, כ-5 דקות, בחינם)
+1. ב-[console.firebase.google.com](https://console.firebase.google.com) צרו פרויקט ← **Realtime Database** ← **Create Database** (מיקום **europe-west1**, מצב **Start in locked mode**).
+2. פרסמו את הכללים כמו למעלה.
+3. העתיקו את כתובת המסד מראש הלשונית **Data** ושימו אותה ב-`src/party/net/firebaseConfig.js`,
+   או במשתנה הסביבה `REACT_APP_FIREBASE_DATABASE_URL` (ב-Vercel: **Settings ← Environment Variables** ואז **Redeploy**, כי הכתובת נכנסת לקוד בזמן הבנייה).
 
-המשחק משתמש ב-**Firebase Realtime Database** כדי לסנכרן את הטלפונים עם הטלוויזיה.
-
-1. היכנסו ל-[console.firebase.google.com](https://console.firebase.google.com) וצרו פרויקט חדש (אין צורך ב-Google Analytics).
-2. בתפריט הצד בחרו **Realtime Database** ← **Create Database**.
-   - מיקום: **europe-west1 (Belgium)** - הכי קרוב לישראל.
-   - מצב אבטחה: **Start in locked mode**.
-3. בלשונית **Rules** מחקו את מה שיש, הדביקו את כל התוכן של הקובץ [`database.rules.json`](database.rules.json) ולחצו **Publish**.
-   (הכללים מאפשרים לקרוא ולכתוב רק בתוך `rooms/<קוד בן 4 ספרות>`, ואי אפשר לראות רשימה של כל המשחקים.)
-4. העתיקו את כתובת המסד שמופיעה בראש הלשונית **Data**, למשל:
-   `https://rotem-party-default-rtdb.europe-west1.firebasedatabase.app`
-5. **בפיתוח מקומי:** צרו קובץ `.env.local` עם השורה הבאה והפעילו מחדש את `npm start`:
-   ```
-   REACT_APP_FIREBASE_DATABASE_URL=https://rotem-party-default-rtdb.europe-west1.firebasedatabase.app
-   ```
-
-זהו - אין צורך ב-API key או בהתחברות. כשהכול מוגדר, הפס הצהוב נעלם מהטלוויזיה והטלפונים יכולים להצטרף מכל רשת (WiFi או סלולרי).
-התוכנית החינמית של Firebase מספיקה בקלות (עד 100 חיבורים בו-זמנית).
+</details>
 
 ---
 
 ## 🚀 העלאה לאוויר ב-Vercel
 
-1. ב-[vercel.com](https://vercel.com): **Add New… ← Project** ← בחרו את הריפו `rotem-heart-bank` (ההגדרות נקבעות אוטומטית מ-`vercel.json`).
-2. תחת **Environment Variables** הוסיפו `REACT_APP_FIREBASE_DATABASE_URL` עם הכתובת מסעיף 4 למעלה.
-3. **Deploy**. כל push ל-`main` יעלה גרסה חדשה.
+1. ב-[vercel.com](https://vercel.com): **Add New… ← Project** ← בחרו את הריפו `rotem-heart-bank` ← **Deploy**.
+   ההגדרות נקבעות אוטומטית מ-`vercel.json`, ואין צורך במשתני סביבה.
+2. כל push ל-`main` יעלה גרסה חדשה.
 
-> אם מוסיפים או משנים את המשתנה אחרי הפריסה - צריך **Redeploy**, כי הוא נכנס לקוד בזמן הבנייה.
+---
+
+## ⚡ ניסיון על מחשב אחד (מצב הדגמה)
+
+מוסיפים `?local=1` לכתובת של מסך הטלוויזיה, למשל `https://<האתר-שלכם>/?local=1`
+(או במחשב של מפתח: `npm install`, `npm start` ואז `http://localhost:3000/?local=1`).
+יופיע פס צהוב **"מצב הדגמה מקומי"** עם כפתור **"➕ פתיחת שחקן לניסיון"** - כל לחיצה פותחת חלון של "טלפון" נוסף, ואפשר לשחק את כל המשחק על מחשב אחד.
+
+> במצב הזה טלפונים אמיתיים **לא** יכולים להתחבר. בלי `?local=1` המשחק מתחבר ל-Firebase והטלפונים מצטרפים עם ה-QR.
 
 ---
 
@@ -139,7 +135,8 @@ npm start
 
 | בעיה | פתרון |
 | --- | --- |
-| בטלפון: "לא מצאנו משחק עם הקוד..." | ודאו שמסך הטלוויזיה פתוח ושהקוד נכון. אם בטלוויזיה מופיע הפס הצהוב "מצב הדגמה מקומי" - Firebase לא הוגדר (או שלא בוצע Redeploy). |
+| בטלפון: "לא מצאנו משחק עם הקוד..." | ודאו שמסך הטלוויזיה פתוח ושהקוד נכון. אם בטלוויזיה מופיע הפס הצהוב "מצב הדגמה מקומי" - פתחו את האתר בלי `?local=1` בכתובת. |
+| בטלוויזיה: "Firebase חוסם את המשחק" | כללי המשחק לא פורסמו ב-Firebase - ראו את הסעיף 🔥 Firebase למעלה, ואז "🔄 לנסות שוב". |
 | אין צלילים | לחצו פעם אחת על מסך הטלוויזיה, בדקו שלא הושתק (M) ואת עוצמת הרמקולים. |
 | בטלפונים: "📺 הטלוויזיה התנתקה" | הדפדפן בטלוויזיה נסגר או איבד אינטרנט. פתחו שוב את האתר על אותו מחשב - המשחק ממשיך. |
 | מישהו הצטרף פעמיים | במסך הפתיחה לחצו על הדמות הכפולה כדי להוציא אותה. |
@@ -160,6 +157,5 @@ src/party/
 ```
 
 - טסטים: `npm test`
-- אמולטור Firebase מקומי: `REACT_APP_FIREBASE_EMULATOR_HOST=127.0.0.1:9000` (במקום כתובת המסד).
-- `?local=1` בכתובת מכריח מצב הדגמה מקומי גם כש-Firebase מוגדר.
+- `npm start` מתחבר למסד האמיתי. כדי לפתח בלי לגעת בו: `?local=1` בכתובת (מצב הדגמה מקומי), או אמולטור Firebase מקומי עם `REACT_APP_FIREBASE_EMULATOR_HOST=127.0.0.1:9000` בקובץ `.env.local`.
 - כל משחק נשמר תחת `rooms/<קוד>` ב-Firebase. אפשר למחוק משחקים ישנים מה-Console מדי פעם (לא חובה).

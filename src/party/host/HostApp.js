@@ -11,6 +11,9 @@ import './stages.css';
 
 const SESSION_MAX_AGE = 12 * 60 * 60 * 1000;
 
+// A database created in "locked mode" refuses everything until the game's rules are published.
+const isPermissionError = (error) => /permission/i.test(String(error && error.message));
+
 // Resume the TV's game after a refresh, or open a new room.
 const bootHost = async () => {
   const mode = transportMode();
@@ -67,8 +70,20 @@ const HostApp = () => {
         <LogoHeart className="hb-boot-logo" />
         {boot.status === 'error' ? (
           <>
-            <h1>אופס, אין חיבור לשרת המשחק</h1>
-            <p>בדקו את החיבור לאינטרנט ואת הגדרות Firebase (ראו README.md).</p>
+            {isPermissionError(boot.error) ? (
+              <>
+                <h1>Firebase חוסם את המשחק</h1>
+                <p>
+                  צריך לפרסם את כללי המשחק: ב-Firebase Console פתחו את Realtime Database ואת הלשונית <b>Rules</b>, הדביקו שם
+                  את כל התוכן של הקובץ database.rules.json ולחצו <b>Publish</b>.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1>אופס, אין חיבור לשרת המשחק</h1>
+                <p>בדקו את החיבור לאינטרנט ואת הגדרות Firebase (ראו README.md).</p>
+              </>
+            )}
             <p className="hb-boot-error">{String(boot.error && boot.error.message)}</p>
             <button type="button" className="hb-btn hb-btn-primary" onClick={() => setAttempt((n) => n + 1)}>
               🔄 לנסות שוב

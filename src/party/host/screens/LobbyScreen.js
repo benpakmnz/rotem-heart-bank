@@ -1,6 +1,7 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { playerIds } from '../../engine/engine';
+import { isFirebaseConfigured } from '../../net/firebaseConfig';
 import { joinHint, joinUrl } from '../../routes';
 import Avatar from '../../shared/Avatar';
 import { LogoHeart } from '../../shared/Heart';
@@ -31,9 +32,16 @@ const WavingPlayer = ({ player, waves, onRemove }) => (
 const LocalModeBanner = ({ code }) => (
   <div className="hb-local-banner">
     <strong>🧪 מצב הדגמה מקומי</strong>
-    <span>
-      Firebase עדיין לא הוגדר, אז אפשר לשחק רק בחלונות של הדפדפן הזה (טלפונים לא יתחברו). ההוראות ב-README.md.
-    </span>
+    {isFirebaseConfigured() ? (
+      <span>
+        אפשר לשחק רק בחלונות של הדפדפן הזה (טלפונים לא יתחברו). כדי לשחק עם הטלפונים, פתחו את האתר בלי{' '}
+        <bdi dir="ltr">?local=1</bdi> בכתובת.
+      </span>
+    ) : (
+      <span>
+        Firebase עדיין לא הוגדר, אז אפשר לשחק רק בחלונות של הדפדפן הזה (טלפונים לא יתחברו). ההוראות ב-README.md.
+      </span>
+    )}
     <button
       type="button"
       className="hb-btn hb-btn-soft"

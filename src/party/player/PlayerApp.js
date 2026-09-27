@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { connectRoom, transportMode } from '../net/room';
+import { isFirebaseConfigured } from '../net/firebaseConfig';
 import { useConnectionStatus, useRoomValue } from '../net/hooks';
 import { isValidRoomCode, JOIN_PATH, ROOM_CODE_LENGTH } from '../routes';
 import { readJson, writeJson } from '../lib/storage';
@@ -130,7 +131,14 @@ const PlayerRoom = ({ code, onChangeCode }) => {
         <h1 className="hb-phone-title">לא מצאנו משחק עם הקוד {code} 🤔</h1>
         {transportMode() === 'local' ? (
           <p className="hb-phone-text">
-            המשחק רץ במצב הדגמה מקומי, שבו רק חלונות באותו מחשב יכולים להצטרף. כדי לשחק מהטלפונים צריך להגדיר Firebase (ראו README.md).
+            המשחק רץ במצב הדגמה מקומי, שבו רק חלונות באותו מחשב יכולים להצטרף.{' '}
+            {isFirebaseConfigured() ? (
+              <>
+                כדי לשחק מהטלפונים, פתחו את המשחק בטלוויזיה בלי <bdi dir="ltr">?local=1</bdi> בכתובת.
+              </>
+            ) : (
+              'כדי לשחק מהטלפונים צריך להגדיר Firebase (ראו README.md).'
+            )}
           </p>
         ) : (
           <p className="hb-phone-text">בדקו שמסך הטלוויזיה פתוח ושהקוד נכון.</p>
