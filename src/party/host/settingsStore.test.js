@@ -1,6 +1,6 @@
-import { loadSettings, refreshTrivia } from './settingsStore';
+import { loadSettings, refreshTrivia, refreshWords } from './settingsStore';
 import { DEFAULT_CONTENT, TRIVIA_VERSION, WORDS_VERSION, createDefaultSettings, normalizeSettings } from '../config/content';
-import { playableQuestions } from '../engine/engine';
+import { playableQuestions, playableWords } from '../engine/engine';
 
 const KEY = 'hb-settings-v1';
 const store = (value) => window.localStorage.setItem(KEY, JSON.stringify(value));
@@ -55,4 +55,28 @@ test('a TV that saved the old words gets the new ones and keeps its own', () => 
   expect(words.slice(0, DEFAULT_CONTENT.words.length)).toEqual(DEFAULT_CONTENT.words);
   expect(words.slice(DEFAULT_CONTENT.words.length)).toEqual([{ word: 'שוקולד', hint: 'של המשפחה' }]);
   expect(stored().wordsVersion).toBe(WORDS_VERSION);
+});
+
+test('a newer built-in word list keeps the on/off choices and the family\'s own words', () => {
+  const builtIn = [
+    { id: 'love', word: 'אהבה', hint: 'א' },
+    { id: 'fruit', word: 'בננה', hint: 'ב' },
+    { id: 'new', word: 'חדשה', hint: 'ח' },
+  ];
+  const saved = [
+    { id: 'love', word: 'אהבה', hint: 'א', off: true },
+    { word: 'בננה', hint: 'saved before words had ids', off: true },
+    { id: 'gone', word: 'ישנה', hint: 'no longer built in' },
+    { word: 'שוקולד', hint: 'של המשפחה' },
+  ];
+  expect(refreshWords(saved, builtIn)).toEqual([{ ...builtIn[0], off: true }, { ...builtIn[1], off: true }, builtIn[2], saved[3]]);
+});
+
+test('every built-in word plays, and words turned off do not', () => {
+  const settings = createDefaultSettings();
+  expect(playableWords(settings)).toHaveLength(settings.words.length);
+  expect(new Set(settings.words.map((w) => w.id)).size).toBe(settings.words.length);
+  settings.words[1] = { ...settings.words[1], off: true };
+  expect(playableWords(settings).map((w) => w.word)).not.toContain(settings.words[1].word);
+  expect(playableWords(settings)).toHaveLength(settings.words.length - 1);
 });

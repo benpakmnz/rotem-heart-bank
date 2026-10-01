@@ -269,6 +269,25 @@
   margin-inline-end: auto;
 }
 
+/* a word: switch and word on top, the hint below */
+.is-phone .hb-set-word {
+  flex-wrap: wrap;
+}
+
+.is-phone .hb-set-word .hb-input:not(.hb-input-short) {
+  order: 1;
+  flex-basis: 100%;
+}
+
+.is-phone .hb-set-word .hb-set-toggle {
+  margin-inline-end: 0;
+}
+
+.is-phone .hb-set-word .hb-input-short {
+  flex: 1;
+  width: auto;
+}
+
 .is-phone .hb-settings-tabs {
   flex-wrap: nowrap;
   overflow-x: auto;

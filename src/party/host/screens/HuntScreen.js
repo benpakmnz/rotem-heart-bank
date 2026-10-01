@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { heartKind } from '../../config/game';
+import { HEART_KINDS, heartKind } from '../../config/game';
 import { playerIds } from '../../engine/engine';
 import { fmt } from '../../lib/format';
 import Avatar from '../../shared/Avatar';
@@ -100,7 +100,7 @@ const HuntBoard = ({ state, now, dispatch }) => {
           <HuntHeart
             key={h.id}
             heart={h}
-            size={h.kind === 'gold' ? 'lg' : 'md'}
+            size={h.kind === HEART_KINDS[0].id ? 'lg' : 'md'}
             finder={found[h.id] ? state.players[found[h.id].pid] : null}
             onClick={() => setPicking(h.id)}
           />
@@ -109,7 +109,7 @@ const HuntBoard = ({ state, now, dispatch }) => {
       <LatestFind state={state} />
       {pickingHeart && (
         <PlayerPicker
-          title={`מי מצא את ה${heartKind(pickingHeart.kind).label}?`}
+          title={`מי מצא את ${heartKind(pickingHeart.kind).the}?`}
           players={state.players}
           ids={playerIds(state)}
           selected={found[picking] ? found[picking].pid : null}

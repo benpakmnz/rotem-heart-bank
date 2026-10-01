@@ -18,11 +18,15 @@ export const refreshTrivia = (saved, builtIn) => {
   return [...builtIn.map((q) => (off.has(q.id) ? { ...q, off: true } : q)), ...own];
 };
 
-// New built-in words come in; words the family added on this TV stay.
+// The same for the words. Older saved lists had no ids, so a built-in word
+// is also recognized by its text.
 export const refreshWords = (saved, builtIn) => {
-  const known = new Set(builtIn.map((w) => String(w.word).trim()));
-  const own = (Array.isArray(saved) ? saved : []).filter((w) => w && String(w.word || '').trim() && !known.has(String(w.word).trim()));
-  return [...builtIn, ...own];
+  const text = (w) => String(w.word || '').trim();
+  const list = Array.isArray(saved) ? saved.filter((w) => w && text(w)) : [];
+  const builtInText = new Set(builtIn.map(text));
+  const off = new Set(list.filter((w) => w.off).flatMap((w) => [w.id, text(w)]));
+  const own = list.filter((w) => !w.id && !builtInText.has(text(w)));
+  return [...builtIn.map((w) => (off.has(w.id) || off.has(text(w)) ? { ...w, off: true } : w)), ...own];
 };
 
 export const loadSettings = () => {

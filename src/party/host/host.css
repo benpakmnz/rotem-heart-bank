@@ -1350,7 +1350,8 @@
 }
 
 .hb-set-question.is-off .hb-set-options,
-.hb-set-question.is-off .hb-set-question-head .hb-input {
+.hb-set-question.is-off .hb-set-question-head .hb-input,
+.hb-set-word.is-off .hb-input {
   opacity: 0.5;
 }
 

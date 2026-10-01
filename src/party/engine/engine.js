@@ -72,8 +72,10 @@ export const playableQuestions = (settings) =>
     })
     .filter(Boolean);
 
+// Words turned off in the editor stay in the pool but are not played.
 export const playableWords = (settings) =>
   (settings.words || [])
+    .filter((item) => !(item && item.off))
     .map((item) => ({
       word: normalizeWord(item && item.word),
       hint: String((item && item.hint) || '').trim(),
@@ -270,7 +272,7 @@ const assignHeart = (s, heartId, pid, now) => {
 // ---------------------------------------------------------------------------
 // Badges: the hearts each player found.
 
-const BADGE_ORDER = ['gold', 'silver', 'red'];
+const BADGE_ORDER = HEART_KINDS.map((k) => k.id);
 
 export const playerBadges = (s) => {
   const out = {};

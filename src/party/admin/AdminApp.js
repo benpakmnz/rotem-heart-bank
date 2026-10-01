@@ -123,7 +123,7 @@ const HuntTools = ({ state, players, send }) => {
       </div>
       {heart && (
         <PlayerPicker
-          title={`מי מצא את ה${heartKind(heart.kind).label}?`}
+          title={`מי מצא את ${heartKind(heart.kind).the}?`}
           players={players}
           ids={ids}
           selected={heart.pid}

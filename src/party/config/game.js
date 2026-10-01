@@ -101,7 +101,7 @@ const STAGE_LIST = [
     title: 'ציידי הלבבות',
     subtitle: 'הפכו לציידי לבבות וחפשו בבית את הלבבות המוחבאים!',
     how: [
-      'בבית מוחבאים לבבות: זהב, כסף ואדומים',
+      'בבית מוחבאים לבבות ורודים, צהובים ולבנים - הוורוד שווה הכי הרבה!',
       'מצאתם לב? רוצו להראות אותו למנהל/ת המשחק',
       'מי מצא איזה לב - מופיע מיד בטלוויזיה ובטלפונים',
     ],
@@ -140,19 +140,20 @@ export const stageScoring = (stage, settings) => (typeof stage.scoring === 'func
 
 // ---------- stage "ציידי הלבבות": hidden hearts ----------
 
+// From the most valuable to the least ("the" = the name after "את").
 export const HEART_KINDS = [
-  { id: 'gold', label: 'לב זהב', short: 'זהב', colors: ['#FFF3B8', '#E39A00'] },
-  { id: 'silver', label: 'לב כסף', short: 'כסף', colors: ['#FFFFFF', '#8E97AE'] },
-  { id: 'red', label: 'לב אדום', short: 'אדום', colors: ['#FF9DB0', '#D3103C'] },
+  { id: 'pink', label: 'לב ורוד', the: 'הלב הוורוד', short: 'ורוד', colors: ['#FFB0D6', '#E3146E'] },
+  { id: 'yellow', label: 'לב צהוב', the: 'הלב הצהוב', short: 'צהוב', colors: ['#FFF6B5', '#F2B600'] },
+  { id: 'white', label: 'לב לבן', the: 'הלב הלבן', short: 'לבן', colors: ['#FFFFFF', '#D6CFE4'] },
 ];
 
 export const heartKind = (id) => HEART_KINDS.find((k) => k.id === id) || HEART_KINDS[2];
 
 export const DEFAULT_HUNT = {
   minutes: 5,
-  gold: { count: 1, points: 3000 },
-  silver: { count: 3, points: 1500 },
-  red: { count: 2, points: 1000 },
+  pink: { count: 1, points: 3000 },
+  yellow: { count: 3, points: 1500 },
+  white: { count: 2, points: 1000 },
 };
 
 export const huntKind = (settings, kind) => {

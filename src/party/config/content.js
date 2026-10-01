@@ -5,9 +5,9 @@ import { DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS } from './game';
 
 // Bump when the built-in questions change: a TV that saved the older list
 // gets the new one and keeps its on/off choices (see settingsStore).
-export const TRIVIA_VERSION = 4;
+export const TRIVIA_VERSION = 5;
 // The same for the built-in words.
-export const WORDS_VERSION = 2;
+export const WORDS_VERSION = 3;
 
 export const DEFAULT_CONTENT = {
   birthdayName: 'רותם',
@@ -57,6 +57,7 @@ export const DEFAULT_CONTENT = {
       options: ['שחר, בחופש הגדול', 'אמא, עם הרבה סבלנות', 'סבא, בפארק', 'אבא, אבל בעיקר היא לבד'],
       correct: 3,
     },
+    { id: 'new-game', q: 'איזה משחק חדש רותם למדה לשחק לאחרונה?', options: ['שש-בש', 'שחמט', 'רמיקוב', 'דמקה'], correct: 0 },
     {
       id: 'daniel',
       q: 'איך רותם קוראת לדניאל, החברה הכי טובה שלה, ואיך קראה לה פעם?',
@@ -104,14 +105,21 @@ export const DEFAULT_CONTENT = {
     'לשחק כדורגל ⚽',
     'לצייר ציור ענק 🎨',
   ],
+  // The pool of words; the editor turns words on and off (the id ties a word
+  // to this list).
   words: [
-    { word: 'אהבה', hint: 'מה שכולנו מרגישים כלפי רותם 💕' },
-    { word: 'לבבות', hint: 'מה אוספים לבנק של רותם? ❤️' },
-    { word: 'משפחה', hint: 'כל האנשים שחוגגים כאן ביחד 👨‍👩‍👧' },
-    { word: 'אחיות', hint: 'רותם ושחר הן... 👭' },
-    { word: 'נסיכה', hint: 'בת של מלך ומלכה - כמו רותם 👑' },
-    { word: 'גורדוליני', hint: 'איך אמא קוראת לרותם? 🥰' },
-    { word: 'מזל טוב', hint: 'מה אומרים ביום הולדת? 🎉' },
+    { id: 'love', word: 'אהבה', hint: 'מה שכולנו מרגישים כלפי רותם 💕' },
+    { id: 'hearts', word: 'לבבות', hint: 'מה אוספים לבנק של רותם? ❤️' },
+    { id: 'family', word: 'משפחה', hint: 'כל האנשים שחוגגים כאן ביחד 👨‍👩‍👧' },
+    { id: 'sisters', word: 'אחיות', hint: 'רותם ושחר הן... 👭' },
+    { id: 'princess', word: 'נסיכה', hint: 'בת של מלך ומלכה - כמו רותם 👑' },
+    { id: 'nickname', word: 'גורדוליני', hint: 'איך אמא קוראת לרותם? 🥰' },
+    { id: 'doll', word: 'רוני', hint: 'הבובה האהובה של רותם 🧸' },
+    { id: 'bluey', word: 'בלואי', hint: 'דמות מסדרת טלוויזיה שרותם אוהבת 📺' },
+    { id: 'prince', word: 'נסיך מצרים', hint: 'הצגת ילדים שרותם צפתה בה מיליון פעמים 🎭' },
+    { id: 'fruit', word: 'בננה', hint: 'פרי שרותם אוהבת במיוחד 😋' },
+    { id: 'cards', word: 'חתחתול', hint: 'משחק קלפים שרותם מאוד אוהבת 🃏' },
+    { id: 'mazal-tov', word: 'מזל טוב', hint: 'מה אומרים ביום הולדת? 🎉' },
   ],
   blessingSuggestions: [
     'אהבה',

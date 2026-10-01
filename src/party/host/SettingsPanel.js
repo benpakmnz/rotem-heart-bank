@@ -30,6 +30,28 @@ const linesToList = (text) =>
     .map((l) => l.trim())
     .filter(Boolean);
 
+// Questions and words are pools: only the items that are on get played.
+const PoolBar = ({ items, label, onChange, testId }) => (
+  <div className="hb-set-pool">
+    <strong data-testid={testId}>
+      ✅ {items.filter((x) => !x.off).length} מתוך {items.length} {label}
+    </strong>
+    <button type="button" className="hb-btn hb-btn-soft" onClick={() => onChange(items.map((x) => ({ ...x, off: false })))}>
+      לסמן הכול
+    </button>
+    <button type="button" className="hb-btn hb-btn-soft" onClick={() => onChange(items.map((x) => ({ ...x, off: true })))}>
+      לבטל הכול
+    </button>
+  </div>
+);
+
+const PoolToggle = ({ on, label, onToggle, testId }) => (
+  <label className={`hb-set-toggle ${on ? 'is-on' : ''}`}>
+    <input type="checkbox" checked={on} onChange={(e) => onToggle(e.target.checked)} data-testid={testId} />
+    {label}
+  </label>
+);
+
 const TriviaEditor = ({ trivia, onChange }) => {
   const update = (i, patch) => onChange(trivia.map((q, k) => (k === i ? { ...q, ...patch } : q)));
   const setOption = (i, o, value) => {
@@ -44,33 +66,17 @@ const TriviaEditor = ({ trivia, onChange }) => {
     [next[i], next[j]] = [next[j], next[i]];
     onChange(next);
   };
-  // the list is a pool: only the questions marked "בחידון" are asked
-  const playing = trivia.filter((q) => !q.off).length;
-  const setAll = (on) => onChange(trivia.map((q) => ({ ...q, off: !on })));
   return (
     <div className="hb-set-trivia">
       <p className="hb-set-help">
         כתבו שאלות על בעל/ת השמחה, 4 תשובות, וסמנו את הנכונה (העיגול הירוק). שאלה בלי סימון "בחידון" נשארת במאגר ולא נשאלת.
       </p>
-      <div className="hb-set-pool">
-        <strong data-testid="trivia-playing">
-          ✅ {playing} מתוך {trivia.length} שאלות בחידון
-        </strong>
-        <button type="button" className="hb-btn hb-btn-soft" onClick={() => setAll(true)}>
-          לסמן הכול
-        </button>
-        <button type="button" className="hb-btn hb-btn-soft" onClick={() => setAll(false)}>
-          לבטל הכול
-        </button>
-      </div>
+      <PoolBar items={trivia} label="שאלות בחידון" onChange={onChange} testId="trivia-playing" />
       {trivia.map((q, i) => (
         <div key={i} className={`hb-set-question ${q.off ? 'is-off' : ''}`}>
           <div className="hb-set-question-head">
             <span className="hb-set-num">{i + 1}</span>
-            <label className={`hb-set-toggle ${q.off ? '' : 'is-on'}`}>
-              <input type="checkbox" checked={!q.off} onChange={(e) => update(i, { off: !e.target.checked })} data-testid={`trivia-on-${i}`} />
-              בחידון
-            </label>
+            <PoolToggle on={!q.off} label="בחידון" onToggle={(on) => update(i, { off: !on })} testId={`trivia-on-${i}`} />
             <input
               className="hb-input"
               value={q.q}
@@ -122,14 +128,21 @@ const WordsEditor = ({ words, onChange }) => {
   const update = (i, patch) => onChange(words.map((w, k) => (k === i ? { ...w, ...patch } : w)));
   return (
     <div>
-      <p className="hb-set-help">המילה (אפשר גם שתי מילים, כמו "מזל טוב") והרמז שיופיע בטלוויזיה.</p>
+      <p className="hb-set-help">
+        המילה (אפשר גם שתי מילים, כמו "מזל טוב") והרמז שיופיע בטלוויזיה. מילה בלי סימון "במשחק" נשארת במאגר ולא משחקים בה.
+      </p>
+      <PoolBar items={words} label="מילים במשחק" onChange={onChange} testId="words-playing" />
       {words.map((w, i) => (
-        <div key={i} className="hb-set-row">
+        <div key={i} className={`hb-set-row hb-set-word ${w.off ? 'is-off' : ''}`}>
+          <PoolToggle on={!w.off} label="במשחק" onToggle={(on) => update(i, { off: !on })} testId={`word-on-${i}`} />
           <input className="hb-input hb-input-short" value={w.word} placeholder="מילה" onChange={(e) => update(i, { word: e.target.value })} />
           <input className="hb-input" value={w.hint} placeholder="רמז" onChange={(e) => update(i, { hint: e.target.value })} />
-          <button type="button" className="hb-icon-btn is-danger" onClick={() => onChange(words.filter((_, k) => k !== i))} aria-label="מחיקה">
-            🗑
-          </button>
+          {/* built-in words are turned off rather than deleted */}
+          {!w.id && (
+            <button type="button" className="hb-icon-btn is-danger" onClick={() => onChange(words.filter((_, k) => k !== i))} aria-label="מחיקה">
+              🗑
+            </button>
+          )}
         </div>
       ))}
       <button type="button" className="hb-btn hb-btn-soft" onClick={() => onChange([...words, { word: '', hint: '' }])}>
