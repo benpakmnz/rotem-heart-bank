@@ -349,6 +349,7 @@
   font-size: 3.1em;
   font-weight: 800;
   text-align: center;
+  text-wrap: balance;
   line-height: 1.25;
   background: #fff;
   color: var(--hb-ink);

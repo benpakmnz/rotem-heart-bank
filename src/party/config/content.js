@@ -1,41 +1,78 @@
 import { DEFAULT_BASKET, DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS } from './game';
 
 // Default content of "בנק הלבבות של רותם". Everything here can be edited from
-// the TV screen (⚙️ עריכת תוכן) before the party - especially the trivia,
-// which should be about Rotem. The first question is the blueprint's example.
+// the TV screen (⚙️ עריכת תוכן) before the party.
+
+// Bump when the built-in questions change: a TV that saved the older list
+// gets the new one (see settingsStore).
+export const TRIVIA_VERSION = 2;
+
 export const DEFAULT_CONTENT = {
   birthdayName: 'רותם',
   age: 7,
+  // The family's questions about Rotem. Answers marked "placeholder" are not
+  // confirmed yet.
   trivia: [
+    { q: 'כמה בובות חד-קרן יש לרותם מעל המיטה?', options: ['3', '5', '6', '8'], correct: 3 }, // placeholder
+    { q: 'מה הייתה המילה הראשונה של רותם?', options: ['אמא', 'אבא', 'שחר', 'עוד'], correct: 0 }, // placeholder
     {
-      q: 'מה רותם הכי אוהבת לעשות בשבת בבוקר?',
-      options: ['לרקוד בסלון', 'לצייר לבבות', 'לאכול פנקייק עם אבא', 'ללכת לגינה'],
-      correct: 2,
+      q: 'מי זאת ניצן, ואיך היא עזרה לרותם?',
+      options: ['המורה שלימדה אותה לקרוא', 'הקלינאית שלימדה אותה להגיד ל׳', 'המאמנת שלימדה אותה לשחות', 'הגננת שלימדה אותה לכתוב'],
+      correct: 1,
+    },
+    { q: 'כמה שיניים נפלו לרותם עד היום?', options: ['2', '3', '4', '6'], correct: 2 }, // placeholder
+    {
+      // she did dress up as an ice cream seller; the others are placeholders
+      q: 'לאיזו מהתחפושות האלה רותם אף פעם לא התחפשה?',
+      options: ['מוכרת גלידות', 'נסיכה', 'חתולה', 'שוטרת'],
+      correct: 3,
     },
     {
-      q: 'בת כמה רותם היום?',
-      options: ['5', '6', '7', '8'],
+      q: 'שאלנו את שחר: אם רותם הייתה חיה, איזו חיה היא הייתה?',
+      options: ['חתלתולה', 'קופיפה', 'תרנגולת', 'דולפין'],
       correct: 2,
     },
+    { q: 'מה המקצוע שרותם הכי אוהבת ללמוד?', options: ['חשבון', 'אנגלית', 'אומנות', 'ההפסקה 😉'], correct: 0 }, // placeholder
+    { q: 'מה הגובה של רותם?', options: ['116 ס״מ', '120 ס״מ', '124 ס״מ', '128 ס״מ'], correct: 1 }, // placeholder
     {
-      q: 'מה הצבע האהוב על רותם?',
-      options: ['ורוד', 'סגול', 'תכלת', 'צהוב'],
+      q: 'מה מהדברים האלה רותם כבר עשתה?',
+      options: ['להחזיק נחש', 'לרכוב על גמל', 'לישון באוהל', 'לצוף בים המלח'],
+      correct: 2, // placeholder
+    },
+    {
+      q: 'ומה רותם הכי רוצה לעשות?',
+      options: ['לשחות עם דולפינים', 'לראות שלג', 'לרכוב על סוס', 'לטוס בכדור פורח'],
+      correct: 0, // placeholder
+    },
+    {
+      q: 'מה רותם תמיד מבקשת לפני שהיא נרדמת?',
+      options: ['עוד סיפור', 'כוס מים', 'להשאיר אור', 'עוד חיבוק'],
+      correct: 3, // placeholder
+    },
+    {
+      q: 'מי לימד את רותם לרכוב על אופניים?',
+      options: ['שחר, בחופש הגדול', 'אמא, עם הרבה סבלנות', 'סבא, בפארק', 'אבא, אבל בעיקר היא לבד'],
+      correct: 3,
+    },
+    {
+      q: 'מה המקום האהוב על רותם בבית?',
+      options: ['המיטה של אמא ואבא', 'הספה בסלון', 'החדר שלה', 'ליד המקרר'],
+      correct: 1, // placeholder
+    },
+    {
+      q: 'איך רותם קוראת לדניאל, החברה הכי טובה שלה, ואיך קראה לה פעם?',
+      options: ['דני, ופעם: דניאל הבת', 'דני, ופעם: דניאל הקטנה', 'דנוש, ופעם: דניאלי', 'דניאלה, ופעם: דן-דן'],
       correct: 0,
     },
     {
-      q: 'איזו חיה רותם הכי אוהבת?',
-      options: ['כלב', 'חתול', 'ארנב', 'סוס'],
-      correct: 1,
+      q: 'מה רותם ושחר הכי אוהבות לעשות ביחד?',
+      options: ['לרקוד בסלון', 'להציק לאבא', 'לשחק בבובות', 'לראות סדרות'],
+      correct: 1, // placeholder
     },
     {
-      q: 'מה המאכל האהוב על רותם?',
-      options: ['פיצה', 'פסטה', 'שניצל', 'פנקייק'],
-      correct: 0,
-    },
-    {
-      q: 'מה רותם רוצה להיות כשתהיה גדולה?',
-      options: ['רופאה', 'זמרת', 'מורה', 'אסטרונאוטית'],
-      correct: 1,
+      q: 'שאלנו את רותם: אם היית ממתק, איזה ממתק היית?',
+      options: ['סוכרייה על מקל', 'שוקולד', 'מרשמלו', 'סוכריות גומי'],
+      correct: 2, // placeholder
     },
   ],
   charades: [
@@ -98,6 +135,7 @@ export const createDefaultSettings = () => ({
   hunt: JSON.parse(JSON.stringify(DEFAULT_HUNT)),
   basket: { ...DEFAULT_BASKET },
   adminPin: randomPin(),
+  triviaVersion: TRIVIA_VERSION,
 });
 
 const cleanHunt = (hunt) => {
@@ -131,5 +169,6 @@ export const normalizeSettings = (saved) => {
     hunt: saved.hunt ? cleanHunt({ ...defaults.hunt, ...saved.hunt }) : defaults.hunt,
     basket: { ...defaults.basket, ...(saved.basket || {}) },
     adminPin: /^\d{4,6}$/.test(String(saved.adminPin || '')) ? String(saved.adminPin) : defaults.adminPin,
+    triviaVersion: TRIVIA_VERSION,
   };
 };
