@@ -5,7 +5,7 @@ import { DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS } from './game';
 
 // Bump when the built-in questions change: a TV that saved the older list
 // gets the new one and keeps its on/off choices (see settingsStore).
-export const TRIVIA_VERSION = 5;
+export const TRIVIA_VERSION = 6;
 // The same for the built-in words.
 export const WORDS_VERSION = 3;
 
@@ -24,7 +24,8 @@ export const DEFAULT_CONTENT = {
       options: ['מורה שלימדה את רותם לקרוא', 'קלינאית תקשורת שלימדה את רותם לומר ל׳', 'מאמנת שלימדה את רותם לשחות', 'גננת שלימדה את רותם לכתוב'],
       correct: 1,
     },
-    { id: 'teeth', q: 'כמה שיניים נפלו לרותם עד היום?', options: ['2', '3', '4', '6'], correct: 2 }, // placeholder
+    { id: 'teeth', q: 'כמה שיניים נפלו לרותם עד היום?', options: ['6', '7', '8', '9'], correct: 2 },
+    { id: 'tooth-fairy', q: 'איך קוראים לפיית השיניים של רותם?', options: ['מרים', 'פנינה', 'טינקרבל', 'שושנה'], correct: 0 },
     {
       id: 'costume',
       q: 'לאיזו מהתחפושות האלה רותם אף פעם לא התחפשה?',
