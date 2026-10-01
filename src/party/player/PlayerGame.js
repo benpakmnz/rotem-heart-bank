@@ -14,7 +14,6 @@ import WordPad from './screens/WordPad';
 import BlessingPad from './screens/BlessingPad';
 import FinalePad from './screens/FinalePad';
 import HuntPad from './screens/HuntPad';
-import BasketPad from './screens/BasketPad';
 import Badges from '../shared/Badges';
 
 const Header = ({ me, state }) => {
@@ -58,8 +57,6 @@ const screenFor = (props) => {
       return <WordPad {...props} />;
     case 'hunt':
       return <HuntPad {...props} />;
-    case 'basket':
-      return <BasketPad {...props} />;
     case 'blessings':
       return <BlessingPad {...props} />;
     default:

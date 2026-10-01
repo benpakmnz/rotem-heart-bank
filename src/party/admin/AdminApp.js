@@ -11,7 +11,6 @@ import Badges from '../shared/Badges';
 import { GlossyHeart } from '../shared/Heart';
 import PartyBackdrop from '../shared/PartyBackdrop';
 import PlayerPicker from '../shared/PlayerPicker';
-import ThrowSlots from '../shared/ThrowSlots';
 import SettingsPanel from '../host/SettingsPanel';
 import ErrorBoundary from '../shared/ErrorBoundary';
 import '../player/player.css';
@@ -35,7 +34,6 @@ const STEP_NAMES = {
   outcome: 'תוצאה',
   play: 'מפצחים',
   search: 'מחפשים לבבות',
-  throw: 'זורקים לסל',
   write: 'כותבים ברכות',
   results: 'סיכום השלב',
   fill: 'הבנק מתמלא',
@@ -144,21 +142,6 @@ const HuntTools = ({ state, players, send }) => {
   );
 };
 
-const BasketTools = ({ state, players }) => {
-  const d = state.data;
-  const thrower = d.thrower && players[d.thrower];
-  if (!thrower) return null;
-  return (
-    <Section title="🧺 זורק/ת עכשיו">
-      <div className="hb-admin-thrower">
-        <Avatar player={thrower} size="lg" showName />
-        <ThrowSlots throws={(d.throws && d.throws[d.thrower]) || []} total={d.perPlayer || 3} />
-      </div>
-      <p className="hb-admin-help">סמנו כל זריקה בכפתורים "נכנס!" / "פספוס" למעלה.</p>
-    </Section>
-  );
-};
-
 // ---------- the console ----------
 
 const Console = ({ conn, code, send, onLogout }) => {
@@ -263,7 +246,6 @@ const Console = ({ conn, code, send, onLogout }) => {
       </Section>
 
       {state && state.phase === 'hunt' && (state.step === 'search' || state.step === 'results') && <HuntTools state={state} players={players} send={run} />}
-      {state && state.phase === 'basket' && state.step === 'throw' && <BasketTools state={state} players={players} />}
 
       <Section title={`👨‍👩‍👧 משתתפים (${playing.length})`}>
         <div className="hb-admin-players">

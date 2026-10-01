@@ -1022,17 +1022,3 @@
 .hb-hunt-mini-heart.is-mine .hb-hunt-mini-shape {
   filter: drop-shadow(0 0 0.7rem rgba(255, 220, 120, 0.95));
 }
-
-/* ---------- stage: basket ---------- */
-
-.hb-basket-pad {
-  gap: 0.8rem;
-}
-
-.hb-basket-pad .hb-throws {
-  font-size: 0.8rem;
-}
-
-.hb-phone-me .hb-badges {
-  font-size: 1rem;
-}

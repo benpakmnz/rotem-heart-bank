@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ANSWER_COLORS, DEFAULT_BASKET, DEFAULT_TIMINGS, HEART_KINDS, STAGES, basketSettings, huntKind } from '../config/game';
+import { ANSWER_COLORS, DEFAULT_TIMINGS, HEART_KINDS, STAGES, huntKind } from '../config/game';
 import { createDefaultSettings, normalizeSettings } from '../config/content';
 import { Heart } from '../shared/Heart';
 
@@ -10,7 +10,6 @@ const TABS = [
   { id: 'words', label: '🔤 מילים לפיצוח' },
   { id: 'blessings', label: '💌 הצעות לברכות' },
   { id: 'hunt', label: '🔎 ציידי הלבבות' },
-  { id: 'basket', label: '🧺 קליעה ללב' },
   { id: 'timings', label: '⏱ זמנים' },
 ];
 
@@ -194,20 +193,6 @@ const HuntEditor = ({ hunt, onChange }) => {
   );
 };
 
-const BasketEditor = ({ basket, onChange }) => {
-  const b = basketSettings({ basket });
-  return (
-    <div>
-      <p className="hb-set-help">כל משתתף בתורו זורק לבבות לסל, והמנהל מסמן כל זריקה (נכנס / פספוס).</p>
-      <div className="hb-set-grid">
-        <NumberField label="זריקות לכל משתתף" value={b.throws} min={1} max={10} onChange={(throws) => onChange({ ...b, throws })} help={`ברירת מחדל: ${DEFAULT_BASKET.throws}`} />
-        <NumberField label="לבבות על כל קליעה" value={b.hitPoints} min={0} max={20000} step={100} onChange={(hitPoints) => onChange({ ...b, hitPoints })} help={`ברירת מחדל: ${DEFAULT_BASKET.hitPoints}`} />
-        <NumberField label="בונוס כשהכל נכנס" value={b.perfectBonus} min={0} max={20000} step={100} onChange={(perfectBonus) => onChange({ ...b, perfectBonus })} help={`ברירת מחדל: ${DEFAULT_BASKET.perfectBonus}`} />
-      </div>
-    </div>
-  );
-};
-
 const StagesPicker = ({ stages, onChange }) => (
   <div className="hb-field hb-set-stages">
     <span>השלבים במשחק (אפשר לכבות שלב)</span>
@@ -284,7 +269,6 @@ const SettingsPanel = ({ settings, started, onClose, onSave, className = '' }) =
             </div>
           )}
           {tab === 'hunt' && <HuntEditor hunt={draft.hunt || {}} onChange={(hunt) => set({ hunt })} />}
-          {tab === 'basket' && <BasketEditor basket={draft.basket || {}} onChange={(basket) => set({ basket })} />}
           {tab === 'trivia' && <TriviaEditor trivia={draft.trivia} onChange={(trivia) => set({ trivia })} />}
           {tab === 'charades' && (
             <ListEditor

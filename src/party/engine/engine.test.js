@@ -275,7 +275,7 @@ describe('stage 5 - charades', () => {
     expect(g.state.charades.current.performerId).not.toBe(first);
   });
 
-  test('after the configured rounds, results then the basket', () => {
+  test('after the configured rounds, results then the blessings', () => {
     const g = openRound();
     for (let r = 0; r < 3; r += 1) {
       expect(g.state.step).toBe('pick');
@@ -289,13 +289,21 @@ describe('stage 5 - charades', () => {
     const performers = g.state.charades.results.map((r) => r.performerId);
     expect(new Set(performers).size).toBe(3); // everyone performed once
     g.dispatch({ type: 'next' });
-    expect(g.state.phase).toBe('basket');
+    expect(g.state.phase).toBe('blessings');
   });
 });
 
 describe('stage 4 - letters', () => {
+  // the tests walk through these three words, whatever the built-in list is
   const openWord = () => {
-    const g = startGame();
+    const settings = createDefaultSettings();
+    settings.words = [
+      { word: 'אהבה', hint: 'מה שכולנו מרגישים' },
+      { word: 'משפחה', hint: 'כולנו ביחד' },
+      { word: 'מזל טוב', hint: 'מה אומרים ביום הולדת?' },
+    ];
+    const g = makeGame(settings);
+    g.dispatch({ type: 'next' });
     goToPhase(g, 'word');
     g.dispatch({ type: 'next' });
     g.advance(COUNTDOWN_MS);
@@ -444,22 +452,22 @@ describe('stage order', () => {
   test('default order includes the real-life stages', () => {
     const g = startGame();
     const seen = [g.state.phase];
-    for (let i = 0; i < 6; i += 1) seen.push(nextPhase(g.state, seen[seen.length - 1]));
-    expect(seen).toEqual(['tap', 'trivia', 'hunt', 'word', 'charades', 'basket', 'blessings']);
+    for (let i = 0; i < 5; i += 1) seen.push(nextPhase(g.state, seen[seen.length - 1]));
+    expect(seen).toEqual(['tap', 'trivia', 'hunt', 'word', 'charades', 'blessings']);
     expect(nextPhase(g.state, 'blessings')).toBe('finale');
   });
 
   test('stages turned off in the settings are skipped', () => {
     const settings = createDefaultSettings();
-    settings.stages = ['trivia', 'basket'];
+    settings.stages = ['trivia', 'word'];
     const g = makeGame(settings);
     g.dispatch({ type: 'next' });
     expect(g.state.phase).toBe('trivia');
-    expect(nextPhase(g.state, 'trivia')).toBe('basket');
-    expect(nextPhase(g.state, 'basket')).toBe('finale');
+    expect(nextPhase(g.state, 'trivia')).toBe('word');
+    expect(nextPhase(g.state, 'word')).toBe('finale');
     // reached through the menu even though it's off: continue with the next enabled one
-    expect(nextPhase(g.state, 'hunt')).toBe('basket');
-    expect(toPublic(g.state).stages).toEqual(['trivia', 'basket']);
+    expect(nextPhase(g.state, 'hunt')).toBe('word');
+    expect(toPublic(g.state).stages).toEqual(['trivia', 'word']);
   });
 });
 
@@ -527,59 +535,5 @@ describe('stage "hunt" - hidden hearts', () => {
     expect(g.state.scores.c).toBe(100);
     g.dispatch({ type: 'next' });
     expect(g.state.phase).toBe('word');
-  });
-});
-
-describe('stage "basket" - throwing hearts', () => {
-  const startBasket = () => {
-    const g = startGame();
-    goToPhase(g, 'basket');
-    g.dispatch({ type: 'next' });
-    return g;
-  };
-
-  test('players throw in turn; every hit scores', () => {
-    const g = startBasket();
-    expect(g.state.step).toBe('throw');
-    expect(toPublic(g.state).data.thrower).toBe('a');
-    g.dispatch({ type: 'basketThrow', hit: true });
-    g.dispatch({ type: 'basketThrow', hit: false });
-    g.dispatch({ type: 'basketThrow', hit: true });
-    expect(g.state.scores.a).toBe(1400);
-    const full = g.state;
-    expect(g.dispatch({ type: 'basketThrow', hit: true })).toBe(full); // only 3 throws
-    g.dispatch({ type: 'next' });
-    expect(toPublic(g.state).data.thrower).toBe('b');
-  });
-
-  test('3 out of 3 earns the bonus and a badge; undo takes them back', () => {
-    const g = startBasket();
-    [1, 2, 3].forEach(() => g.dispatch({ type: 'basketThrow', hit: true }));
-    expect(g.state.scores.a).toBe(3 * 700 + 1000);
-    expect(playerBadges(g.state)).toEqual({ a: ['basket'] });
-    g.dispatch({ type: 'basketUndo' });
-    expect(g.state.scores.a).toBe(2 * 700);
-    expect(playerBadges(g.state)).toEqual({});
-    expect(g.state.basket.throws.a).toEqual([true, true]);
-  });
-
-  test('skip moves on; after the last player come the results', () => {
-    const g = startBasket();
-    g.dispatch({ type: 'skip' });
-    g.dispatch({ type: 'skip' });
-    expect(toPublic(g.state).data.thrower).toBe('c');
-    g.dispatch({ type: 'next' });
-    expect(g.state.step).toBe('results');
-    g.dispatch({ type: 'next' });
-    expect(g.state.phase).toBe('blessings');
-  });
-
-  test('a player who joins during the stage gets a turn at the end', () => {
-    const g = startBasket();
-    g.dispatch({ type: 'players', players: { ...PLAYERS, d: { name: 'דן', avatar: 'owl', joinedAt: 9, online: true } } });
-    g.dispatch({ type: 'next' });
-    g.dispatch({ type: 'next' });
-    g.dispatch({ type: 'next' });
-    expect(toPublic(g.state).data.thrower).toBe('d');
   });
 });

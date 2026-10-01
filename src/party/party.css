@@ -964,7 +964,7 @@
   }
 }
 
-/* ---------- badges (found hearts, perfect basket) ---------- */
+/* ---------- badges (found hearts) ---------- */
 
 .hb-badges {
   display: inline-flex;
@@ -989,12 +989,6 @@
 
 .hb-badge-gold {
   filter: drop-shadow(0 0 0.3em rgba(255, 200, 60, 0.9));
-}
-
-.hb-badge-basket {
-  width: auto;
-  height: auto;
-  font-size: 0.95em;
 }
 
 /* ---------- "who found it?" picker ---------- */
@@ -1061,52 +1055,6 @@
 
 .hb-picker-clear {
   margin-top: 1em;
-}
-
-/* ---------- basket throws: pending / in / missed (TV + phones) ---------- */
-
-.hb-throws {
-  display: flex;
-  gap: 1em;
-}
-
-.hb-throw {
-  position: relative;
-  width: 6em;
-  height: 5.5em;
-  display: grid;
-  place-items: center;
-}
-
-.hb-throw .hb-heart-icon {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.hb-throw b {
-  position: relative;
-  font-family: var(--hb-display);
-  font-size: 2em;
-  padding-bottom: 0.2em;
-  color: #fff;
-}
-
-.hb-throw.is-wait .hb-heart-icon {
-  opacity: 0.3;
-}
-
-.hb-throw.is-next .hb-heart-icon {
-  opacity: 0.6;
-  animation: hb-beat 1.2s ease-in-out infinite;
-}
-
-.hb-throw.is-hit {
-  filter: drop-shadow(0 0 1em rgba(255, 120, 180, 0.9));
 }
 
 /* ---------- crash card (see ErrorBoundary) ---------- */

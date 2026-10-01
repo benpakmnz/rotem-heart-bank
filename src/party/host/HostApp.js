@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { allocateRoom, connectRoom, transportMode } from '../net/room';
-import { createGame } from '../engine/engine';
+import { createGame, PHASES } from '../engine/engine';
 import { readJson, removeKey } from '../lib/storage';
 import { LogoHeart } from '../shared/Heart';
 import HostGame from './HostGame';
@@ -19,7 +19,8 @@ const isPermissionError = (error) => /permission/i.test(String(error && error.me
 const bootHost = async () => {
   const mode = transportMode();
   const saved = readJson(SESSION_KEY);
-  const fresh = saved && saved.state && saved.mode === mode && Date.now() - saved.savedAt < SESSION_MAX_AGE;
+  const fresh =
+    saved && saved.state && PHASES.includes(saved.state.phase) && saved.mode === mode && Date.now() - saved.savedAt < SESSION_MAX_AGE;
   if (fresh) {
     const conn = await connectRoom(saved.state.roomCode, { role: 'host' });
     return { conn, initialState: saved.state, mode };

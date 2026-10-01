@@ -1,5 +1,5 @@
 import { stageOrder } from '../config/game';
-import { basketThrower, nextPhase, playerIds } from '../engine/engine';
+import { nextPhase, playerIds } from '../engine/engine';
 
 const NEXT = { type: 'next' };
 const SKIP = { type: 'skip' };
@@ -57,21 +57,6 @@ const hostActions = (s) => {
       return { primary: { icon: '▶', label: lastWord ? 'לסיכום השלב' : 'למילה הבאה', action: NEXT }, secondary: [] };
     case 'hunt:search':
       return { primary: { icon: '🏁', label: 'סיום החיפוש', action: NEXT }, secondary: [] };
-    case 'basket:throw': {
-      const b = s.basket;
-      const pid = basketThrower(s);
-      const done = pid ? (b.throws[pid] || []).length : 0;
-      const full = done >= b.perPlayer;
-      const last = !b.order.slice(b.turn + 1).some((id) => s.players[id]);
-      return {
-        primary: { icon: '▶', label: last ? 'לסיכום השלב' : 'לשחקן הבא', action: NEXT },
-        secondary: [
-          { icon: '✅', label: 'נכנס!', action: { type: 'basketThrow', hit: true }, disabled: full },
-          { icon: '❌', label: 'פספוס', action: { type: 'basketThrow', hit: false }, disabled: full },
-          { icon: '↩️', label: 'ביטול זריקה', action: { type: 'basketUndo' }, disabled: !done },
-        ],
-      };
-    }
     case 'blessings:write':
       return { primary: { icon: '💖', label: 'למילוי הבנק!', action: NEXT }, secondary: [] };
     default:

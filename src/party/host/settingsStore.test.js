@@ -1,5 +1,5 @@
 import { loadSettings, refreshTrivia } from './settingsStore';
-import { DEFAULT_CONTENT, TRIVIA_VERSION, createDefaultSettings, normalizeSettings } from '../config/content';
+import { DEFAULT_CONTENT, TRIVIA_VERSION, WORDS_VERSION, createDefaultSettings, normalizeSettings } from '../config/content';
 import { playableQuestions } from '../engine/engine';
 
 const KEY = 'hb-settings-v1';
@@ -47,4 +47,12 @@ test('every built-in question plays with 4 different answers', () => {
     expect(correct).toBeGreaterThanOrEqual(0);
     expect(correct).toBeLessThan(4);
   });
+});
+
+test('a TV that saved the old words gets the new ones and keeps its own', () => {
+  store({ adminPin: '4321', words: [{ word: 'אהבה', hint: 'ישן' }, { word: 'שוקולד', hint: 'של המשפחה' }] });
+  const { words } = loadSettings();
+  expect(words.slice(0, DEFAULT_CONTENT.words.length)).toEqual(DEFAULT_CONTENT.words);
+  expect(words.slice(DEFAULT_CONTENT.words.length)).toEqual([{ word: 'שוקולד', hint: 'של המשפחה' }]);
+  expect(stored().wordsVersion).toBe(WORDS_VERSION);
 });

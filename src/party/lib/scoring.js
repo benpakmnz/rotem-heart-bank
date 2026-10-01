@@ -22,8 +22,7 @@ export const topTappers = (counts) => {
 // How many hearts fill Rotem's bank. Calibrated so an average family ends
 // the five stages close to the target (a typical kid taps ~4.5 times/second,
 // answers ~60% correctly with ~8 seconds left, most charades/words succeed).
-// The real-life stages add: every hidden heart gets found (huntPoints = all
-// of them) and about half of the basket throws go in.
+// The hunt adds every hidden heart (huntPoints = all of them get found).
 export const computeBankTarget = ({
   players,
   questions,
@@ -32,14 +31,11 @@ export const computeBankTarget = ({
   tapSeconds,
   blessings = true,
   huntPoints = 0,
-  basketThrows = 0,
-  basketHitPoints = 0,
 }) => {
   const perPlayer =
     4.5 * tapSeconds * SCORING.tapPerTap +
     questions * 0.6 * (SCORING.triviaCorrect + 8 * SCORING.triviaPerSecond) +
-    (blessings ? 1.5 * SCORING.blessing : 0) +
-    basketThrows * 0.5 * basketHitPoints;
+    (blessings ? 1.5 * SCORING.blessing : 0);
   const group = charadesRounds * 0.8 * SCORING.charadesGroup + words * 0.9 * SCORING.wordFirst + huntPoints;
   const raw = Math.max(1, players) * perPlayer + group;
   return Math.max(10000, Math.round(raw / 1000) * 1000);

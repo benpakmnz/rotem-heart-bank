@@ -2,17 +2,8 @@ import React from 'react';
 import { heartKind } from '../config/game';
 import { GlossyHeart } from './Heart';
 
-const BADGE_TITLES = { basket: 'קלע מושלם' };
-
-// One badge: a found heart in its color, or 🎯 for a perfect basket.
+// One badge: a found heart in its color.
 export const HeartBadge = ({ kind, className = '' }) => {
-  if (kind === 'basket') {
-    return (
-      <span className={`hb-badge hb-badge-basket ${className}`} title={BADGE_TITLES.basket}>
-        🎯
-      </span>
-    );
-  }
   const k = heartKind(kind);
   return (
     <span className={`hb-badge hb-badge-${kind} ${className}`} title={k.label}>

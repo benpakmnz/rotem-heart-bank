@@ -176,23 +176,6 @@ export const TRACKS = {
     ],
   },
 
-  // throwing hearts into the basket: stadium cheer
-  basket: {
-    bpm: 128,
-    bars: 4,
-    parts: [
-      { inst: 'brass', vol: 0.7, res: 8, notes: 'E5 . G5 . C6 - - . | D6 . B5 . G5 - - . | C6 . A5 . E5 - - . | F5 . A5 . C6 - D6 .' },
-      {
-        inst: 'pluck',
-        vol: 0.45,
-        res: 8,
-        notes: '. C4+E4+G4 . C4+E4+G4 . C4+E4+G4 . C4+E4+G4 | . B3+D4+G4 . B3+D4+G4 . B3+D4+G4 . B3+D4+G4 | . A3+C4+E4 . A3+C4+E4 . A3+C4+E4 . A3+C4+E4 | . A3+C4+F4 . A3+C4+F4 . A3+C4+F4 . A3+C4+F4',
-      },
-      { inst: 'bass', vol: 0.9, res: 8, notes: 'C2 C2 . C2 C3 . C2 . | G1 G1 . G1 G2 . G1 . | A1 A1 . A1 A2 . A1 . | F1 F1 . F1 F2 . F1 .' },
-      { inst: 'drums', vol: 0.75, res: 16, notes: 'k . k . c . h . k . k . c . h h' },
-    ],
-  },
-
   // end of a stage: victory lap
   results: {
     bpm: 124,
@@ -261,8 +244,6 @@ export const trackFor = (phase, step) => {
       return 'blessings';
     case 'hunt':
       return 'hunt';
-    case 'basket':
-      return 'basket';
     case 'finale':
       return step === 'celebrate' ? 'finale' : null;
     default:

@@ -109,25 +109,12 @@ const STAGE_LIST = [
     scoring: (settings) => HEART_KINDS.filter((k) => huntKind(settings, k.id).count > 0).map((k) => `${k.label}: ${fmtPoints(huntKind(settings, k.id).points)}`),
     real: true,
   },
-  {
-    id: 'basket',
-    icon: '🧺',
-    title: 'קליעה ללב',
-    subtitle: 'כל אחד בתורו זורק לבבות לסל',
-    how: ['כל משתתף בתורו זורק לבבות לסל', 'מנהל/ת המשחק מסמנים כל קליעה', 'קלעתם הכל? בונוס ותג קלע! 🎯'],
-    phoneHint: 'כשמגיע התור שלך - הטלפון יגיד',
-    scoring: (settings) => {
-      const b = basketSettings(settings);
-      return [`${fmtPoints(b.hitPoints)} לכל קליעה`, `+${fmtPoints(b.perfectBonus)} על ${b.throws} מתוך ${b.throws}`];
-    },
-    real: true,
-  },
 ];
 
 const fmtPoints = (n) => `${Number(n || 0).toLocaleString('he-IL')} לבבות`;
 
 // Default order of the stages (the settings can turn stages off).
-export const DEFAULT_STAGE_ORDER = ['tap', 'trivia', 'hunt', 'word', 'charades', 'basket', 'blessings'];
+export const DEFAULT_STAGE_ORDER = ['tap', 'trivia', 'hunt', 'word', 'charades', 'blessings'];
 
 export const STAGES = DEFAULT_STAGE_ORDER.map((id) => STAGE_LIST.find((s) => s.id === id));
 
@@ -174,19 +161,6 @@ export const huntKind = (settings, kind) => {
   return {
     count: Math.max(0, Math.min(12, Math.floor(Number(k.count) || 0))),
     points: Math.max(0, Math.floor(Number(k.points) || 0)),
-  };
-};
-
-// ---------- stage "קליעה ללב": throwing hearts into a basket ----------
-
-export const DEFAULT_BASKET = { throws: 3, hitPoints: 700, perfectBonus: 1000 };
-
-export const basketSettings = (settings) => {
-  const b = { ...DEFAULT_BASKET, ...((settings && settings.basket) || {}) };
-  return {
-    throws: Math.max(1, Math.min(10, Math.floor(Number(b.throws) || 1))),
-    hitPoints: Math.max(0, Math.floor(Number(b.hitPoints) || 0)),
-    perfectBonus: Math.max(0, Math.floor(Number(b.perfectBonus) || 0)),
   };
 };
 

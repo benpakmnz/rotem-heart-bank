@@ -30,7 +30,6 @@ import WordScreen from './screens/WordScreen';
 import BlessingsScreen from './screens/BlessingsScreen';
 import FinaleScreen from './screens/FinaleScreen';
 import HuntScreen from './screens/HuntScreen';
-import BasketScreen from './screens/BasketScreen';
 import { playerBadges } from '../engine/engine';
 
 const MUTE_KEY = 'hb-muted';
@@ -190,8 +189,6 @@ const renderScreen = (props) => {
       return <WordScreen {...props} />;
     case 'hunt':
       return <HuntScreen {...props} />;
-    case 'basket':
-      return <BasketScreen {...props} />;
     case 'blessings':
       return <BlessingsScreen {...props} />;
     case 'finale':

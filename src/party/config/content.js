@@ -1,4 +1,4 @@
-import { DEFAULT_BASKET, DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS } from './game';
+import { DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS } from './game';
 
 // Default content of "בנק הלבבות של רותם". Everything here can be edited from
 // the TV screen (⚙️ עריכת תוכן) before the party.
@@ -6,6 +6,8 @@ import { DEFAULT_BASKET, DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS }
 // Bump when the built-in questions change: a TV that saved the older list
 // gets the new one and keeps its on/off choices (see settingsStore).
 export const TRIVIA_VERSION = 3;
+// The same for the built-in words.
+export const WORDS_VERSION = 2;
 
 export const DEFAULT_CONTENT = {
   birthdayName: 'רותם',
@@ -118,7 +120,11 @@ export const DEFAULT_CONTENT = {
   ],
   words: [
     { word: 'אהבה', hint: 'מה שכולנו מרגישים כלפי רותם 💕' },
+    { word: 'לבבות', hint: 'מה אוספים לבנק של רותם? ❤️' },
     { word: 'משפחה', hint: 'כל האנשים שחוגגים כאן ביחד 👨‍👩‍👧' },
+    { word: 'אחיות', hint: 'רותם ושחר הן... 👭' },
+    { word: 'נסיכה', hint: 'בת של מלך ומלכה - כמו רותם 👑' },
+    { word: 'גורדוליני', hint: 'איך אמא קוראת לרותם? 🥰' },
     { word: 'מזל טוב', hint: 'מה אומרים ביום הולדת? 🎉' },
   ],
   blessingSuggestions: [
@@ -147,9 +153,9 @@ export const createDefaultSettings = () => ({
   bankTarget: 0,
   stages: STAGE_IDS.slice(),
   hunt: JSON.parse(JSON.stringify(DEFAULT_HUNT)),
-  basket: { ...DEFAULT_BASKET },
   adminPin: randomPin(),
   triviaVersion: TRIVIA_VERSION,
+  wordsVersion: WORDS_VERSION,
 });
 
 const cleanHunt = (hunt) => {
@@ -169,9 +175,11 @@ export const normalizeSettings = (saved) => {
   const defaults = createDefaultSettings();
   if (!saved || typeof saved !== 'object') return defaults;
   const list = (value, fallback) => (Array.isArray(value) ? value : fallback);
+  // (the basket stage was removed; its old settings are dropped)
+  const { basket, ...kept } = saved;
   return {
     ...defaults,
-    ...saved,
+    ...kept,
     birthdayName: String(saved.birthdayName || defaults.birthdayName).trim() || defaults.birthdayName,
     trivia: list(saved.trivia, defaults.trivia),
     charades: list(saved.charades, defaults.charades),
@@ -181,8 +189,8 @@ export const normalizeSettings = (saved) => {
     bankTarget: Math.max(0, Number(saved.bankTarget) || 0),
     stages: Array.isArray(saved.stages) ? STAGE_IDS.filter((id) => saved.stages.includes(id)) : defaults.stages,
     hunt: saved.hunt ? cleanHunt({ ...defaults.hunt, ...saved.hunt }) : defaults.hunt,
-    basket: { ...defaults.basket, ...(saved.basket || {}) },
     adminPin: /^\d{4,6}$/.test(String(saved.adminPin || '')) ? String(saved.adminPin) : defaults.adminPin,
     triviaVersion: TRIVIA_VERSION,
+    wordsVersion: WORDS_VERSION,
   };
 };

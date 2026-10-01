@@ -73,17 +73,6 @@ export const PhonePreview = ({ stageId }) => {
         ))}
       </div>
     );
-  } else if (stageId === 'basket') {
-    screen = (
-      <div className="hb-pp-bless">
-        <div className="hb-pp-card">🧺 התור שלך!</div>
-        <div className="hb-pp-slots">
-          <span>✓</span>
-          <span>✕</span>
-          <span />
-        </div>
-      </div>
-    );
   } else if (stageId === 'blessings') {
     screen = (
       <div className="hb-pp-bless">
