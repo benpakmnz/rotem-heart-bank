@@ -38,13 +38,13 @@ export const DEFAULT_CONTENT = {
       options: ['חתלתולה', 'קופיפה', 'תרנגולת', 'דולפין'],
       correct: 2,
     },
-    { id: 'subject', q: 'מה המקצוע שרותם הכי אוהבת ללמוד?', options: ['חשבון', 'אנגלית', 'אומנות', 'ההפסקה 😉'], correct: 0 }, // placeholder
+    { id: 'subject', q: 'מה המקצוע שרותם הכי אוהבת ללמוד?', options: ['חשבון', 'אנגלית', 'אומנות', 'ההפסקה 😉'], correct: 0 },
     { id: 'height', q: 'מה הגובה של רותם?', options: ['116 ס״מ', '120 ס״מ', '124 ס״מ', '128 ס״מ'], correct: 1 }, // placeholder
     {
       id: 'done',
       q: 'מה מהדברים האלה רותם כבר עשתה?',
       options: ['להחזיק נחש', 'לרכוב על גמל', 'לישון באוהל', 'לצוף בים המלח'],
-      correct: 2, // placeholder
+      correct: 2,
     },
     {
       id: 'bedtime',
