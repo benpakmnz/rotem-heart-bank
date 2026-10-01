@@ -5,7 +5,7 @@ import { DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS } from './game';
 
 // Bump when the built-in questions change: a TV that saved the older list
 // gets the new one and keeps its on/off choices (see settingsStore).
-export const TRIVIA_VERSION = 3;
+export const TRIVIA_VERSION = 4;
 // The same for the built-in words.
 export const WORDS_VERSION = 2;
 
@@ -17,20 +17,18 @@ export const DEFAULT_CONTENT = {
   // not confirmed yet.
   trivia: [
     { id: 'unicorns', q: 'כמה בובות חד-קרן יש לרותם מעל המיטה?', options: ['3', '5', '6', '8'], correct: 3 }, // placeholder
-    { id: 'first-word', q: 'מה הייתה המילה הראשונה של רותם?', options: ['אמא', 'אבא', 'שחר', 'עוד'], correct: 0 }, // placeholder
     { id: 'mom-nickname', q: 'מה שם החיבה של אמא לרותם?', options: ['פיצפונת', 'מתוקולינה', 'גורדוליני', 'רותמוש'], correct: 2 },
     {
       id: 'nitzan',
-      q: 'מי זאת ניצן, ואיך היא עזרה לרותם?',
-      options: ['המורה שלימדה אותה לקרוא', 'הקלינאית שלימדה אותה להגיד ל׳', 'המאמנת שלימדה אותה לשחות', 'הגננת שלימדה אותה לכתוב'],
+      q: 'מי זאת ניצן?',
+      options: ['מורה שלימדה את רותם לקרוא', 'קלינאית תקשורת שלימדה את רותם לומר ל׳', 'מאמנת שלימדה את רותם לשחות', 'גננת שלימדה את רותם לכתוב'],
       correct: 1,
     },
     { id: 'teeth', q: 'כמה שיניים נפלו לרותם עד היום?', options: ['2', '3', '4', '6'], correct: 2 }, // placeholder
     {
-      // she did dress up as an ice cream seller; the others are placeholders
       id: 'costume',
       q: 'לאיזו מהתחפושות האלה רותם אף פעם לא התחפשה?',
-      options: ['מוכרת גלידות', 'נסיכה', 'חתולה', 'שוטרת'],
+      options: ['מוכרת גלידות', 'מלכת השמש', 'אינדיאנית', 'שוטרת'],
       correct: 3,
     },
     {
@@ -48,28 +46,16 @@ export const DEFAULT_CONTENT = {
       correct: 2, // placeholder
     },
     {
-      id: 'dream',
-      q: 'ומה רותם הכי רוצה לעשות?',
-      options: ['לשחות עם דולפינים', 'לראות שלג', 'לרכוב על סוס', 'לטוס בכדור פורח'],
-      correct: 0, // placeholder
-    },
-    {
       id: 'bedtime',
       q: 'מה רותם תמיד מבקשת לפני שהיא נרדמת?',
-      options: ['עוד סיפור', 'כוס מים', 'להשאיר אור', 'עוד חיבוק'],
-      correct: 3, // placeholder
+      options: ['עוד סיפור', 'כוס מים', 'להשאיר אור', 'חיבוק משחר'],
+      correct: 1,
     },
     {
       id: 'bike',
       q: 'מי לימד את רותם לרכוב על אופניים?',
       options: ['שחר, בחופש הגדול', 'אמא, עם הרבה סבלנות', 'סבא, בפארק', 'אבא, אבל בעיקר היא לבד'],
       correct: 3,
-    },
-    {
-      id: 'home-spot',
-      q: 'מה המקום האהוב על רותם בבית?',
-      options: ['המיטה של אמא ואבא', 'הספה בסלון', 'החדר שלה', 'ליד המקרר'],
-      correct: 1, // placeholder
     },
     {
       id: 'daniel',
@@ -80,15 +66,15 @@ export const DEFAULT_CONTENT = {
     {
       id: 'sisters',
       q: 'מה רותם ושחר הכי אוהבות לעשות ביחד?',
-      options: ['לרקוד בסלון', 'להציק לאבא', 'לשחק בבובות', 'לראות סדרות'],
-      correct: 1, // placeholder
+      options: ['לרקוד בסלון', 'להציק לאבא', 'לשחק בבובות', 'לראות טלוויזיה'],
+      correct: 3,
     },
-    { id: 'cake', q: 'איזו עוגת שמרים של אבא רותם הכי אוהבת?', options: ['שוקולד', 'קינמון', 'פרג', 'גבינה'], correct: 1 },
+    { id: 'cake', q: 'איזו עוגת שמרים של אבא רותם הכי אוהבת?', options: ['שוקולד', 'קינמון', 'שוקולד חלווה', 'גבינה'], correct: 1 },
     {
       id: 'candy',
       q: 'שאלנו את רותם: אם היית ממתק, איזה ממתק היית?',
       options: ['סוכרייה על מקל', 'שוקולד', 'מרשמלו', 'סוכריות גומי'],
-      correct: 2, // placeholder
+      correct: 2,
     },
   ],
   charades: [
