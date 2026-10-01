@@ -136,10 +136,25 @@
   filter: none;
 }
 
+/* nothing loops between game events: a still screen is light for a TV and
+   for screen mirroring (which resends every change over Wi-Fi) */
 .fx-lite .hb-photo-glow,
+.fx-lite .hb-photo-beat .hb-photo-svg,
+.fx-lite .hb-photo-sparkle,
+.fx-lite .hb-meter-shine,
+.fx-lite .hb-meter-fill::before,
+.fx-lite .hb-stage-dot.is-current,
+.fx-lite .hb-lobby-player .hb-avatar,
+.fx-lite .hb-intro-medal-icon,
+.fx-lite .hb-pp-tap,
+.fx-lite .hb-results-heart,
 .fx-lite .hb-spotlight,
 .fx-lite .hb-gh-wave,
 .fx-lite .hb-golden-heart.is-beating svg,
+.fx-lite .hb-tap-gold,
+.fx-lite .hb-bulb,
+.fx-lite .hb-bless-empty span,
+.fx-lite .hb-podium-crown,
 .fx-lite .hb-controls .hb-btn-primary:not(:disabled),
 .fx-lite .hb-hunt-heart:not(.is-found) .hb-heart-icon,
 .fx-lite .hb-phone-preview {

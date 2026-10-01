@@ -31,8 +31,10 @@ const Balloon = ({ colors }) => (
 
 // The party stage behind every screen: light rays, bokeh lights, hearts
 // drifting up, twinkles and (for the lobby and the finale) balloons.
-// `lite` (TV browsers): the rays and bokeh stand still and there are fewer
-// moving things - every moving element is a graphics layer the TV must hold.
+// `lite` (TV browsers, screen mirroring): everything stands still - no
+// floating hearts or balloons, the lights and twinkles don't move. Every
+// moving element is work for a weak TV, and a still picture is what screen
+// mirroring sends without stuttering.
 const PartyBackdrop = ({ balloons = false, rays = true, hearts = 12, lite = false, className = '' }) => {
   const layout = useMemo(() => {
     const rng = createRng(7);
@@ -49,7 +51,7 @@ const PartyBackdrop = ({ balloons = false, rays = true, hearts = 12, lite = fals
         duration: 14 + rng() * 14,
         delay: -rng() * 20,
       })),
-      hearts: Array.from({ length: lite ? Math.min(hearts, 5) : hearts }, (_, i) => ({
+      hearts: Array.from({ length: lite ? 0 : hearts }, (_, i) => ({
         id: i,
         left: rng() * 100,
         size: 1 + rng() * 2.6,
@@ -67,7 +69,7 @@ const PartyBackdrop = ({ balloons = false, rays = true, hearts = 12, lite = fals
         duration: 1.8 + rng() * 2.4,
         delay: -rng() * 4,
       })),
-      balloons: Array.from({ length: lite ? 3 : 7 }, (_, i) => ({
+      balloons: Array.from({ length: lite ? 0 : 7 }, (_, i) => ({
         id: i,
         left: (i / (lite ? 3 : 7)) * 100 + rng() * 8,
         size: 3.4 + rng() * 2.2,

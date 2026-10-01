@@ -734,9 +734,9 @@
   will-change: auto;
 }
 
-.hb-backdrop.is-lite .hb-bd-heart,
-.hb-backdrop.is-lite .hb-bd-balloon {
-  will-change: auto;
+.hb-backdrop.is-lite .hb-bd-sparkle {
+  animation: none;
+  opacity: 0.5;
 }
 
 .hb-bd-bokeh {
