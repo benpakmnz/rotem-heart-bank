@@ -9,7 +9,7 @@ const TABS = [
   { id: 'charades', label: '🎭 מושגים לפנטומימה' },
   { id: 'words', label: '🔤 מילים לפיצוח' },
   { id: 'blessings', label: '💌 הצעות לברכות' },
-  { id: 'hunt', label: '🔎 מחפשי הלבבות' },
+  { id: 'hunt', label: '🔎 ציידי הלבבות' },
   { id: 'basket', label: '🧺 קליעה ללב' },
   { id: 'timings', label: '⏱ זמנים' },
 ];
@@ -45,13 +45,33 @@ const TriviaEditor = ({ trivia, onChange }) => {
     [next[i], next[j]] = [next[j], next[i]];
     onChange(next);
   };
+  // the list is a pool: only the questions marked "בחידון" are asked
+  const playing = trivia.filter((q) => !q.off).length;
+  const setAll = (on) => onChange(trivia.map((q) => ({ ...q, off: !on })));
   return (
     <div className="hb-set-trivia">
-      <p className="hb-set-help">כתבו שאלות על בעל/ת השמחה, 4 תשובות, וסמנו את הנכונה (העיגול הירוק).</p>
+      <p className="hb-set-help">
+        כתבו שאלות על בעל/ת השמחה, 4 תשובות, וסמנו את הנכונה (העיגול הירוק). שאלה בלי סימון "בחידון" נשארת במאגר ולא נשאלת.
+      </p>
+      <div className="hb-set-pool">
+        <strong data-testid="trivia-playing">
+          ✅ {playing} מתוך {trivia.length} שאלות בחידון
+        </strong>
+        <button type="button" className="hb-btn hb-btn-soft" onClick={() => setAll(true)}>
+          לסמן הכול
+        </button>
+        <button type="button" className="hb-btn hb-btn-soft" onClick={() => setAll(false)}>
+          לבטל הכול
+        </button>
+      </div>
       {trivia.map((q, i) => (
-        <div key={i} className="hb-set-question">
+        <div key={i} className={`hb-set-question ${q.off ? 'is-off' : ''}`}>
           <div className="hb-set-question-head">
             <span className="hb-set-num">{i + 1}</span>
+            <label className={`hb-set-toggle ${q.off ? '' : 'is-on'}`}>
+              <input type="checkbox" checked={!q.off} onChange={(e) => update(i, { off: !e.target.checked })} data-testid={`trivia-on-${i}`} />
+              בחידון
+            </label>
             <input
               className="hb-input"
               value={q.q}
@@ -65,9 +85,12 @@ const TriviaEditor = ({ trivia, onChange }) => {
             <button type="button" className="hb-icon-btn" onClick={() => move(i, 1)} aria-label="למטה">
               ▼
             </button>
-            <button type="button" className="hb-icon-btn is-danger" onClick={() => onChange(trivia.filter((_, k) => k !== i))} aria-label="מחיקה">
-              🗑
-            </button>
+            {/* built-in questions are turned off rather than deleted */}
+            {!q.id && (
+              <button type="button" className="hb-icon-btn is-danger" onClick={() => onChange(trivia.filter((_, k) => k !== i))} aria-label="מחיקה">
+                🗑
+              </button>
+            )}
           </div>
           <div className="hb-set-options">
             {[0, 1, 2, 3].map((o) => (
@@ -311,7 +334,8 @@ const SettingsPanel = ({ settings, started, onClose, onSave, className = '' }) =
             onClick={() => {
               // eslint-disable-next-line no-alert
               if (window.confirm('לחזור לתוכן המקורי? השינויים שלכם יימחקו.')) {
-                setDraft(createDefaultSettings());
+                // the admin phone stays logged in: keep this TV's PIN
+                setDraft({ ...createDefaultSettings(), adminPin: draft.adminPin });
                 setResetKey((k) => k + 1);
               }
             }}

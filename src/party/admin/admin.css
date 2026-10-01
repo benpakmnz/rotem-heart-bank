@@ -263,6 +263,20 @@
   grid-template-columns: 1fr;
 }
 
+/* the question gets a full row under its controls */
+.is-phone .hb-set-question-head {
+  flex-wrap: wrap;
+}
+
+.is-phone .hb-set-question-head .hb-input {
+  order: 1;
+  flex-basis: 100%;
+}
+
+.is-phone .hb-set-toggle {
+  margin-inline-end: auto;
+}
+
 .is-phone .hb-settings-tabs {
   flex-wrap: nowrap;
   overflow-x: auto;

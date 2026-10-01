@@ -6,7 +6,7 @@ import Avatar from '../../shared/Avatar';
 import { GlossyHeart } from '../../shared/Heart';
 import { phoneBurst } from '../../shared/fx';
 
-// "מחפשי הלבבות" on the phone: who found which heart, live.
+// "ציידי הלבבות" on the phone: who found which heart, live.
 const HuntPad = ({ state, me, players }) => {
   const hearts = Array.isArray(state.data.hearts) ? state.data.hearts : [];
   const mine = hearts.filter((h) => h.pid === me.id);

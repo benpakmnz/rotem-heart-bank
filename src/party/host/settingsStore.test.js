@@ -1,4 +1,4 @@
-import { loadSettings } from './settingsStore';
+import { loadSettings, refreshTrivia } from './settingsStore';
 import { DEFAULT_CONTENT, TRIVIA_VERSION, createDefaultSettings, normalizeSettings } from '../config/content';
 import { playableQuestions } from '../engine/engine';
 
@@ -31,9 +31,17 @@ test('saving from a game that started before the update keeps its edits', () => 
   expect(saved.triviaVersion).toBe(TRIVIA_VERSION);
 });
 
+test('a newer built-in list keeps the on/off choices and the family\'s own questions', () => {
+  const q = (id, text, extra) => ({ id, q: text, options: ['א', 'ב', 'ג', 'ד'], correct: 0, ...extra });
+  const builtIn = [q('a', 'A?'), q('b', 'B - with the real answer?'), q('c', 'C - new?')];
+  const saved = [q('b', 'B?', { off: true }), q('gone', 'no longer built in?'), q('a', 'A?'), { q: 'שאלה שלי', options: ['כן', 'לא'], correct: 1 }];
+  expect(refreshTrivia(saved, builtIn)).toEqual([builtIn[0], { ...builtIn[1], off: true }, builtIn[2], saved[3]]);
+});
+
 test('every built-in question plays with 4 different answers', () => {
   const settings = createDefaultSettings();
   expect(playableQuestions(settings)).toHaveLength(settings.trivia.length);
+  expect(new Set(settings.trivia.map((item) => item.id)).size).toBe(settings.trivia.length);
   settings.trivia.forEach(({ options, correct }) => {
     expect(new Set(options.map((o) => o.trim())).size).toBe(4);
     expect(correct).toBeGreaterThanOrEqual(0);

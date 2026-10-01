@@ -55,9 +55,11 @@ const ms = (s, key) => Math.max(0, Number(s.settings.timings[key]) || 0) * 1000;
 // ---------------------------------------------------------------------------
 // Content helpers (settings are edited by hand, so be forgiving)
 
+// Questions turned off in the editor stay in the pool but are not asked.
 export const playableQuestions = (settings) =>
   (settings.trivia || [])
     .map((item) => {
+      if (item && item.off) return null;
       const q = String((item && item.q) || '').trim();
       if (!q) return null;
       const options = [];
@@ -247,7 +249,7 @@ const enterPhase = (s, phase, now) => {
 };
 
 // ---------------------------------------------------------------------------
-// Stage "מחפשי הלבבות" (hidden hearts; the admin says who found which)
+// Stage "ציידי הלבבות" (hidden hearts; the admin says who found which)
 
 export const huntHearts = (settings) => {
   const list = [];

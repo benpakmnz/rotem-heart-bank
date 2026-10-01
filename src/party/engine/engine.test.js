@@ -198,6 +198,20 @@ describe('stage 2 - trivia', () => {
     });
     expect(questions).toEqual([{ q: 'ok', options: ['a', 'c', 'd'], correct: 1 }]);
   });
+
+  test('questions turned off stay in the pool but are not asked', () => {
+    const settings = createDefaultSettings();
+    settings.trivia = settings.trivia.map((item, i) => (i % 2 ? { ...item, off: true } : item));
+    const g = makeGame(settings);
+    g.dispatch({ type: 'next' });
+    goToPhase(g, 'trivia');
+    expect(g.state.trivia.total).toBe(Math.ceil(settings.trivia.length / 2));
+    g.dispatch({ type: 'next' });
+    expect(g.state.trivia.current.q).toBe(settings.trivia[0].q);
+    g.dispatch({ type: 'skip' });
+    g.dispatch({ type: 'next' });
+    expect(g.state.trivia.current.q).toBe(settings.trivia[2].q);
+  });
 });
 
 describe('stage 5 - charades', () => {

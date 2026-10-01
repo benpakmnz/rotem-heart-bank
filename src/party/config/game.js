@@ -98,8 +98,8 @@ const STAGE_LIST = [
   {
     id: 'hunt',
     icon: '🔎',
-    title: 'מחפשי הלבבות',
-    subtitle: 'ציד אוצרות בבית - לבבות מוחבאים מחכים לכם!',
+    title: 'ציידי הלבבות',
+    subtitle: 'הפכו לציידי לבבות וחפשו בבית את הלבבות המוחבאים!',
     how: [
       'בבית מוחבאים לבבות: זהב, כסף ואדומים',
       'מצאתם לב? רוצו להראות אותו למנהל/ת המשחק',
@@ -151,7 +151,7 @@ export const stageInfo = (id, order = STAGE_IDS) => {
 
 export const stageScoring = (stage, settings) => (typeof stage.scoring === 'function' ? stage.scoring(settings) : stage.scoring);
 
-// ---------- stage "מחפשי הלבבות": hidden hearts ----------
+// ---------- stage "ציידי הלבבות": hidden hearts ----------
 
 export const HEART_KINDS = [
   { id: 'gold', label: 'לב זהב', short: 'זהב', colors: ['#FFF3B8', '#E39A00'] },
