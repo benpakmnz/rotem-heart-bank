@@ -7,8 +7,10 @@ import { TRACKS } from './tracks';
 // starts as soon as the browser allows sound.
 
 const MUSIC_VOLUME = 0.3;
-const LOOKAHEAD = 0.15; // seconds scheduled ahead
-const TICK_MS = 25;
+// Notes are scheduled this far ahead, so a busy moment on the computer (up to
+// about half a second) doesn't make the music skip.
+const LOOKAHEAD = 0.6; // seconds
+const TICK_MS = 100;
 const FADE_OUT = 0.9;
 const FADE_IN = 0.5;
 

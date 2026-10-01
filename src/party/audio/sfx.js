@@ -13,7 +13,14 @@ const audio = () => {
   if (ctx) return ctx;
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   if (!AudioCtx) return null;
-  ctx = new AudioCtx();
+  // A bigger output buffer: the sound doesn't skip when the computer is busy
+  // (screen mirroring, a slow laptop). A few hundredths of a second of delay
+  // don't matter for a party game.
+  try {
+    ctx = new AudioCtx({ latencyHint: 'playback' });
+  } catch (e) {
+    ctx = new AudioCtx();
+  }
   master = ctx.createGain();
   master.gain.value = 0.55;
   master.connect(ctx.destination);
