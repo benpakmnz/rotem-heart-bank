@@ -2,7 +2,7 @@
   "name": "rotem-heart-bank",
   "version": "1.0.0",
   "private": true,
-  "description": "בנק הלבבות של רותם - משחק יום הולדת משפחתי לטלוויזיה, כל אורח משחק מהטלפון",
+  "description": "אוצר הלבבות של רותם - משחק יום הולדת משפחתי לטלוויזיה, כל אורח משחק מהטלפון",
   "dependencies": {
     "canvas-confetti": "^1.9.4",
     "firebase": "^12.19.0",

@@ -72,11 +72,11 @@ const LobbyScreen = ({ state, mode, onRemovePlayer, onOpenSettings, onOpenAdmin 
           <RotemPhoto size="lg" age={settings.age} beat />
         </motion.div>
         <motion.div initial={{ y: 40, opacity: 0, scale: 0.8 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ delay: 0.35, type: 'spring' }}>
-          <GameTitle text={`בנק הלבבות של ${settings.birthdayName}`} className="hb-lobby-title" />
+          <GameTitle text={`אוצר הלבבות של ${settings.birthdayName}`} className="hb-lobby-title" />
         </motion.div>
         <motion.p className="hb-lobby-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
           {settings.age ? <span className="hb-chip hb-chip-gold">🎂 יום הולדת {settings.age}</span> : null}
-          המטרה: למלא את הבנק ב-100% אהבה!
+          המטרה: למלא את האוצר ב-100% אהבה!
         </motion.p>
 
         <div className="hb-lobby-players hb-glass">

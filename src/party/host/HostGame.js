@@ -60,7 +60,7 @@ const TopBar = ({ state }) => {
       <div className="hb-topbar-brand">
         <RotemPhoto size="sm" crown={false} sparkles={false} />
         <div>
-          <div className="hb-topbar-title">בנק הלבבות של {name}</div>
+          <div className="hb-topbar-title">אוצר הלבבות של {name}</div>
           {stage && (
             <div className="hb-topbar-stage">
               {stage.icon} {stage.num ? `שלב ${stage.num} · ` : ''}

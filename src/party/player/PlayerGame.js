@@ -30,7 +30,7 @@ const Header = ({ me, state }) => {
         <Heart color="#F0145A" className="hb-phone-score-heart" />
         {fmt(score)}
       </div>
-      <div className="hb-phone-meter" title="הבנק המשפחתי">
+      <div className="hb-phone-meter" title="האוצר המשפחתי">
         <span style={{ width: `${Math.max(2, meter * 100)}%` }} />
       </div>
     </header>

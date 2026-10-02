@@ -8,7 +8,7 @@ import { StageIntro } from './common';
 
 export const souvenirTitle = (settings) => `💌 הברכות של ${settings.birthdayName}`;
 export const souvenirSubtitle = (settings) =>
-  `${settings.age ? `יום הולדת ${settings.age} · ` : ''}בנק הלבבות - מזכרת מהערב`;
+  `${settings.age ? `יום הולדת ${settings.age} · ` : ''}אוצר הלבבות - מזכרת מהערב`;
 
 export const saveSouvenir = (items, settings) =>
   downloadCloudPng(items, {

@@ -7,7 +7,7 @@ const HostApp = lazy(() => import('./host/HostApp'));
 const PlayerApp = lazy(() => import('./player/PlayerApp'));
 const AdminApp = lazy(() => import('./admin/AdminApp'));
 
-const TITLES = { host: 'בנק הלבבות - מסך הטלוויזיה 💖', admin: 'בנק הלבבות - ניהול 🎛️', player: 'בנק הלבבות 💖' };
+const TITLES = { host: 'אוצר הלבבות - מסך הטלוויזיה 💖', admin: 'אוצר הלבבות - ניהול 🎛️', player: 'אוצר הלבבות 💖' };
 
 const PartyApp = () => {
   const route = parsePartyRoute(window.location.pathname);

@@ -18,8 +18,8 @@ const JoinScreen = ({ name: birthdayName, defaults, onJoin, removed }) => {
       <PartyBackdrop rays={false} hearts={8} />
       <header className="hb-join-head">
         <RotemPhoto size="md" beat />
-        <GameTitle text={`בנק הלבבות של ${birthdayName}`} className="hb-join-title" />
-        {removed ? <p className="hb-phone-text">יצאת מהמשחק - אפשר להצטרף שוב 😊</p> : <p className="hb-phone-text">ממלאים את הבנק ב-100% אהבה! 💖</p>}
+        <GameTitle text={`אוצר הלבבות של ${birthdayName}`} className="hb-join-title" />
+        {removed ? <p className="hb-phone-text">יצאת מהמשחק - אפשר להצטרף שוב 😊</p> : <p className="hb-phone-text">ממלאים את האוצר ב-100% אהבה! 💖</p>}
       </header>
       <form
         className="hb-join-form"

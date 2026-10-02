@@ -36,7 +36,7 @@ const STEP_NAMES = {
   search: 'מחפשים לבבות',
   write: 'כותבים ברכות',
   results: 'סיכום השלב',
-  fill: 'הבנק מתמלא',
+  fill: 'האוצר מתמלא',
   celebrate: 'חגיגה!',
 };
 

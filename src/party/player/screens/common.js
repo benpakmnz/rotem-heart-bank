@@ -81,7 +81,7 @@ export const StageDone = ({ state, players, me, stage }) => {
       <div className="hb-prep-icon">{stage.icon}</div>
       <h1 className="hb-phone-title">סוף {stage.num ? `שלב ${stage.num}` : 'השלב'}!</h1>
       <div className="hb-done-score">
-        <span>בבנק האישי שלך</span>
+        <span>באוצר האישי שלך</span>
         <strong>{fmt(score)} ❤️</strong>
       </div>
       {rank > 0 && (

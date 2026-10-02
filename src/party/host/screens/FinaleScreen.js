@@ -57,7 +57,7 @@ const FinaleScreen = ({ state }) => {
           <RotemPhoto size="lg" age={state.settings.age} beat />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-          <GameTitle text="כל הלבבות נכנסים לבנק..." tone="white" className="hb-finale-filling-title" />
+          <GameTitle text="כל הלבבות נכנסים לאוצר..." tone="white" className="hb-finale-filling-title" />
         </motion.div>
         <div className="hb-finale-meter">
           <BankMeter
@@ -100,7 +100,7 @@ const FinaleScreen = ({ state }) => {
                 <GameTitle text="100% אהבה!" tone="gold" className="hb-finale-title" />
               </motion.div>
               <motion.p className="hb-finale-sub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
-                הבנק מלא - {name} מוכנה לעוגה! 🎂
+                האוצר מלא - {name} מוכנה לעוגה! 🎂
               </motion.p>
             </div>
           </div>
@@ -109,7 +109,7 @@ const FinaleScreen = ({ state }) => {
           </motion.div>
           {winners.length > 0 && (
             <motion.div className="hb-finale-winner" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.6 }}>
-              🏆 במקום הראשון בבנק הלבבות: {winners.map((pid) => state.players[pid].name).join(' ו')}!
+              🏆 במקום הראשון באוצר הלבבות: {winners.map((pid) => state.players[pid].name).join(' ו')}!
             </motion.div>
           )}
           <Podium state={state} />

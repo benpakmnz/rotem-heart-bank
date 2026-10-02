@@ -166,8 +166,8 @@ const LeaderRow = ({ rank, player, score, max, badges }) => {
   );
 };
 
-// Personal heart banks ("הבנק האישי") of the top players.
-export const Leaderboard = ({ state, limit = 5, title = 'הבנקים האישיים' }) => {
+// Personal heart treasures ("האוצר האישי") of the top players.
+export const Leaderboard = ({ state, limit = 5, title = 'האוצרות האישיים' }) => {
   const ranking = rankPlayers(state).slice(0, limit);
   const max = ranking.length ? state.scores[ranking[0]] || 0 : 0;
   const badges = playerBadges(state);
@@ -195,7 +195,7 @@ export const StageResults = ({ state, children }) => {
       </motion.div>
       <motion.div className="hb-results-gained" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>
         <Heart className="hb-results-heart" color="#F0145A" />
-        <b>+{fmt(gained)}</b> לבבות נכנסו לבנק בשלב הזה!
+        <b>+{fmt(gained)}</b> לבבות נכנסו לאוצר בשלב הזה!
       </motion.div>
       <div className="hb-results-body">
         {children && <div className="hb-results-highlight">{children}</div>}

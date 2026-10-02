@@ -31,7 +31,7 @@ const CodeEntry = ({ onSubmit, initial = '' }) => {
   const valid = isValidRoomCode(code);
   return (
     <Centered>
-      <h1 className="hb-phone-title">בנק הלבבות 💖</h1>
+      <h1 className="hb-phone-title">אוצר הלבבות 💖</h1>
       <p className="hb-phone-text">הקלידו את הקוד שמופיע בטלוויזיה</p>
       <form
         className="hb-code-form"

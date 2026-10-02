@@ -58,7 +58,7 @@ const hostActions = (s) => {
     case 'hunt:search':
       return { primary: { icon: '🏁', label: 'סיום החיפוש', action: NEXT }, secondary: [] };
     case 'blessings:write':
-      return { primary: { icon: '💖', label: 'למילוי הבנק!', action: NEXT }, secondary: [] };
+      return { primary: { icon: '💖', label: 'למילוי האוצר!', action: NEXT }, secondary: [] };
     default:
       return { primary: null, secondary: [] };
   }

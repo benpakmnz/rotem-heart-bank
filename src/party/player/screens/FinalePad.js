@@ -27,7 +27,7 @@ const FinalePad = ({ state, players, me }) => {
         <motion.div className="hb-prep-icon" animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}>
           💖
         </motion.div>
-        <h1 className="hb-phone-title">הבנק מתמלא...</h1>
+        <h1 className="hb-phone-title">האוצר מתמלא...</h1>
         <p className="hb-phone-text">הסתכלו בטלוויזיה! 📺</p>
       </div>
     );
@@ -41,7 +41,7 @@ const FinalePad = ({ state, players, me }) => {
       <motion.div initial={{ scale: 0.3 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring' }}>
         <GameTitle text="100% אהבה!" tone="gold" className="hb-finale-pad-title" />
       </motion.div>
-      <p className="hb-phone-text">הבנק מלא - {state.name} מוכנה לעוגה! 🎂</p>
+      <p className="hb-phone-text">האוצר מלא - {state.name} מוכנה לעוגה! 🎂</p>
       {iWon && <div className="hb-finale-pad-win">🏆 במקום הראשון!</div>}
       <div className="hb-done-score">
         <span>אספת ל{state.name}</span>

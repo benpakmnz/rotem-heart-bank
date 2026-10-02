@@ -13,7 +13,7 @@ const BankMeter = ({ fraction, bank, name, size = 'md', duration = 1200, from })
     <div className={`hb-meter hb-meter-${size} ${percent >= 100 ? 'is-full' : ''}`}>
       <div className="hb-meter-head">
         <span className="hb-meter-title">
-          <Heart className="hb-meter-title-heart" color="#E11D48" /> הבנק של {name}
+          <Heart className="hb-meter-title-heart" color="#E11D48" /> האוצר של {name}
         </span>
         <span className="hb-meter-percent">{percent}%</span>
       </div>
@@ -22,7 +22,7 @@ const BankMeter = ({ fraction, bank, name, size = 'md', duration = 1200, from })
           <span className="hb-meter-shine" />
         </div>
       </div>
-      <div className="hb-meter-sub">{fmt(hearts)} לבבות בבנק</div>
+      <div className="hb-meter-sub">{fmt(hearts)} לבבות באוצר</div>
     </div>
   );
 };

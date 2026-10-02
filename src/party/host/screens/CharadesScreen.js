@@ -135,7 +135,7 @@ const CharadesRound = ({ state, now }) => {
         <strong>{cur.concept}</strong>
       </div>
       {cur.success ? (
-        <div className="hb-charades-bonus">+{fmt(SCORING.charadesGroup)} לבבות לבנק של כל המשפחה! 💖</div>
+        <div className="hb-charades-bonus">+{fmt(SCORING.charadesGroup)} לבבות לאוצר של כל המשפחה! 💖</div>
       ) : (
         <div className="hb-charades-bonus is-soft">לא נורא - ננסה בסיבוב הבא!</div>
       )}

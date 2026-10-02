@@ -197,7 +197,7 @@ const HuntEditor = ({ hunt, onChange }) => {
           <div key={k.id} className="hb-set-question">
             <strong>{k.label}</strong>
             <NumberField label="כמה לבבות" value={huntKind(settings, k.id).count} min={0} max={12} onChange={(count) => setKind(k.id, { count })} />
-            <NumberField label="לבבות לבנק על כל אחד" value={huntKind(settings, k.id).points} min={0} max={50000} step={100} onChange={(points) => setKind(k.id, { points })} />
+            <NumberField label="לבבות לאוצר על כל אחד" value={huntKind(settings, k.id).points} min={0} max={50000} step={100} onChange={(points) => setKind(k.id, { points })} />
           </div>
         ))}
         <NumberField label="זמן לחיפוש בדקות (0 = בלי שעון)" value={Number(hunt.minutes) || 0} min={0} max={60} onChange={(minutes) => onChange({ ...hunt, minutes })} />
@@ -258,7 +258,7 @@ const SettingsPanel = ({ settings, started, onClose, onSave, className = '' }) =
                 <input className="hb-input" type="number" min="1" max="120" value={draft.age || ''} onChange={(e) => set({ age: Number(e.target.value) || 0 })} />
               </label>
               <label className="hb-field">
-                <span>יעד הבנק בלבבות (0 = אוטומטי לפי מספר המשתתפים)</span>
+                <span>יעד האוצר בלבבות (0 = אוטומטי לפי מספר המשתתפים)</span>
                 <input
                   className="hb-input"
                   type="number"

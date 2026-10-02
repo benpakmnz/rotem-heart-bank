@@ -1,13 +1,13 @@
 import { DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS } from './game';
 
-// Default content of "בנק הלבבות של רותם". Everything here can be edited from
+// Default content of "אוצר הלבבות של רותם". Everything here can be edited from
 // the TV screen (⚙️ עריכת תוכן) before the party.
 
 // Bump when the built-in questions change: a TV that saved the older list
 // gets the new one and keeps its on/off choices (see settingsStore).
 export const TRIVIA_VERSION = 6;
 // The same for the built-in words.
-export const WORDS_VERSION = 3;
+export const WORDS_VERSION = 4;
 
 export const DEFAULT_CONTENT = {
   birthdayName: 'רותם',
@@ -110,7 +110,7 @@ export const DEFAULT_CONTENT = {
   // to this list).
   words: [
     { id: 'love', word: 'אהבה', hint: 'מה שכולנו מרגישים כלפי רותם 💕' },
-    { id: 'hearts', word: 'לבבות', hint: 'מה אוספים לבנק של רותם? ❤️' },
+    { id: 'hearts', word: 'לבבות', hint: 'מה אוספים לאוצר של רותם? ❤️' },
     { id: 'family', word: 'משפחה', hint: 'כל האנשים שחוגגים כאן ביחד 👨‍👩‍👧' },
     { id: 'sisters', word: 'אחיות', hint: 'רותם ושחר הן... 👭' },
     { id: 'princess', word: 'נסיכה', hint: 'בת של מלך ומלכה - כמו רותם 👑' },
