@@ -479,34 +479,34 @@ describe('stage "hunt" - hidden hearts', () => {
     return g;
   };
 
-  test('builds 1 pink, 3 yellow and 2 white hearts by default', () => {
+  test('builds 1 gold, 3 silver and 2 red hearts by default', () => {
     const g = startHunt();
     expect(g.state.step).toBe('search');
-    expect(g.state.hunt.hearts.map((h) => h.kind)).toEqual(['pink', 'yellow', 'yellow', 'yellow', 'white', 'white']);
+    expect(g.state.hunt.hearts.map((h) => h.kind)).toEqual(['gold', 'silver', 'silver', 'silver', 'red', 'red']);
     expect(g.state.endsAt).toBe(g.now + 5 * 60000);
   });
 
   test('assigning a heart gives its points to the finder and the family bank', () => {
     const g = startHunt();
     const bank = g.state.bank;
-    g.dispatch({ type: 'huntAssign', heartId: 'pink-1', pid: 'b' });
+    g.dispatch({ type: 'huntAssign', heartId: 'gold-1', pid: 'b' });
     expect(g.state.scores.b).toBe(3000);
     expect(g.state.bank).toBe(bank + 3000);
-    expect(playerBadges(g.state)).toEqual({ b: ['pink'] });
+    expect(playerBadges(g.state)).toEqual({ b: ['gold'] });
     const pub = toPublic(g.state);
-    expect(pub.data.hearts.find((h) => h.id === 'pink-1').pid).toBe('b');
-    expect(pub.badges).toEqual({ b: ['pink'] });
+    expect(pub.data.hearts.find((h) => h.id === 'gold-1').pid).toBe('b');
+    expect(pub.badges).toEqual({ b: ['gold'] });
   });
 
   test('fixing a mistake moves the points (and the badge) to the right player', () => {
     const g = startHunt();
     const bank = g.state.bank;
-    g.dispatch({ type: 'huntAssign', heartId: 'yellow-2', pid: 'a' });
-    g.dispatch({ type: 'huntAssign', heartId: 'yellow-2', pid: 'c' });
+    g.dispatch({ type: 'huntAssign', heartId: 'silver-2', pid: 'a' });
+    g.dispatch({ type: 'huntAssign', heartId: 'silver-2', pid: 'c' });
     expect(g.state.scores.a).toBe(0);
     expect(g.state.scores.c).toBe(1500);
     expect(g.state.bank).toBe(bank + 1500);
-    g.dispatch({ type: 'huntAssign', heartId: 'yellow-2', pid: null });
+    g.dispatch({ type: 'huntAssign', heartId: 'silver-2', pid: null });
     expect(g.state.scores.c).toBe(0);
     expect(g.state.bank).toBe(bank);
     expect(playerBadges(g.state)).toEqual({});
@@ -514,24 +514,24 @@ describe('stage "hunt" - hidden hearts', () => {
 
   test('the same assignment twice changes nothing; unknown hearts are ignored', () => {
     const g = startHunt();
-    g.dispatch({ type: 'huntAssign', heartId: 'white-1', pid: 'a' });
+    g.dispatch({ type: 'huntAssign', heartId: 'red-1', pid: 'a' });
     const before = g.state;
-    expect(g.dispatch({ type: 'huntAssign', heartId: 'white-1', pid: 'a' })).toBe(before);
+    expect(g.dispatch({ type: 'huntAssign', heartId: 'red-1', pid: 'a' })).toBe(before);
     expect(g.dispatch({ type: 'huntAssign', heartId: 'purple-9', pid: 'a' })).toBe(before);
   });
 
   test('custom hearts and points from the settings; next ends the search', () => {
     const settings = createDefaultSettings();
-    settings.hunt = { minutes: 0, pink: { count: 2, points: 5000 }, yellow: { count: 0, points: 0 }, white: { count: 1, points: 100 } };
+    settings.hunt = { minutes: 0, gold: { count: 2, points: 5000 }, silver: { count: 0, points: 0 }, red: { count: 1, points: 100 } };
     const g = makeGame(settings);
     g.dispatch({ type: 'next' });
     goToPhase(g, 'hunt');
     g.dispatch({ type: 'next' });
     expect(g.state.endsAt).toBe(0);
-    expect(g.state.hunt.hearts.map((h) => `${h.id}:${h.points}`)).toEqual(['pink-1:5000', 'pink-2:5000', 'white-1:100']);
+    expect(g.state.hunt.hearts.map((h) => `${h.id}:${h.points}`)).toEqual(['gold-1:5000', 'gold-2:5000', 'red-1:100']);
     g.dispatch({ type: 'next' });
     expect(g.state.step).toBe('results');
-    g.dispatch({ type: 'huntAssign', heartId: 'white-1', pid: 'c' }); // late fixes still count
+    g.dispatch({ type: 'huntAssign', heartId: 'red-1', pid: 'c' }); // late fixes still count
     expect(g.state.scores.c).toBe(100);
     g.dispatch({ type: 'next' });
     expect(g.state.phase).toBe('word');

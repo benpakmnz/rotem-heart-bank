@@ -66,7 +66,7 @@ export const PhonePreview = ({ stageId }) => {
   } else if (stageId === 'hunt') {
     screen = (
       <div className="hb-pp-hunt">
-        {['pink', 'yellow', 'yellow', 'yellow', 'white', 'white'].map((kind, i) => (
+        {['gold', 'silver', 'silver', 'silver', 'red', 'red'].map((kind, i) => (
           <span key={i} className={i < 2 ? 'is-found' : ''}>
             <GlossyHeart from={heartKind(kind).colors[0]} to={heartKind(kind).colors[1]} />
           </span>
