@@ -3,12 +3,13 @@ import { HEART_PATH, useSvgId } from './Heart';
 import { Sparkle } from './PartyBackdrop';
 
 // The birthday girl: public/rotem.png, a drawing of Rotem as the queen of
-// hearts cut out on a transparent background (its width = the heart's width,
-// the eyes 55% down the drawing). Her own crown pops out above the
-// heart frame. Without the file a placeholder heart with a drawn crown is shown.
+// hearts cut out on a transparent background (600 x 800, the eyes 47% down).
+// Her face sits high in the heart with room around it and her neck showing,
+// and her own crown pops out above the frame. Without the file a placeholder
+// heart with a drawn crown is shown.
 const PHOTO_URL = `${process.env.PUBLIC_URL || ''}/rotem.png`;
 // where the drawing sits in the heart's 100 x 92 box
-const ART = { x: -1.6, y: -24.8, width: 100, height: 113.8 };
+const ART = { x: 5.6, y: -21.7, width: 86.2, height: 115 };
 
 let photoPromise = null;
 let knownUrl; // undefined = not checked yet, null = no photo
