@@ -4,11 +4,11 @@ import { Sparkle } from './PartyBackdrop';
 
 // The birthday girl: public/rotem.png, a drawing of Rotem as the queen of
 // hearts cut out on a transparent background (its width = the heart's width,
-// the face center 61% down the drawing). Her own crown pops out above the
+// the eyes 55% down the drawing). Her own crown pops out above the
 // heart frame. Without the file a placeholder heart with a drawn crown is shown.
 const PHOTO_URL = `${process.env.PUBLIC_URL || ''}/rotem.png`;
 // where the drawing sits in the heart's 100 x 92 box
-const ART = { x: 0, y: -25.3, width: 100, height: 114.6 };
+const ART = { x: -1.6, y: -24.8, width: 100, height: 113.8 };
 
 let photoPromise = null;
 let knownUrl; // undefined = not checked yet, null = no photo
