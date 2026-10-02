@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { HEART_PATH, useSvgId } from './Heart';
 import { Sparkle } from './PartyBackdrop';
 
-// The birthday girl: public/rotem.png, a drawing of Rotem cut out on a
-// transparent background (width = the heart's width, face center 545px from
-// the top). Her own crown pops out above the heart frame. Without the file a
-// placeholder heart with a drawn crown is shown.
+// The birthday girl: public/rotem.png, a drawing of Rotem as the queen of
+// hearts cut out on a transparent background (its width = the heart's width,
+// the face center 61% down the drawing). Her own crown pops out above the
+// heart frame. Without the file a placeholder heart with a drawn crown is shown.
 const PHOTO_URL = `${process.env.PUBLIC_URL || ''}/rotem.png`;
 // where the drawing sits in the heart's 100 x 92 box
-const ART = { x: 0, y: -28.1, width: 100, height: 117.6 };
+const ART = { x: 0, y: -25.3, width: 100, height: 114.6 };
 
 let photoPromise = null;
 let knownUrl; // undefined = not checked yet, null = no photo
