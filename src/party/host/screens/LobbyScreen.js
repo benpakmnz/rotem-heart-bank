@@ -54,7 +54,7 @@ const LocalModeBanner = ({ code }) => (
   </div>
 );
 
-const LobbyScreen = ({ state, mode, onRemovePlayer, onOpenSettings, onOpenAdmin }) => {
+const LobbyScreen = ({ state, mode, onRemovePlayer, onOpenSettings, onOpenAdmin, onShowSaver }) => {
   const { roomCode, settings, players } = state;
   const isLocal = mode === 'local';
   const qr = useQrDataUrl(joinUrl(roomCode, { local: isLocal }));
@@ -106,6 +106,11 @@ const LobbyScreen = ({ state, mode, onRemovePlayer, onOpenSettings, onOpenAdmin 
           <button type="button" className="hb-link-btn" onClick={onOpenAdmin}>
             📱 שליטה מהטלפון (מנהל/ת)
           </button>
+          {onShowSaver && (
+            <button type="button" className="hb-link-btn" onClick={onShowSaver}>
+              🎈 שומר מסך
+            </button>
+          )}
         </div>
       </section>
 

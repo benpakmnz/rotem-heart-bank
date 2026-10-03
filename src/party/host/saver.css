@@ -1,0 +1,211 @@
+/* ---------- the birthday screensaver (until the game starts) ----------
+   Sized like the TV screen (1em = 20px on 1920x1080, see .hb-tv). */
+
+.hb-tv.hb-saver {
+  z-index: 100;
+  cursor: none;
+  background-image: radial-gradient(120% 95% at 50% 0%, #c41f86 0%, #7a1478 30%, #3a0c5e 62%, #16042c 100%);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.hb-tv.hb-saver.show-hint {
+  cursor: pointer;
+}
+
+/* an upright phone: the picture and the title fill the height instead */
+@media (orientation: portrait) {
+  .hb-tv.hb-saver {
+    font-size: 2.4vw;
+    font-size: min(2.4vw, 1.6dvh);
+  }
+}
+
+.hb-saver > .hb-saver-garland {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 0.25em 0.35em rgba(20, 0, 40, 0.45));
+}
+
+.hb-saver > .hb-saver-confetti {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hb-saver-bit {
+  position: absolute;
+  top: -2em;
+  width: 1em;
+  height: 1em;
+  animation-name: hb-saver-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.hb-saver-bit i {
+  display: block;
+  width: 0.55em;
+  height: 1em;
+  border-radius: 0.12em;
+  opacity: 0.85;
+}
+
+.hb-saver-bit.is-shape-1 i {
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+}
+
+.hb-saver-bit .hb-heart-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0.85;
+}
+
+.hb-saver > .hb-saver-stage {
+  z-index: 3;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3em 2em 2em;
+}
+
+.hb-saver-photo {
+  animation: hb-saver-float 6s ease-in-out infinite;
+}
+
+.hb-saver-title {
+  margin: 0.12em 0 0;
+  font-size: 7.2em;
+  white-space: nowrap;
+}
+
+.hb-saver-sub {
+  margin: 0;
+  font-size: 3.6em;
+  white-space: nowrap;
+}
+
+.hb-saver-wish {
+  margin-top: 1em;
+  padding: 0.45em 1.5em;
+  border-radius: 999px;
+  font-size: 2.2em;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, rgba(120, 28, 140, 0.82), rgba(64, 12, 96, 0.82));
+  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.3), 0 0.5em 1.4em rgba(8, 0, 25, 0.35);
+  text-shadow: 0 0.08em 0.25em rgba(40, 0, 40, 0.5);
+  white-space: nowrap;
+  animation: hb-saver-wish-in 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+/* the mouse brings up two buttons in the corner (where the game's own
+   buttons are), clear of the wishes */
+.hb-saver > .hb-saver-bar {
+  position: absolute;
+  bottom: 1.6em;
+  left: 1.8em;
+  z-index: 4;
+  display: flex;
+  gap: 0.8em;
+  font-size: 1.3em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.hb-saver.show-hint > .hb-saver-bar {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@keyframes hb-saver-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.9em);
+  }
+}
+
+@keyframes hb-saver-fall {
+  from {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate(3em, 112vh) rotate(540deg);
+  }
+}
+
+@keyframes hb-saver-wish-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.7em) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hb-saver-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* lite effects (TV browsers, screen mirroring): the big layers stand still;
+   only small things move - the twinkles, a little confetti - and the wishes
+   change with a plain fade */
+.hb-saver.fx-lite .hb-saver-photo {
+  animation: none;
+}
+
+.hb-saver .hb-backdrop.is-lite .hb-bd-sparkle {
+  animation: hb-twinkle ease-in-out infinite;
+}
+
+.hb-saver.fx-lite .hb-photo-sparkle {
+  animation: hb-twinkle 2.2s ease-in-out infinite;
+}
+
+.hb-saver.fx-lite > .hb-saver-garland {
+  filter: none;
+}
+
+.hb-saver.fx-lite .hb-saver-wish {
+  animation: hb-saver-fade 0.8s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-saver-photo,
+  .hb-saver-bit {
+    animation: none;
+  }
+
+  .hb-saver-wish {
+    animation: hb-saver-fade 0.8s ease both;
+  }
+}

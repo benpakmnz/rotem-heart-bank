@@ -1,5 +1,6 @@
 // URL scheme of the birthday game:
 //   /  (or /party)      -> TV (host) screen
+//   /saver              -> the TV screen behind a birthday screensaver (a click opens the game)
 //   /join               -> phone: enter a room code
 //   /join/<code>        -> phone: join room <code>
 //   /admin[/<code>]     -> the game master's phone (PIN protected, see useAdminBridge)
@@ -7,6 +8,7 @@
 
 export const JOIN_PATH = '/join';
 export const ADMIN_PATH = '/admin';
+export const SAVER_PATH = '/saver';
 
 export const ROOM_CODE_LENGTH = 4;
 const ROOM_CODE_RE = new RegExp(`^\\d{${ROOM_CODE_LENGTH}}$`);
@@ -15,6 +17,7 @@ export const isValidRoomCode = (code) => ROOM_CODE_RE.test(String(code || ''));
 
 export const parsePartyRoute = (pathname) => {
   const path = (pathname || '').replace(/\/+$/, '');
+  if (path === SAVER_PATH) return { view: 'host', saver: true };
   const admin = path.match(/^\/admin(?:\/([^/]+))?$/);
   if (admin) return { view: 'admin', code: admin[1] && isValidRoomCode(admin[1]) ? admin[1] : null };
   const join = path.match(/^\/join(?:\/([^/]+))?$/);

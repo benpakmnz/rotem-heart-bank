@@ -200,7 +200,9 @@ const renderScreen = (props) => {
 
 const isTyping = (el) => el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(el.tagName));
 
-const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
+// `covered`: the birthday screensaver is on top (see HostApp). The game keeps
+// running underneath but draws nothing and ignores the keyboard.
+const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onShowSaver, onUncover }) => {
   const [liteFx, setLiteFxState] = useState(initialLiteFx);
   setLiteFx(liteFx); // canvases and confetti read it outside React
   // fewer re-renders of the whole screen in lite mode
@@ -214,8 +216,10 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
   const [adminOpen, setAdminOpen] = useState(false);
   const [notice, setNotice] = useState(null);
   useWakeLock(true);
+  const coveredRef = useRef(covered);
+  coveredRef.current = covered;
   // a screen that can't keep up switches to lite effects by itself
-  useAutoLite(!liteFx && !liteFxChosen(), () => {
+  useAutoLite(!liteFx && !liteFxChosen() && !covered, () => {
     setLiteFxState(true);
     setNotice('🪶 המסך הזה עובד לאט - עברנו לאפקטים חסכוניים (אפשר לשנות בתפריט ☰)');
   });
@@ -225,6 +229,14 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
     return () => clearTimeout(id);
   }, [notice]);
   useHostEffects(state, now);
+
+  // the game moved on under the screensaver (started from the game master's phone): show it
+  const phaseRef = useRef(state.phase);
+  useEffect(() => {
+    if (phaseRef.current === state.phase) return;
+    phaseRef.current = state.phase;
+    if (coveredRef.current && onUncover) onUncover();
+  }, [state.phase, onUncover]);
 
   useEffect(() => {
     setMuted(muted);
@@ -263,7 +275,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
   // Keyboard / TV remote: Enter or Space = the main button.
   useEffect(() => {
     const onKey = (e) => {
-      if (settingsOpen || isTyping(e.target) || e.repeat) return;
+      if (coveredRef.current || settingsOpen || isTyping(e.target) || e.repeat) return;
       if (e.key === 'Enter' || e.key === ' ') {
         const { primary } = actionsRef.current;
         if (primary && !primary.disabled) {
@@ -301,6 +313,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
     { key: 'sound', icon: muted ? '🔇' : '🔊', label: muted ? 'הפעלת צלילים' : 'השתקה', run: () => setMutedState((m) => !m) },
     { key: 'music', icon: musicOn ? '🎵' : '🎶', label: musicOn ? 'כיבוי המוזיקה' : 'הפעלת המוזיקה', run: () => setMusicOn((m) => !m) },
     { key: 'full', icon: '⛶', label: 'מסך מלא', run: toggleFullscreen },
+    ...(onShowSaver ? [{ key: 'saver', icon: '🎈', label: 'שומר מסך', run: onShowSaver }] : []),
     {
       key: 'fx',
       icon: liteFx ? '✨' : '🪶',
@@ -345,7 +358,10 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame }) => {
     onRemovePlayer: removePlayer,
     onOpenSettings: () => setSettingsOpen(true),
     onOpenAdmin: () => setAdminOpen(true),
+    onShowSaver,
   };
+
+  if (covered) return null;
 
   return (
     <div className={`hb-tv phase-${state.phase} step-${state.step} ${liteFx ? 'fx-lite' : ''}`}>

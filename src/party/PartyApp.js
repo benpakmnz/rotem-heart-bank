@@ -19,7 +19,7 @@ const PartyApp = () => {
   return (
     <div className="hb-root">
       <Suspense fallback={<div className="hb-boot" />}>
-        {route.view === 'host' && <HostApp />}
+        {route.view === 'host' && <HostApp saver={Boolean(route.saver)} />}
         {route.view === 'player' && <PlayerApp initialCode={route.code} />}
         {route.view === 'admin' && <AdminApp initialCode={route.code} />}
       </Suspense>
