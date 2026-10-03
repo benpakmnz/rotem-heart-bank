@@ -19,6 +19,11 @@
     font-size: 2.4vw;
     font-size: min(2.4vw, 1.6dvh);
   }
+
+  .hb-tv.hb-saver .hb-saver-title {
+    font-size: 5em;
+    white-space: normal;
+  }
 }
 
 .hb-saver > .hb-saver-garland {
@@ -30,6 +35,23 @@
   z-index: 2;
   pointer-events: none;
   filter: drop-shadow(0 0.25em 0.35em rgba(20, 0, 40, 0.45));
+}
+
+/* the palace along the bottom, behind the title */
+.hb-saver > .hb-saver-castle {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hb-castle-flag {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: hb-castle-flag 1.7s ease-in-out infinite alternate;
 }
 
 .hb-saver > .hb-saver-confetti {
@@ -91,15 +113,15 @@
   animation: hb-saver-float 6s ease-in-out infinite;
 }
 
-.hb-saver-title {
-  margin: 0.12em 0 0;
-  font-size: 7.2em;
+.hb-saver-sub {
+  margin: 0.25em 0 0;
+  font-size: 3.4em;
   white-space: nowrap;
 }
 
-.hb-saver-sub {
+.hb-saver-title {
   margin: 0;
-  font-size: 3.6em;
+  font-size: 6em;
   white-space: nowrap;
 }
 
@@ -110,7 +132,7 @@
   font-size: 2.2em;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(180deg, rgba(120, 28, 140, 0.82), rgba(64, 12, 96, 0.82));
+  background: linear-gradient(180deg, #7a1c8c, #400c60);
   box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.3), 0 0.5em 1.4em rgba(8, 0, 25, 0.35);
   text-shadow: 0 0.08em 0.25em rgba(40, 0, 40, 0.5);
   white-space: nowrap;
@@ -144,6 +166,15 @@
   }
   50% {
     transform: translateY(-0.9em);
+  }
+}
+
+@keyframes hb-castle-flag {
+  from {
+    transform: skewY(-8deg) scaleX(0.86);
+  }
+  to {
+    transform: skewY(6deg) scaleX(1);
   }
 }
 
@@ -195,12 +226,17 @@
   filter: none;
 }
 
+.hb-saver.fx-lite .hb-castle-flag {
+  animation: none;
+}
+
 .hb-saver.fx-lite .hb-saver-wish {
   animation: hb-saver-fade 0.8s ease both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hb-saver-photo,
+  .hb-castle-flag,
   .hb-saver-bit {
     animation: none;
   }

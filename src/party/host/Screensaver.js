@@ -7,10 +7,11 @@ import useWakeLock from '../shared/useWakeLock';
 import { initialLiteFx } from '../lib/effects';
 import { createRng } from '../lib/random';
 import { loadSettings } from './settingsStore';
+import Castle from './Castle';
 import './saver.css';
 
-// Birthday wishes that take turns under the title.
-const WISHES = ['מלכת הלבבות שלנו 👑', 'אוהבים אותך המון ❤️', 'שתהיה לך שנה מתוקה 🍭', 'מאחלים לך הרבה שמחה ואהבה 💖', 'מזל טוב! 🎂'];
+// Birthday wishes that take turns under the title (after "happy birthday").
+const WISHES = ['מלכת הלבבות שלנו 👑', 'אוהבים אותך המון ❤️', 'שתהיה לך שנה מתוקה 🍭', 'מאחלים לך הרבה שמחה ואהבה 💖', 'מזל טוב! 🎉'];
 const WISH_MS = 6500;
 const HINT_MS = 3000;
 
@@ -81,22 +82,24 @@ const Confetti = ({ lite }) => {
   );
 };
 
-// The TV's screensaver until the game starts: Rotem, birthday wishes and a
-// party - no game details or QR. A click (or a key) opens the game itself;
+// The TV's screensaver until the game starts: "welcome to Rotem's kingdom of
+// hearts" with Rotem, her palace, birthday wishes and a party - no game
+// details or QR. A click (or a key) opens the game itself;
 // F switches to full screen. Lite effects (screen mirroring) keep only small
 // things moving: twinkles and a little confetti.
 const Screensaver = ({ onExit }) => {
   const [lite] = useState(initialLiteFx);
   const { birthdayName: name, age } = useMemo(() => loadSettings(), []);
+  const wishes = useMemo(() => [age ? `יום הולדת ${age} שמח! 🎂` : 'יום הולדת שמח! 🎂', ...WISHES], [age]);
   const [wish, setWish] = useState(0);
   const [hint, setHint] = useState(false);
   const hintTimer = useRef(0);
   useWakeLock(true);
 
   useEffect(() => {
-    const id = setInterval(() => setWish((w) => (w + 1) % WISHES.length), WISH_MS);
+    const id = setInterval(() => setWish((w) => (w + 1) % wishes.length), WISH_MS);
     return () => clearInterval(id);
-  }, []);
+  }, [wishes.length]);
 
   // moving the mouse shows the buttons (and the cursor) for a moment
   const showHint = useCallback(() => {
@@ -122,8 +125,6 @@ const Screensaver = ({ onExit }) => {
     return () => window.removeEventListener('keydown', onKey);
   }, [onExit, toggleFullscreen]);
 
-  const title = age ? `${name} בת ${age}!` : `${name}!`;
-
   return (
     <div
       className={`hb-tv hb-saver ${lite ? 'fx-lite' : ''} ${hint ? 'show-hint' : ''}`}
@@ -133,15 +134,16 @@ const Screensaver = ({ onExit }) => {
     >
       <PartyBackdrop lite={lite} balloons hearts={18} />
       <Confetti lite={lite} />
+      <Castle />
       <Garland />
       <div className="hb-saver-stage">
         <div className="hb-saver-photo">
           <RotemPhoto size="xl" age={age} beat />
         </div>
-        <GameTitle text={title} className="hb-saver-title" />
-        <GameTitle as="div" text="יום הולדת שמח!" tone="gold" className="hb-saver-sub" />
+        <GameTitle as="div" text="ברוכים הבאים" tone="gold" className="hb-saver-sub" />
+        <GameTitle text={`לממלכת הלבבות של ${name}`} className="hb-saver-title" />
         <div className="hb-saver-wish" key={wish}>
-          {WISHES[wish]}
+          {wishes[wish]}
         </div>
       </div>
       <div className="hb-saver-bar" onClick={(e) => e.stopPropagation()}>
