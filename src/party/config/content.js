@@ -5,7 +5,7 @@ import { DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS } from './game';
 
 // Bump when the built-in questions change: a TV that saved the older list
 // gets the new one and keeps its on/off choices (see settingsStore).
-export const TRIVIA_VERSION = 6;
+export const TRIVIA_VERSION = 7;
 // The same for the built-in words.
 export const WORDS_VERSION = 4;
 
@@ -35,11 +35,11 @@ export const DEFAULT_CONTENT = {
     {
       id: 'shachar-animal',
       q: 'שאלנו את שחר: אם רותם הייתה חיה, איזו חיה היא הייתה?',
-      options: ['חתלתולה', 'קופיפה', 'תרנגולת', 'דולפין'],
+      options: ['חתלתולה', 'קופיפה', 'פרפר', 'דולפין'],
       correct: 2,
     },
     { id: 'subject', q: 'מה המקצוע שרותם הכי אוהבת ללמוד?', options: ['חשבון', 'אנגלית', 'אומנות', 'ההפסקה 😉'], correct: 0 },
-    { id: 'height', q: 'מה הגובה של רותם?', options: ['116 ס״מ', '120 ס״מ', '124 ס״מ', '128 ס״מ'], correct: 1 }, // placeholder
+    { id: 'height', q: 'מה הגובה של רותם?', options: ['119 ס״מ', '122 ס״מ', '125 ס״מ', '128 ס״מ'], correct: 2 },
     {
       id: 'done',
       q: 'מה מהדברים האלה רותם כבר עשתה?',
