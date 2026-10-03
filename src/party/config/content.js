@@ -5,7 +5,7 @@ import { DEFAULT_HUNT, DEFAULT_TIMINGS, HEART_KINDS, STAGE_IDS } from './game';
 
 // Bump when the built-in questions change: a TV that saved the older list
 // gets the new one and keeps its on/off choices (see settingsStore).
-export const TRIVIA_VERSION = 7;
+export const TRIVIA_VERSION = 8;
 // The same for the built-in words.
 export const WORDS_VERSION = 4;
 
@@ -13,10 +13,9 @@ export const DEFAULT_CONTENT = {
   birthdayName: 'רותם',
   age: 7,
   // The family's questions about Rotem - the pool the editor turns on and off
-  // (the id ties a question to this list). Answers marked "placeholder" are
-  // not confirmed yet.
+  // (the id ties a question to this list).
   trivia: [
-    { id: 'unicorns', q: 'כמה בובות חד-קרן יש לרותם מעל המיטה?', options: ['3', '5', '6', '8'], correct: 3 }, // placeholder
+    { id: 'unicorns', q: 'כמה בובות חד-קרן יש לרותם מעל המיטה?', options: ['12', '15', '18', '21'], correct: 1 },
     { id: 'mom-nickname', q: 'מה שם החיבה של אמא לרותם?', options: ['פיצפונת', 'מתוקולינה', 'גורדוליני', 'רותמוש'], correct: 2 },
     {
       id: 'nitzan',
