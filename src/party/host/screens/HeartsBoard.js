@@ -10,8 +10,9 @@ import { StageResults } from './common';
 
 // Class mode's "ציידי הלבבות": each team in turn calls out 5 of 20 numbered
 // hearts. Behind each one waits a math exercise; the teacher enters the
-// team's answer, and the right one opens the heart - gold, silver, red, or
-// an empty one. At the end of the turn the whole board opens.
+// team's answer, and the heart opens - gold, silver, red, or an empty one.
+// Only a right answer wins its points. At the end of the turn the whole
+// board opens.
 
 const EMPTY = { label: 'לב ריק', colors: ['#F4F2F8', '#B8B3C9'] };
 const CLOSED = ['#FF8CC6', '#9B2FC9'];
@@ -20,7 +21,8 @@ const kindOf = (kind) => (kind === 'empty' ? EMPTY : heartKind(kind));
 export const exerciseText = (ex) => `${ex.a} ${ex.op === '-' ? '−' : '+'} ${ex.b}`;
 
 const BoardHeart = ({ heart, pick, done, current, canPick, onPick }) => {
-  const open = (pick && pick.correct) || done;
+  // a picked heart opens either way (a wrong answer just doesn't win it)
+  const open = Boolean(pick) || done;
   const colors = open ? kindOf(heart.kind).colors : CLOSED;
   let status = '';
   if (pick) status = pick.correct ? 'is-open' : 'is-missed';
@@ -112,8 +114,11 @@ const ExerciseCard = ({ state, team, dispatch }) => {
     } else {
       result = (
         <motion.div className="hb-ex-result is-bad" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-          <span className="hb-ex-verdict">{ex.given === null ? '🙈 לא נורא!' : `❌ אוי, ${ex.given} זו לא התשובה`}</span>
-          <span className="hb-ex-prize">התשובה היא {ex.answer} - הלב נשאר סגור</span>
+          <span className="hb-ex-verdict">{ex.given === null ? `🙈 לא נורא! התשובה היא ${ex.answer}` : `❌ אוי, התשובה היא ${ex.answer}`}</span>
+          <span className={`hb-ex-heart is-missed hb-bh-${heart.kind}`}>
+            <GlossyHeart from={kind.colors[0]} to={kind.colors[1]} stroke={heart.kind === 'empty' ? '#9C96B0' : '#fff'} />
+          </span>
+          <span className="hb-ex-prize">{heart.points ? `היה כאן ${kind.label}... הפעם בלי נקודות` : 'היה כאן לב ריק - לא הפסדתם כלום 😅'}</span>
         </motion.div>
       );
     }

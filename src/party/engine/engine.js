@@ -49,7 +49,7 @@ import { cleanText, normalizeWord, scrambleLetters, wordLetters, wordShape } fro
 //   hunt:      intro -> (pick -> exercise -> reveal x 5 -> turnDone) x teams
 //              -> results (no running around the room: each team gets a board
 //              of 20 numbered hearts, calls out 5 numbers, and solves the math
-//              exercise behind each one - the right answer opens the heart)
+//              exercise behind each one - the right answer wins the heart)
 
 export const PHASES = ['lobby', ...STAGE_IDS, 'finale'];
 
@@ -389,8 +389,8 @@ const classPick = (s, n, now, rng) => {
   return true;
 };
 
-// The team's answer (null: "we don't know"). The right one opens the heart
-// and its points go to the team; either way the chance is used.
+// The team's answer (null: "we don't know"). Either way the heart opens and
+// the chance is used - but only the right answer wins its points.
 const classMath = (s, value, now) => {
   const h = s.hunt;
   const cur = h.current;
