@@ -1,4 +1,4 @@
-import { createGame, reduce, toPublic, privateMessages, nextDueAt, playableQuestions, nextPhase, playerBadges } from './engine';
+import { createGame, reduce, toPublic, privateMessages, nextDueAt, playableQuestions, nextPhase, playerBadges, mathExercise } from './engine';
 import { createDefaultSettings } from '../config/content';
 import { SCORING, CHARADES_PICK_MS, COUNTDOWN_MS, TAP_TALLY_MS, FINALE_FILL_MS, TRIVIA_GRACE_MS } from '../config/game';
 import { createRng } from '../lib/random';
@@ -718,6 +718,90 @@ describe('class mode (teams, no phones)', () => {
     g.dispatch({ type: 'classBlessing', text: '   ' });
     expect(g.state.blessings.list.map((b) => b.text)).toEqual(['אהבה', 'הצלחה']);
     expect(g.state.bank).toBe(2 * SCORING.blessing);
+  });
+
+  test('hunt: 20 numbered hearts per team, 5 picks, a math exercise opens each heart', () => {
+    const g = makeClass();
+    const [t1, t2, t3, t4] = teams(g);
+    g.dispatch({ type: 'goto', phase: 'hunt' });
+    g.dispatch({ type: 'next' });
+    expect(g.state.step).toBe('pick');
+    const { boards } = g.state.hunt;
+    expect(boards.map((b) => b.pid)).toEqual([t1, t2, t3, t4]);
+    const kinds = (b) => b.hearts.reduce((m, h) => ({ ...m, [h.kind]: (m[h.kind] || 0) + 1 }), {});
+    boards.forEach((b) => {
+      expect(b.hearts.map((h) => h.n)).toEqual(Array.from({ length: 20 }, (_, i) => i + 1));
+      expect(kinds(b)).toEqual({ gold: 2, silver: 4, red: 8, empty: 6 });
+    });
+    expect(boards[0].hearts.map((h) => h.kind)).not.toEqual(boards[1].hearts.map((h) => h.kind)); // each team's own shuffle
+
+    const heartAt = (n) => boards[0].hearts[n - 1];
+    const before = g.state;
+    g.dispatch({ type: 'classPick', n: 0 });
+    g.dispatch({ type: 'classPick', n: 21 });
+    g.dispatch({ type: 'classMath', value: 5 }); // no exercise yet
+    expect(g.state).toBe(before);
+    // a right answer opens the heart
+    g.dispatch({ type: 'classPick', n: 7 });
+    expect(g.state.step).toBe('exercise');
+    const ex = g.state.hunt.current;
+    expect(ex.n).toBe(7);
+    expect(ex.op === '+' ? ex.a + ex.b : ex.a - ex.b).toBe(ex.answer);
+    g.dispatch({ type: 'classPick', n: 8 }); // one at a time
+    expect(g.state.hunt.current.n).toBe(7);
+    g.dispatch({ type: 'classMath', value: ex.answer });
+    expect(g.state.step).toBe('reveal');
+    expect(g.state.scores[t1]).toBe(heartAt(7).points);
+    expect(g.state.hunt.found).toEqual({ 'b1-7': { pid: t1, at: g.now } });
+    g.advance(4000);
+    expect(g.state.step).toBe('pick');
+    g.dispatch({ type: 'classPick', n: 7 }); // already opened
+    expect(g.state.step).toBe('pick');
+    // a wrong answer keeps it closed; "we don't know" too
+    g.dispatch({ type: 'classPick', n: 12 });
+    g.dispatch({ type: 'classMath', value: g.state.hunt.current.answer + 1 });
+    expect(g.state.hunt.found['b1-12']).toBeUndefined();
+    g.dispatch({ type: 'next' }); // no need to wait for the reveal
+    g.dispatch({ type: 'classPick', n: 3 });
+    g.dispatch({ type: 'skip' }); // "we don't know"
+    expect(g.state.hunt.picks.slice(-1)[0]).toMatchObject({ n: 3, given: null, correct: false });
+    g.advance(4000);
+    // two more right answers: the 5th pick ends the turn
+    [15, 20].forEach((n) => {
+      g.dispatch({ type: 'classPick', n });
+      g.dispatch({ type: 'classMath', value: g.state.hunt.current.answer });
+      g.advance(4000);
+    });
+    expect(g.state.step).toBe('turnDone');
+    expect(g.state.scores[t1]).toBe([7, 15, 20].reduce((sum, n) => sum + heartAt(n).points, 0));
+    // team 2: ends its turn early; team 3 left - skipped; team 4 is last
+    g.dispatch({ type: 'next' });
+    expect(g.state.hunt.turn).toBe(1);
+    g.dispatch({ type: 'skip' });
+    expect(g.state.step).toBe('turnDone');
+    g.dispatch({ type: 'removePlayer', pid: t3 });
+    g.dispatch({ type: 'next' });
+    expect(g.state.hunt.turn).toBe(3);
+    const gold = g.state.hunt.boards[3].hearts.find((h) => h.kind === 'gold').n;
+    g.dispatch({ type: 'classPick', n: gold });
+    g.dispatch({ type: 'classMath', value: g.state.hunt.current.answer });
+    expect(g.state.scores[t4]).toBe(1000);
+    g.dispatch({ type: 'next' });
+    g.dispatch({ type: 'skip' });
+    g.dispatch({ type: 'next' });
+    expect(g.state.step).toBe('results');
+    expect(playerBadges(g.state)[t4]).toEqual(['gold']); // only gold hearts are badges
+    expect(toPublic(g.state).data).toEqual({ math: true, turn: 3, teams: 4 });
+  });
+
+  test('hunt: the exercises are 2nd grade math - + or - up to 20, no negatives, no 0s or 1s', () => {
+    const rng = createRng(99);
+    for (let i = 0; i < 2000; i += 1) {
+      const { a, b, op, answer } = mathExercise(rng);
+      expect(op === '+' ? a + b : a - b).toBe(answer);
+      expect(Math.min(a, b, answer)).toBeGreaterThanOrEqual(2);
+      expect(Math.max(a, b, answer)).toBeLessThanOrEqual(20);
+    }
   });
 
   test('the bank target fits teams', () => {

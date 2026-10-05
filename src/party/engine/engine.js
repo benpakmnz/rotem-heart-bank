@@ -13,6 +13,8 @@ import {
   HEART_KINDS,
   huntKind,
   stageOrder,
+  CLASS_HUNT_HEARTS,
+  CLASS_HUNT_PICKS,
 } from '../config/game';
 import { AVATARS } from '../config/avatars';
 import { tapPoints, triviaPoints, topTappers, computeBankTarget, meterFraction } from '../lib/scoring';
@@ -44,6 +46,10 @@ import { cleanText, normalizeWord, scrambleLetters, wordLetters, wordShape } fro
 //   word:      the teacher picks the team that cracked the word
 //   charades:  one round per team; a success scores for the presenting team
 //   blessings: the teacher types the words
+//   hunt:      intro -> (pick -> exercise -> reveal x 5 -> turnDone) x teams
+//              -> results (no running around the room: each team gets a board
+//              of 20 numbered hearts, calls out 5 numbers, and solves the math
+//              exercise behind each one - the right answer opens the heart)
 
 export const PHASES = ['lobby', ...STAGE_IDS, 'finale'];
 
@@ -252,7 +258,7 @@ const ensureTarget = (s) => {
           words: on.includes('word') ? playableWords(settings).length : 0,
           tapSeconds: on.includes('tap') ? Number(settings.timings[s.classMode ? 'classTapSeconds' : 'tapSeconds']) || 10 : 0,
           blessings: on.includes('blessings'),
-          huntPoints: on.includes('hunt') ? huntHearts(settings).reduce((sum, h) => sum + h.points, 0) : 0,
+          huntPoints: on.includes('hunt') ? huntTargetPoints(s) : 0,
           classMode: Boolean(s.classMode),
         });
 };
@@ -303,7 +309,8 @@ const enterPhase = (s, phase, now) => {
   }
   if (phase === 'word') s.word = { total: playableWords(s.settings).length, current: null, results: [] };
   if (phase === 'blessings' && !s.blessings) s.blessings = { list: [], seen: {}, hidden: {} };
-  if (phase === 'hunt') s.hunt = { hearts: huntHearts(s.settings), found: {}, startedAt: 0 };
+  if (phase === 'hunt' && s.classMode) s.hunt = { math: true, order: [], turn: 0, boards: [], hearts: [], picks: [], current: null, found: {} };
+  else if (phase === 'hunt') s.hunt = { hearts: huntHearts(s.settings), found: {}, startedAt: 0 };
 };
 
 // ---------------------------------------------------------------------------
@@ -316,6 +323,94 @@ export const huntHearts = (settings) => {
     for (let i = 1; i <= count; i += 1) list.push({ id: `${id}-${i}`, kind: id, points });
   });
   return list;
+};
+
+// Class mode: the hearts of one board (before they're shuffled).
+export const classHuntHearts = () =>
+  CLASS_HUNT_HEARTS.flatMap(({ kind, count, points }) => Array.from({ length: count }, () => ({ kind, points })));
+
+const CLASS_REVEAL_MS = 4000;
+
+// All hidden hearts count for the target (most of them get found; in class
+// mode: 5 hearts a team, most exercises solved).
+const huntTargetPoints = (s) => {
+  if (!s.classMode) return huntHearts(s.settings).reduce((sum, h) => sum + h.points, 0);
+  const hearts = classHuntHearts();
+  const average = hearts.reduce((sum, h) => sum + h.points, 0) / hearts.length;
+  return playerIds(s).length * CLASS_HUNT_PICKS * average * 0.8;
+};
+
+// A math exercise for 2nd grade: + or - up to 20 (no 0s or 1s).
+export const mathExercise = (rng) => {
+  if (rng() < 0.5) {
+    const answer = 6 + Math.floor(rng() * 15); // 6..20
+    const a = 2 + Math.floor(rng() * (answer - 3)); // 2..answer-2
+    return { a, b: answer - a, op: '+', answer };
+  }
+  const a = 6 + Math.floor(rng() * 15);
+  const b = 2 + Math.floor(rng() * (a - 3));
+  return { a, b, op: '-', answer: a - b };
+};
+
+// One team at a time, each with its own shuffled board (the boards are dealt
+// when the first turn starts).
+const startClassHuntTurn = (s, turn, now, rng) => {
+  const h = s.hunt;
+  if (turn === 0 || !h.order.length) {
+    h.order = playerIds(s);
+    h.boards = h.order.map((pid) => ({ pid, hearts: shuffle(classHuntHearts(), rng).map((heart, i) => ({ n: i + 1, ...heart })) }));
+    h.hearts = h.boards.flatMap((b, i) => b.hearts.map((heart) => ({ id: `b${i + 1}-${heart.n}`, board: i, ...heart })));
+    h.picks = [];
+    h.found = {};
+  }
+  let next = turn;
+  while (next < h.order.length && !s.players[h.order[next]]) next += 1; // a team that left
+  if (next >= h.order.length) {
+    setStep(s, 'results', now);
+    return;
+  }
+  h.turn = next;
+  h.current = null;
+  s.round = next;
+  s.roundId = newRoundId(s, 'hunt');
+  s.inputs = {};
+  setStep(s, 'pick', now);
+};
+
+const turnPicks = (s) => s.hunt.picks.filter((p) => p.board === s.hunt.turn);
+
+// The team calls out a heart's number: its exercise shows.
+const classPick = (s, n, now, rng) => {
+  const num = Math.floor(Number(n));
+  if (s.step !== 'pick' || !(num >= 1 && num <= s.hunt.boards[s.hunt.turn].hearts.length)) return false;
+  if (turnPicks(s).some((p) => p.n === num)) return false;
+  s.hunt.current = { n: num, ...mathExercise(rng) };
+  setStep(s, 'exercise', now);
+  return true;
+};
+
+// The team's answer (null: "we don't know"). The right one opens the heart
+// and its points go to the team; either way the chance is used.
+const classMath = (s, value, now) => {
+  const h = s.hunt;
+  const cur = h.current;
+  if (s.step !== 'exercise' || !cur) return false;
+  const given = value === null || value === undefined || value === '' || Number.isNaN(Number(value)) ? null : Math.floor(Number(value));
+  const correct = given === cur.answer;
+  const pid = h.order[h.turn];
+  h.picks.push({ board: h.turn, n: cur.n, a: cur.a, b: cur.b, op: cur.op, answer: cur.answer, given, correct });
+  const heart = h.hearts.find((x) => x.board === h.turn && x.n === cur.n);
+  if (correct && heart && s.players[pid]) {
+    h.found[heart.id] = { pid, at: now };
+    award(s, pid, heart.points, 'hunt', now, { kind: heart.kind });
+  }
+  setStep(s, 'reveal', now, now + CLASS_REVEAL_MS);
+  return true;
+};
+
+const afterClassReveal = (s, now) => {
+  s.hunt.current = null;
+  setStep(s, turnPicks(s).length >= CLASS_HUNT_PICKS ? 'turnDone' : 'pick', now);
 };
 
 const startHunt = (s, now) => {
@@ -358,7 +453,8 @@ export const playerBadges = (s) => {
   if (s.hunt) {
     Object.keys(s.hunt.found).forEach((heartId) => {
       const heart = s.hunt.hearts.find((h) => h.id === heartId);
-      if (heart) add(s.hunt.found[heartId].pid, heart.kind);
+      // (in class mode only the gold hearts make a badge - a team opens 5)
+      if (heart && (!s.hunt.math || heart.kind === 'gold')) add(s.hunt.found[heartId].pid, heart.kind);
     });
   }
   Object.values(out).forEach((list) => list.sort((a, b) => BADGE_ORDER.indexOf(a) - BADGE_ORDER.indexOf(b)));
@@ -745,6 +841,8 @@ export const nextDueAt = (s) => {
         return Math.min(...due);
       }
       return null;
+    case 'hunt':
+      return s.classMode && s.step === 'reveal' ? s.endsAt : null;
     case 'finale':
       return s.step === 'fill' ? s.endsAt : null;
     default:
@@ -767,6 +865,8 @@ const onTick = (s, now) => {
   } else if (s.phase === 'word') {
     if (s.step === 'countdown') startWordPlay(s, now);
     else if (s.step === 'play') tickWord(s, now);
+  } else if (s.phase === 'hunt' && s.classMode && s.step === 'reveal') {
+    afterClassReveal(s, now);
   } else if (s.phase === 'finale' && s.step === 'fill') {
     setStep(s, 'celebrate', now);
   }
@@ -805,6 +905,11 @@ const onNext = (s, now, rng) => {
     if (step === 'intro') startWordRound(s, 0, now, rng);
     else if (step === 'outcome') startWordRound(s, s.round + 1, now, rng);
     else return false;
+  } else if (phase === 'hunt' && s.classMode) {
+    if (step === 'intro') startClassHuntTurn(s, 0, now, rng);
+    else if (step === 'reveal') afterClassReveal(s, now);
+    else if (step === 'turnDone') startClassHuntTurn(s, s.hunt.turn + 1, now, rng);
+    else return false;
   } else if (phase === 'hunt') {
     if (step === 'intro') startHunt(s, now);
     else if (step === 'search') setStep(s, 'results', now);
@@ -824,6 +929,8 @@ const onSkip = (s, now) => {
   if (phase === 'tap' && (step === 'countdown' || step === 'active') && s.classMode) endClassTapTurn(s, now);
   else if (phase === 'tap' && (step === 'countdown' || step === 'active')) startTapTally(s, now);
   else if (phase === 'trivia' && step === 'question' && s.classMode) setStep(s, 'mark', now);
+  else if (phase === 'hunt' && s.classMode && step === 'exercise') classMath(s, null, now); // "we don't know"
+  else if (phase === 'hunt' && s.classMode && step === 'pick') setStep(s, 'turnDone', now); // the turn ends early
   else if (phase === 'trivia' && step === 'question') revealTrivia(s, now);
   else if (phase === 'charades' && ['pick', 'ready', 'perform'].includes(step)) finishCharades(s, false, now);
   else if (phase === 'word' && (step === 'countdown' || step === 'play')) finishWord(s, null, now);
@@ -892,7 +999,7 @@ export const reduce = (state, action, ctx) => {
       if (changed) enterPhase(s, action.phase, now);
       break;
     case 'huntAssign':
-      changed = s.phase === 'hunt' && (s.step === 'search' || s.step === 'results') && assignHeart(s, action.heartId, action.pid, now);
+      changed = !s.classMode && s.phase === 'hunt' && (s.step === 'search' || s.step === 'results') && assignHeart(s, action.heartId, action.pid, now);
       break;
     case 'hideBlessing':
       changed = !!s.blessings;
@@ -917,6 +1024,12 @@ export const reduce = (state, action, ctx) => {
     case 'classSolve':
       changed = Boolean(s.classMode) && s.phase === 'word' && s.step === 'play' && Boolean(s.players[action.pid]);
       if (changed) finishWord(s, action.pid, now);
+      break;
+    case 'classPick':
+      changed = Boolean(s.classMode) && s.phase === 'hunt' && classPick(s, action.n, now, rng);
+      break;
+    case 'classMath':
+      changed = Boolean(s.classMode) && s.phase === 'hunt' && classMath(s, action.value, now);
       break;
     case 'classBlessing':
       changed = Boolean(s.classMode) && s.phase === 'blessings' && s.step === 'write' && classBlessing(s, action.text, now);
@@ -983,6 +1096,7 @@ const publicData = (s) => {
         count: s.blessings ? s.blessings.list.length : 0,
       };
     case 'hunt':
+      if (s.hunt && s.hunt.math) return { math: true, turn: s.hunt.turn, teams: s.hunt.order.length };
       return s.hunt
         ? {
             hearts: s.hunt.hearts.map((h) => ({ ...h, pid: s.hunt.found[h.id] ? s.hunt.found[h.id].pid : null })),

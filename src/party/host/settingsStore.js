@@ -32,6 +32,12 @@ export const refreshWords = (saved, builtIn) => {
   return [...builtIn.map((w) => (off.has(w.id) || off.has(text(w)) ? { ...w, off: true } : w)), ...own];
 };
 
+// Class mode leaves out stages that don't suit the class: in 2nd grade the
+// word stage's scrambled letters are too hard to read. Once per saved copy,
+// so the teacher can still turn it back on in the editor.
+const CLASS_LEFT_OUT = ['word'];
+const CLASS_STAGES_VERSION = 1;
+
 export const loadSettings = (key = SETTINGS_KEY) => {
   const saved = readJson(key);
   // questions saved before the built-in ones changed give way to the new ones
@@ -43,8 +49,12 @@ export const loadSettings = (key = SETTINGS_KEY) => {
   }
   const staleWords = Boolean(saved) && saved.wordsVersion !== WORDS_VERSION;
   const words = staleWords ? refreshWords(saved.words, createDefaultSettings().words) : saved && saved.words;
-  const settings = normalizeSettings(saved && { ...saved, trivia, words });
+  let settings = normalizeSettings(saved && { ...saved, trivia, words });
+  const classStages = key === CLASS_SETTINGS_KEY && (!saved || saved.classStagesVersion !== CLASS_STAGES_VERSION);
+  if (classStages) {
+    settings = { ...settings, stages: settings.stages.filter((id) => !CLASS_LEFT_OUT.includes(id)), classStagesVersion: CLASS_STAGES_VERSION };
+  }
   // keep a new admin PIN (and new defaults) for the next games
-  if (!saved || stale || staleWords || saved.adminPin !== settings.adminPin) saveSettings(settings, key);
+  if (!saved || stale || staleWords || classStages || saved.adminPin !== settings.adminPin) saveSettings(settings, key);
   return settings;
 };

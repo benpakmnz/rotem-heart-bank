@@ -21,6 +21,7 @@ export const adminView = (s) => {
   const cur = s.phase === 'charades' && s.charades && s.charades.current;
   const question = s.phase === 'trivia' && s.trivia && s.trivia.current;
   const word = s.phase === 'word' && s.word && s.word.current;
+  const hunt = s.classMode && s.phase === 'hunt' && s.hunt && s.hunt.math ? s.hunt : null;
   return {
     phase: s.phase,
     step: s.step,
@@ -29,6 +30,9 @@ export const adminView = (s) => {
     concept: cur && ['pick', 'ready', 'perform', 'outcome'].includes(s.step) ? cur.concept : null,
     // class mode: the teacher checks the word the teams call out
     answer: s.classMode && word && (s.step === 'countdown' || s.step === 'play') ? word.answer : null,
+    // class mode's hearts board: the numbers a team can still call, then the exercise (and its answer)
+    huntPick: hunt && s.step === 'pick' ? { picked: hunt.picks.filter((p) => p.board === hunt.turn).map((p) => p.n), size: hunt.boards[hunt.turn].hearts.length } : null,
+    huntMath: hunt && s.step === 'exercise' && hunt.current ? { n: hunt.current.n, a: hunt.current.a, b: hunt.current.b, op: hunt.current.op, answer: hunt.current.answer } : null,
     // class mode: the cards the teams raised, entered from the phone too
     mark:
       s.classMode && question && (s.step === 'question' || s.step === 'mark')
@@ -93,6 +97,14 @@ const useAdminBridge = ({ conn, state, dispatch, onSaveSettings, onRemovePlayer 
         case 'classAnswer':
           if (!s.classMode || !s.players[cmd.pid]) return { ok: false, error: 'unknown' };
           dispatch({ type: 'classAnswer', pid: String(cmd.pid), choice: Number(cmd.choice) });
+          return { ok: true };
+        case 'classPick':
+          if (!s.classMode) return { ok: false, error: 'unknown' };
+          dispatch({ type: 'classPick', n: Number(cmd.n) });
+          return { ok: true };
+        case 'classMath':
+          if (!s.classMode) return { ok: false, error: 'unknown' };
+          dispatch({ type: 'classMath', value: cmd.value === null || cmd.value === undefined ? null : Number(cmd.value) });
           return { ok: true };
         case 'goto':
           dispatch({ type: 'goto', phase: String(cmd.phase || '') });

@@ -80,3 +80,16 @@ test('every built-in word plays, and words turned off do not', () => {
   expect(playableWords(settings).map((w) => w.word)).not.toContain(settings.words[1].word);
   expect(playableWords(settings)).toHaveLength(settings.words.length - 1);
 });
+
+test('class mode leaves out the word stage once; the teacher can turn it back on', () => {
+  const CLASS = 'hb-class-settings-v1';
+  expect(loadSettings(CLASS).stages).not.toContain('word');
+  expect(loadSettings().stages).toContain('word'); // the home game keeps it
+  // a class copy saved before this change loses it too
+  window.localStorage.setItem(CLASS, JSON.stringify({ ...normalizeSettings({ adminPin: '4321' }), classStagesVersion: undefined }));
+  expect(loadSettings(CLASS).stages).not.toContain('word');
+  // turned back on in the editor: it stays
+  const back = { ...JSON.parse(window.localStorage.getItem(CLASS)), stages: ['tap', 'trivia', 'word'] };
+  window.localStorage.setItem(CLASS, JSON.stringify(back));
+  expect(loadSettings(CLASS).stages).toEqual(['tap', 'trivia', 'word']);
+});

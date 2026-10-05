@@ -35,6 +35,17 @@ export const CHARADES_MAX_SWAPS = 2;
 export const MAX_NAME_LENGTH = 14;
 export const MAX_BLESSING_LENGTH = 24;
 
+// Class mode (instead of real hearts around the room): a board of 20
+// numbered hearts for each team, shuffled - and a team opens 5 of them, each
+// with a math exercise. Some hearts are empty.
+export const CLASS_HUNT_HEARTS = [
+  { kind: 'gold', count: 2, points: 1000 },
+  { kind: 'silver', count: 4, points: 500 },
+  { kind: 'red', count: 8, points: 300 },
+  { kind: 'empty', count: 6, points: 0 },
+];
+export const CLASS_HUNT_PICKS = 5;
+
 const STAGE_LIST = [
   {
     id: 'tap',
@@ -137,13 +148,14 @@ const STAGE_LIST = [
     ],
     phoneHint: 'מי מצא איזה לב - בזמן אמת',
     class: {
-      subtitle: 'הפכו לציידי לבבות וחפשו בכיתה את הלבבות המוחבאים!',
+      subtitle: '20 לבבות ממוספרים - ומאחורי כל לב מחכה תרגיל!',
       how: [
-        'בכיתה מוחבאים לבבות: זהב, כסף ואדומים - לב הזהב שווה הכי הרבה!',
-        'מצאתם לב? מביאים אותו למורה',
-        'המורה מסמנת איזו קבוצה מצאה - וזה מופיע מיד על המסך',
+        `כל קבוצה בתורה בוחרת ${CLASS_HUNT_PICKS} לבבות לפי המספרים`,
+        'מאחורי כל לב מחכה תרגיל חשבון - פותרים אותו ביחד',
+        'תשובה נכונה פותחת את הלב: זהב, כסף, אדום... או לב ריק!',
       ],
-      hint: 'מביאים את הלב למורה',
+      hint: 'בוחרים מספר ופותרים תרגיל',
+      scoring: () => CLASS_HUNT_HEARTS.filter((h) => h.points).map((h) => `${heartKind(h.kind).label}: ${fmtPoints(h.points)}`),
     },
     scoring: (settings) => HEART_KINDS.filter((k) => huntKind(settings, k.id).count > 0).map((k) => `${k.label}: ${fmtPoints(huntKind(settings, k.id).points)}`),
     real: true,

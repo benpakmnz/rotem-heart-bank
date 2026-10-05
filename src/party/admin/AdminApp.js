@@ -40,6 +40,10 @@ const STEP_NAMES = {
   results: 'סיכום השלב',
   fill: 'האוצר מתמלא',
   celebrate: 'חגיגה!',
+  // the same step in another stage
+  'hunt:pick': 'בוחרים לב',
+  'hunt:exercise': 'פותרים תרגיל',
+  'hunt:reveal': 'הלב נפתח',
 };
 
 // Commands to the TV: rooms/<code>/admin/cmd/<id> -> answer in admin/ack/<id>.
@@ -175,6 +179,51 @@ const ClassMark = ({ mark, players, send }) => (
   </Section>
 );
 
+// Class mode's hearts board: the number the team called, then its answer.
+const ClassHearts = ({ pick, math, send }) => {
+  if (math) {
+    const text = `${math.a} ${math.op === '-' ? '−' : '+'} ${math.b}`;
+    return (
+      <Section title={`💗 לב מספר ${math.n}`}>
+        <div className="hb-admin-math" dir="ltr">
+          {text} = <b>?</b>
+        </div>
+        <p className="hb-admin-help">
+          התשובה הנכונה: <b>{math.answer}</b> · לחצו על התשובה שהקבוצה אמרה
+        </p>
+        <div className="hb-admin-pad" dir="ltr">
+          {Array.from({ length: 21 }, (_, v) => (
+            <button key={v} type="button" className="hb-btn hb-btn-soft" onClick={() => send({ type: 'classMath', value: v }, `math-${v}`)} data-testid={`admin-pad-${v}`}>
+              {v}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="hb-btn hb-btn-soft hb-btn-block" onClick={() => send({ type: 'classMath', value: null }, 'math-none')}>
+          🙈 לא יודעים
+        </button>
+      </Section>
+    );
+  }
+  return (
+    <Section title="💗 איזה לב הקבוצה בחרה?">
+      <div className="hb-admin-pad" dir="ltr">
+        {Array.from({ length: pick.size }, (_, i) => i + 1).map((n) => (
+          <button
+            key={n}
+            type="button"
+            className="hb-btn hb-btn-soft"
+            disabled={pick.picked.includes(n)}
+            onClick={() => send({ type: 'classPick', n }, `pick-${n}`)}
+            data-testid={`admin-heart-${n}`}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+    </Section>
+  );
+};
+
 // ---------- the console ----------
 
 const Console = ({ conn, code, send, onLogout }) => {
@@ -253,7 +302,7 @@ const Console = ({ conn, code, send, onLogout }) => {
           <span className="hb-admin-now-icon">{state ? (stage ? stage.icon : state.phase === 'lobby' ? '🏠' : '🎂') : '⏳'}</span>
           <div>
             <b>{!state ? 'מתחברים...' : stage ? `שלב ${stage.num || ''} · ${stage.title}` : state.phase === 'lobby' ? 'לובי' : 'הגמר'}</b>
-            <small>{state ? STEP_NAMES[state.step] || state.step : ''}</small>
+            <small>{state ? STEP_NAMES[`${state.phase}:${state.step}`] || STEP_NAMES[state.step] || state.step : ''}</small>
           </div>
         </div>
         <div className="hb-admin-actions">
@@ -271,7 +320,7 @@ const Console = ({ conn, code, send, onLogout }) => {
               </button>
             ))
           ) : (
-            <p className="hb-admin-help">אין כרגע כפתורים - המשחק רץ לבד ⏳</p>
+            <p className="hb-admin-help">{view && view.huntMath ? '👇 הזינו למטה את התשובה של הקבוצה' : 'אין כרגע כפתורים - המשחק רץ לבד ⏳'}</p>
           )}
         </div>
         {view && view.concept && (
@@ -288,7 +337,11 @@ const Console = ({ conn, code, send, onLogout }) => {
 
       {view && view.mark && <ClassMark mark={view.mark} players={players} send={run} />}
 
-      {state && state.phase === 'hunt' && (state.step === 'search' || state.step === 'results') && <HuntTools state={state} players={players} send={run} />}
+      {view && (view.huntPick || view.huntMath) && <ClassHearts pick={view.huntPick} math={view.huntMath} send={run} />}
+
+      {state && !classMode && state.phase === 'hunt' && (state.step === 'search' || state.step === 'results') && (
+        <HuntTools state={state} players={players} send={run} />
+      )}
 
       <Section title={classMode ? `🏫 קבוצות (${playing.length})` : `👨‍👩‍👧 משתתפים (${playing.length})`}>
         <div className="hb-admin-players">

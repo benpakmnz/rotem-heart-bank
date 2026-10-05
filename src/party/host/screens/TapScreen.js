@@ -12,7 +12,7 @@ import TimerRing from '../../shared/TimerRing';
 import useAnimatedNumber from '../../shared/useAnimatedNumber';
 import useClapMeter, { CLAPS_PER_KEY, CLAPS_PER_SECOND } from '../useClapMeter';
 import { isTypingTarget } from '../classTools';
-import { BigCountdown, PlayerChip, StageIntro, StageResults } from './common';
+import { BigCountdown, PlayerChip, StageIntro, StageResults, TeamCountdown } from './common';
 
 // The heart that "grows and fills with golden light" as the family taps.
 export const GoldenHeart = ({ fill, beating }) => {
@@ -344,22 +344,14 @@ const ClassTapArena = ({ state, now, conn, dispatch, meter, pressRef }) => {
   );
 };
 
-const ClassTapCountdown = ({ state, now, meter }) => {
-  const team = state.players[teamOnTurn(state)];
-  return (
-    <div className="hb-ctap-countdown">
-      <div className="hb-ctap-team">
-        <Avatar player={team} size="lg" />
-        <GameTitle text={`התור של ${team ? team.name : ''}!`} className="hb-ctap-title" />
-      </div>
-      <BigCountdown
-        endsAt={state.endsAt}
-        now={now}
-        caption={meter.input === 'keys' ? '⌨️ אצבע על מקש הרווח... מוכנים?' : '👏 ידיים למעלה... מוכנים למחוא כפיים?'}
-      />
-    </div>
-  );
-};
+const ClassTapCountdown = ({ state, now, meter }) => (
+  <TeamCountdown
+    team={state.players[teamOnTurn(state)]}
+    endsAt={state.endsAt}
+    now={now}
+    caption={meter.input === 'keys' ? '⌨️ אצבע על מקש הרווח... מוכנים?' : '👏 ידיים למעלה... מוכנים למחוא כפיים?'}
+  />
+);
 
 const ClassTapDone = ({ state, meter }) => {
   const pid = teamOnTurn(state);

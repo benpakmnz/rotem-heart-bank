@@ -332,6 +332,51 @@
   letter-spacing: 0.02em;
 }
 
+/* hunt: numbered hearts and the exercise behind one of them */
+.hb-cp-math {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9em;
+}
+
+.hb-cp-numbers {
+  display: flex;
+  gap: 0.6em;
+}
+
+.hb-cp-numheart {
+  position: relative;
+  width: 3.6em;
+  height: 3.3em;
+  display: grid;
+  place-items: center;
+}
+
+.hb-cp-numheart .hb-heart-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hb-cp-numheart b {
+  position: relative;
+  font-family: var(--hb-display);
+  font-size: 1.4em;
+  color: #fff;
+  padding-bottom: 0.25em;
+}
+
+.hb-cp-exercise {
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 2.6em;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
 /* word: letter tiles and a raised hand */
 .hb-cp-word {
   display: flex;
@@ -512,7 +557,9 @@
   font-weight: 800;
 }
 
-.hb-ctap-countdown {
+/* ---------- a team's turn: "it's <team>'s turn!" over the 3-2-1 ---------- */
+
+.hb-turn-countdown {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -520,7 +567,18 @@
   gap: 0.6em;
 }
 
-.hb-ctap-countdown .hb-countdown {
+.hb-turn-team {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+
+.hb-turn-title {
+  margin: 0;
+  font-size: 3.2em;
+}
+
+.hb-turn-countdown .hb-countdown {
   font-size: 0.82em;
   gap: 1.2em;
 }
@@ -875,4 +933,383 @@
   .hb-ctap-shout {
     animation: none;
   }
+}
+
+/* ---------- hunt (class): 20 numbered hearts, a math exercise behind each ---------- */
+
+.hb-hboard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9em;
+}
+
+.hb-hboard-head {
+  width: 100%;
+  max-width: 72em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5em;
+}
+
+.hb-hboard-team {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+
+.hb-hboard-title {
+  margin: 0;
+  font-size: 2.8em;
+}
+
+.hb-hboard-chances {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 1.3em;
+}
+
+.hb-hboard-chances span {
+  width: 1.6em;
+  height: 1.5em;
+}
+
+.hb-hboard-chances span .hb-heart-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.hb-hboard-chances span.is-used {
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+
+.hb-hboard-chances b {
+  margin-inline-start: 0.4em;
+  color: var(--hb-gold-light);
+}
+
+.hb-hboard-gained {
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 2.4em;
+  color: var(--hb-gold-light);
+  text-shadow: 0 0 0.3em rgba(255, 197, 61, 0.6), 0 0.06em 0 #a35a00;
+  min-width: 4em;
+  text-align: left;
+}
+
+.hb-hboard-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 8.4em);
+  grid-auto-rows: 7.6em;
+  gap: 0.5em 1.1em;
+}
+
+.hb-bh {
+  position: relative;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 1em;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 0.4em 0.6em rgba(10, 0, 30, 0.45));
+  transition: filter 0.2s ease, opacity 0.3s ease;
+}
+
+.hb-bh:disabled {
+  cursor: default;
+}
+
+.hb-bh .hb-heart-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hb-hboard.is-pick .hb-bh:not(:disabled):hover {
+  filter: drop-shadow(0 0 1.2em rgba(255, 160, 220, 0.9));
+}
+
+.hb-bh-num {
+  position: relative;
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 3em;
+  line-height: 1;
+  padding-bottom: 0.3em;
+  color: #fff;
+  text-shadow: 0 0.06em 0 rgba(80, 0, 60, 0.6), 0 0.1em 0.3em rgba(40, 0, 40, 0.5);
+}
+
+.hb-bh-corner {
+  position: absolute;
+  top: 0.35em;
+  left: 0.9em;
+  min-width: 1.7em;
+  height: 1.7em;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(40, 10, 60, 0.75);
+  color: #fff;
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 0.95em;
+}
+
+.hb-bh-prize {
+  position: relative;
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 1.6em;
+  padding-bottom: 0.35em;
+  color: #5a2600;
+}
+
+.hb-bh-red .hb-bh-prize {
+  color: #fff;
+  text-shadow: 0 0.06em 0.2em rgba(100, 0, 30, 0.6);
+}
+
+.hb-bh-silver .hb-bh-prize {
+  color: #39405a;
+}
+
+.hb-bh-empty .hb-bh-prize {
+  color: #8a84a0;
+}
+
+.hb-bh-x {
+  position: absolute;
+  top: 0.2em;
+  right: 0.8em;
+  width: 1.6em;
+  height: 1.6em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #e11d48;
+  font-weight: 900;
+  font-size: 1.1em;
+  box-shadow: 0 0.2em 0.5em rgba(10, 0, 30, 0.4);
+}
+
+.hb-bh.is-missed .hb-heart-icon {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.hb-bh.is-current {
+  filter: drop-shadow(0 0 1.4em rgba(255, 214, 90, 1));
+}
+
+/* the turn is over: the hearts nobody opened show what they had */
+.hb-bh.is-peek {
+  opacity: 0.55;
+}
+
+.hb-bh.is-open {
+  filter: drop-shadow(0 0 1em rgba(255, 214, 90, 0.75));
+}
+
+.hb-hboard-foot {
+  min-height: 1.6em;
+  font-size: 1.45em;
+  font-weight: 700;
+  color: var(--hb-text-soft);
+}
+
+/* the exercise card over the board */
+.hb-ex {
+  position: absolute;
+  top: -0.5em;
+  right: 0;
+  bottom: -0.5em;
+  left: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: rgba(24, 6, 44, 0.55);
+  border-radius: 2em;
+}
+
+.hb-ex-card {
+  width: 46em;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+  padding: 1.3em 2.2em 1.5em;
+  border-radius: 1.8em;
+  background: #fff;
+  color: var(--hb-ink);
+  text-align: center;
+  box-shadow: 0 0 0 0.35em rgba(255, 159, 203, 0.7), 0 1.6em 3.4em rgba(8, 0, 25, 0.55);
+}
+
+.hb-ex-label {
+  font-size: 1.5em;
+  font-weight: 800;
+  color: var(--hb-rose);
+}
+
+.hb-ex-math {
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 5.6em;
+  line-height: 1.1;
+  color: var(--hb-ink);
+  white-space: nowrap;
+}
+
+.hb-ex-answer {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0 0.15em;
+  border-radius: 0.2em;
+  background: #fff0f7;
+  box-shadow: inset 0 -0.06em 0 #ff9fcb;
+  color: var(--hb-rose);
+}
+
+.hb-ex-answer.is-good {
+  background: #dcfce7;
+  box-shadow: inset 0 -0.06em 0 #22c55e;
+  color: #15803d;
+}
+
+.hb-ex-answer.is-bad {
+  background: #fff1e6;
+  box-shadow: inset 0 -0.06em 0 #fb923c;
+  color: #c2410c;
+}
+
+.hb-ex-ask {
+  font-size: 1.35em;
+  font-weight: 700;
+  color: var(--hb-ink-soft);
+}
+
+.hb-pad {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.45em;
+  width: 100%;
+}
+
+.hb-pad-key {
+  height: 2.1em;
+  border: 0;
+  border-radius: 0.5em;
+  background: #f3e8ff;
+  color: var(--hb-ink);
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 1.65em;
+  cursor: pointer;
+  box-shadow: inset 0 -0.15em 0 #d8b4fe;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.hb-pad-key:hover {
+  background: #ead5ff;
+}
+
+.hb-pad-key:active {
+  transform: translateY(0.08em);
+}
+
+.hb-pad-key.is-on {
+  background: linear-gradient(180deg, #ff74b0, #e5125c);
+  color: #fff;
+  box-shadow: inset 0 -0.15em 0 #9e0a3f;
+}
+
+.hb-ex-actions {
+  display: flex;
+  gap: 0.8em;
+  margin-top: 0.2em;
+}
+
+.hb-ex-check {
+  font-size: 1.35em;
+  padding: 0.6em 2em;
+}
+
+.hb-ex-actions .hb-btn-soft {
+  background: #f1f0f5;
+  color: var(--hb-ink-soft);
+  box-shadow: inset 0 -0.12em 0 #d4d0de;
+  font-size: 1.1em;
+}
+
+.hb-ex-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.hb-ex-verdict {
+  font-size: 2.1em;
+  font-weight: 800;
+}
+
+.hb-ex-result.is-good .hb-ex-verdict {
+  color: #15803d;
+}
+
+.hb-ex-result.is-bad .hb-ex-verdict {
+  color: #c2410c;
+}
+
+.hb-ex-heart {
+  width: 7em;
+  height: 6.5em;
+  filter: drop-shadow(0 0 1.2em rgba(255, 197, 61, 0.7));
+}
+
+.hb-ex-heart .hb-heart-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.hb-ex-prize {
+  font-size: 1.7em;
+  font-weight: 800;
+  color: var(--hb-ink);
+}
+
+/* ---------- hunt (class): what each team opened ---------- */
+
+.hb-hunt-summary-hearts {
+  display: inline-flex;
+  gap: 0.15em;
+}
+
+.hb-hunt-summary-hearts .hb-heart-icon {
+  width: 1.3em;
+  height: 1.2em;
+}
+
+.hb-hunt-summary-team {
+  font-weight: 700;
+  min-width: 8em;
+}
+
+.hb-hunt-summary-row > b {
+  margin-inline-start: auto;
+  font-family: var(--hb-display);
+  color: var(--hb-gold-light);
 }

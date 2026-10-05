@@ -130,13 +130,20 @@ export const ClassPreview = ({ stageId }) => {
       </div>
     );
   } else if (stageId === 'hunt') {
+    // numbered hearts, and the exercise behind one of them
     board = (
-      <div className="hb-pp-hunt">
-        {['gold', 'silver', 'silver', 'silver', 'red', 'red'].map((kind, i) => (
-          <span key={i} className={i < 2 ? 'is-found' : ''}>
-            <GlossyHeart from={heartKind(kind).colors[0]} to={heartKind(kind).colors[1]} />
-          </span>
-        ))}
+      <div className="hb-cp-math">
+        <div className="hb-cp-numbers">
+          {[3, 7, 12, 18].map((n) => (
+            <span key={n} className="hb-cp-numheart">
+              <GlossyHeart from="#FF8CC6" to="#9B2FC9" />
+              <b>{n}</b>
+            </span>
+          ))}
+        </div>
+        <div className="hb-cp-exercise" dir="ltr">
+          8 + 5 = ?
+        </div>
       </div>
     );
   } else if (stageId === 'blessings') {
@@ -302,6 +309,17 @@ export const BigCountdown = ({ endsAt, now, caption }) => {
     </div>
   );
 };
+
+// Class mode: "it's <team>'s turn!" over the 3-2-1.
+export const TeamCountdown = ({ team, endsAt, now, caption }) => (
+  <div className="hb-turn-countdown">
+    <div className="hb-turn-team">
+      <Avatar player={team} size="lg" />
+      <GameTitle text={`התור של ${team ? team.name : ''}!`} className="hb-turn-title" />
+    </div>
+    <BigCountdown endsAt={endsAt} now={now} caption={caption} />
+  </div>
+);
 
 export const PlayerChip = ({ player, children, className = '' }) => (
   <span className={`hb-player-chip ${className}`}>

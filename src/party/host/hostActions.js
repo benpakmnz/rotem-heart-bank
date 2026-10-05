@@ -71,6 +71,15 @@ const hostActions = (s) => {
       return { primary: { icon: '▶', label: lastWord ? 'לסיכום השלב' : 'למילה הבאה', action: NEXT }, secondary: [] };
     case 'hunt:search':
       return { primary: { icon: '🏁', label: 'סיום החיפוש', action: NEXT }, secondary: [] };
+    // class mode: a team picks numbered hearts and answers their exercises
+    case 'hunt:pick':
+      return { primary: null, secondary: [{ icon: '⏭', label: 'סיום התור', action: SKIP }] };
+    case 'hunt:reveal':
+      return { primary: { icon: '▶', label: 'המשך', action: NEXT }, secondary: [] };
+    case 'hunt:turnDone': {
+      const next = s.players[(s.hunt.order || []).slice(s.hunt.turn + 1).find((pid) => s.players[pid])];
+      return { primary: { icon: next ? '💗' : '▶', label: next ? `התור של ${next.name}` : 'לסיכום השלב', action: NEXT }, secondary: [] };
+    }
     case 'blessings:write':
       return { primary: { icon: '💖', label: 'למילוי האוצר!', action: NEXT }, secondary: [] };
     default:

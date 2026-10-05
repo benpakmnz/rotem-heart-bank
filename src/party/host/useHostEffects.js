@@ -50,6 +50,27 @@ const useHostEffects = (state, now) => {
           play('correct');
           heartBurst();
           break;
+        case 'hunt:exercise':
+          play('ding');
+          break;
+        case 'hunt:reveal': {
+          // class mode: the answer, then what was behind the heart
+          const { picks, boards, turn } = state.hunt;
+          const last = picks[picks.length - 1];
+          const heart = last && boards[turn].hearts[last.n - 1];
+          if (!last || !last.correct) play('wrong');
+          else if (heart.kind === 'gold') {
+            play('fanfare');
+            celebrate();
+          } else if (heart.points) {
+            play('correct');
+            heartBurst();
+          } else play('pop');
+          break;
+        }
+        case 'hunt:turnDone':
+          play('reveal');
+          break;
         case 'trivia:question':
         case 'charades:ready':
           play('ding');
@@ -100,7 +121,8 @@ const useHostEffects = (state, now) => {
       if (state.word.current.revealed > p.word.current.revealed) play('ding');
     }
     if (state.blessings && p.blessings && state.blessings.list.length > p.blessings.list.length) play('whoosh');
-    if (state.phase === 'hunt' && heartsFound(state) > heartsFound(p)) {
+    // (class mode's hearts sound when they open, above)
+    if (state.phase === 'hunt' && !state.classMode && heartsFound(state) > heartsFound(p)) {
       play('fanfare');
       celebrate();
     }

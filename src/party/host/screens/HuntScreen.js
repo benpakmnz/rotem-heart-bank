@@ -8,6 +8,7 @@ import GameTitle from '../../shared/GameTitle';
 import { GlossyHeart } from '../../shared/Heart';
 import PlayerPicker from '../../shared/PlayerPicker';
 import TimerRing from '../../shared/TimerRing';
+import ClassHunt from './HeartsBoard';
 import { StageIntro, StageResults } from './common';
 
 // One hidden heart: a glowing "?" until someone finds it, then the finder.
@@ -158,6 +159,7 @@ const HuntSummary = ({ state }) => {
 
 const HuntScreen = ({ state, now, dispatch }) => {
   if (state.step === 'intro') return <StageIntro state={state} />;
+  if (state.classMode && state.hunt && state.hunt.math) return <ClassHunt state={state} dispatch={dispatch} />;
   if (state.step === 'search') return <HuntBoard state={state} now={now} dispatch={dispatch} />;
   return (
     <StageResults state={state}>
