@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { SCORING } from '../../config/game';
 import { fmt } from '../../lib/format';
@@ -8,7 +9,7 @@ import TimerRing from '../../shared/TimerRing';
 import { StageIntro, StageResults } from './common';
 
 // Slot-machine style pick of the next performer (lands on the engine's choice).
-const Roulette = ({ pool, performerId, players }) => {
+const Roulette = ({ pool, performerId, players, title = 'מי יציג עכשיו?' }) => {
   const [shown, setShown] = useState(performerId);
   const [done, setDone] = useState(false);
   const playersRef = useRef(players);
@@ -44,7 +45,7 @@ const Roulette = ({ pool, performerId, players }) => {
 
   return (
     <div className="hb-roulette">
-      <GameTitle text="מי יציג עכשיו?" className="hb-roulette-title" />
+      <GameTitle text={title} className="hb-roulette-title" />
       <motion.div className={`hb-roulette-window ${done ? 'is-done' : ''}`} animate={done ? { scale: [1, 1.18, 1] } : {}}>
         <MarqueeBulbs />
         <Avatar player={players[shown]} size="xxl" showName />
@@ -80,14 +81,94 @@ const Curtains = () => (
   </>
 );
 
+const EYES_MS = 3000;
+const SHOW_MS = 6000;
+
+// Class mode: the secret concept on the big screen, for the presenter only.
+// First the whole class closes its eyes (3 seconds), then the concept shows
+// for 6 seconds (a click hides it sooner). It covers the whole TV screen (top
+// bar and buttons too), so it goes straight into it.
+const ConceptPeek = ({ concept }) => {
+  const [openedAt, setOpenedAt] = useState(0);
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    if (!openedAt) return undefined;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      if (t - openedAt >= EYES_MS + SHOW_MS) setOpenedAt(0);
+    }, 200);
+    return () => clearInterval(id);
+  }, [openedAt]);
+  const eyesLeft = EYES_MS - (now - openedAt);
+  const screen = openedAt ? document.querySelector('.hb-tv') : null;
+  const overlay = (
+    <div className="hb-peek" role="dialog" aria-label="המושג הסודי" onClick={() => setOpenedAt(0)} data-testid="peek-overlay">
+      {eyesLeft > 0 ? (
+        <motion.div key="eyes" className="hb-peek-eyes" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+          <span className="hb-peek-emoji">🙈</span>
+          <strong>כולם עוצמים עיניים!</strong>
+          <span>
+            רק הנציג/ה מסתכל/ת במסך... <b>{Math.ceil(eyesLeft / 1000)}</b>
+          </span>
+        </motion.div>
+      ) : (
+        <motion.div key="card" className="hb-peek-card" initial={{ rotateY: 90 }} animate={{ rotateY: 0 }}>
+          <span>🤫 המושג הסודי:</span>
+          <strong data-testid="peek-concept">{concept}</strong>
+          <small>זוכרים? לחיצה מסתירה</small>
+        </motion.div>
+      )}
+    </div>
+  );
+  return (
+    <>
+      <button
+        type="button"
+        className="hb-btn hb-btn-soft hb-peek-btn"
+        onClick={(e) => {
+          e.currentTarget.blur();
+          const t = Date.now();
+          setNow(t);
+          setOpenedAt(t);
+        }}
+        data-testid="peek"
+      >
+        🙈 הצצה במושג על המסך
+      </button>
+      {screen && createPortal(overlay, screen)}
+    </>
+  );
+};
+
 const CharadesRound = ({ state, now }) => {
   const cur = state.charades.current;
+  const cls = Boolean(state.classMode);
   const performer = state.players[cur.performerId];
   const name = performer ? performer.name : '';
   const seconds = Number(state.settings.timings.charadesSeconds) || 60;
   const roundLabel = `סיבוב ${state.round + 1} מתוך ${state.charades.rounds}`;
 
-  if (state.step === 'pick') return <Roulette pool={cur.pool} performerId={cur.performerId} players={state.players} />;
+  if (state.step === 'pick') {
+    return <Roulette pool={cur.pool} performerId={cur.performerId} players={state.players} title={cls ? 'איזו קבוצה מציגה עכשיו?' : undefined} />;
+  }
+
+  if (state.step === 'ready' && cls) {
+    return (
+      <div className="hb-charades">
+        <Curtains />
+        <Spotlight />
+        <span className="hb-chip">{roundLabel}</span>
+        <motion.div initial={{ scale: 0.4 }} animate={{ scale: 1 }} transition={{ type: 'spring' }}>
+          <Avatar player={performer} size="xxl" />
+        </motion.div>
+        <GameTitle text={`התור של ${name}!`} className="hb-charades-title" />
+        <p className="hb-charades-sub">🙋 נציג/ה של הקבוצה ניגש/ת למורה לקבל את המושג הסודי</p>
+        <p className="hb-charades-hint">המושג מופיע בטלפון של המורה, או כאן - כשכל הכיתה עוצמת עיניים. כשמוכנים: &quot;הפעלת השעון&quot;</p>
+        <ConceptPeek concept={cur.concept} />
+      </div>
+    );
+  }
 
   if (state.step === 'ready') {
     return (
@@ -117,8 +198,8 @@ const CharadesRound = ({ state, now }) => {
           </motion.div>
           <TimerRing endsAt={state.endsAt} total={seconds * 1000} now={now} className="hb-charades-timer" />
         </div>
-        <GameTitle text="נחשו בקול רם!" className="hb-charades-title" />
-        <p className="hb-charades-sub">רק תנועות, בלי מילים - מי יגלה ראשון?</p>
+        <GameTitle text={cls ? `${name} - נחשו בקול רם!` : 'נחשו בקול רם!'} className="hb-charades-title" />
+        <p className="hb-charades-sub">{cls ? 'רק הקבוצה של המציג/ה מנחשת - רק תנועות, בלי מילים!' : 'רק תנועות, בלי מילים - מי יגלה ראשון?'}</p>
       </div>
     );
   }
@@ -135,7 +216,9 @@ const CharadesRound = ({ state, now }) => {
         <strong>{cur.concept}</strong>
       </div>
       {cur.success ? (
-        <div className="hb-charades-bonus">+{fmt(SCORING.charadesGroup)} לבבות לאוצר של כל המשפחה! 💖</div>
+        <div className="hb-charades-bonus">
+          {cls ? `+${fmt(SCORING.charadesTeam)} לבבות לאוצר של ${name}! 💖` : `+${fmt(SCORING.charadesGroup)} לבבות לאוצר של כל המשפחה! 💖`}
+        </div>
       ) : (
         <div className="hb-charades-bonus is-soft">לא נורא - ננסה בסיבוב הבא!</div>
       )}
@@ -150,7 +233,7 @@ const CharadesSummary = ({ state }) => (
       <div key={r.round} className={`hb-charades-summary-row ${r.success ? 'is-success' : ''}`}>
         <Avatar player={state.players[r.performerId]} size="sm" />
         <span className="hb-charades-summary-concept">{r.concept}</span>
-        <span>{r.success ? `✅ +${fmt(SCORING.charadesGroup)}` : '⏰'}</span>
+        <span>{r.success ? `✅ +${fmt(state.classMode ? SCORING.charadesTeam : SCORING.charadesGroup)}` : '⏰'}</span>
       </div>
     ))}
   </div>

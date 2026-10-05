@@ -296,3 +296,49 @@
 .is-phone .hb-tab {
   white-space: nowrap;
 }
+
+/* class mode: the cards each team raised */
+.hb-admin-mark {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.hb-admin-mark-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hb-admin-mark-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hb-admin-mark-cards {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.hb-admin-mark-card {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 0.65rem;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  opacity: 0.4;
+  box-shadow: inset 0 -0.15rem 0 rgba(0, 0, 0, 0.2);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.hb-admin-mark-card.is-on {
+  opacity: 1;
+  transform: scale(1.08);
+  box-shadow: 0 0 0 0.18rem #fff, 0 0.3rem 0.8rem rgba(0, 0, 0, 0.35);
+}

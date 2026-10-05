@@ -1,0 +1,878 @@
+/* ---------- class mode (/class): a classroom projector, no phones ---------- */
+
+/* ---------- the lobby: the teams ---------- */
+
+.hb-class-lobby {
+  grid-template-columns: 1fr 1.1fr;
+  gap: 2.6em;
+}
+
+.hb-class-lobby .hb-lobby-title {
+  font-size: 3.7em;
+  white-space: nowrap;
+}
+
+.hb-class-lobby .hb-lobby-sub {
+  flex-wrap: wrap;
+  justify-content: center;
+  text-align: center;
+}
+
+.hb-class-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1em;
+  min-width: 0;
+}
+
+.hb-class-tips {
+  width: 100%;
+  padding: 0.9em 1.4em 1em;
+  text-align: right;
+}
+
+.hb-class-tips h2 {
+  margin: 0 0 0.5em;
+  font-size: 1.25em;
+}
+
+.hb-class-tips ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+}
+
+.hb-class-tips li {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  font-size: 1.05em;
+  line-height: 1.35;
+  color: var(--hb-text-soft);
+}
+
+.hb-class-tips li b {
+  color: #fff;
+}
+
+.hb-class-tip-icon {
+  flex: none;
+  font-size: 1.5em;
+}
+
+.hb-class-tip-btn {
+  flex: none;
+  font-size: 0.9em;
+  padding: 0.5em 1.1em;
+}
+
+.hb-class-teams {
+  padding: 1.1em 1.6em 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.hb-class-teams h2 {
+  margin: 0;
+  font-size: 1.6em;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.hb-class-teams h2 small {
+  flex-basis: 100%;
+  font-size: 0.55em;
+  font-weight: 500;
+  color: var(--hb-text-soft);
+}
+
+.hb-team-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9em;
+}
+
+.hb-team-card {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.25), 0 0.4em 1em rgba(10, 0, 30, 0.25);
+  border-radius: 1.2em;
+  padding: 0.6em 0.8em;
+}
+
+.hb-team-card:focus-within {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 0 0 0.12em var(--hb-gold), 0 0 1.4em rgba(255, 197, 61, 0.35);
+}
+
+.hb-team-avatar {
+  position: relative;
+  flex: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 1.15em;
+  border-radius: 50%;
+}
+
+.hb-team-avatar:hover .hb-avatar-bubble {
+  transform: scale(1.08) rotate(-6deg);
+}
+
+.hb-team-avatar .hb-avatar-bubble {
+  transition: transform 0.2s ease;
+}
+
+.hb-team-swap {
+  position: absolute;
+  bottom: -0.25em;
+  left: -0.25em;
+  width: 1.5em;
+  height: 1.5em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 0.6em;
+  box-shadow: 0 0.15em 0.4em rgba(10, 0, 30, 0.4);
+}
+
+.hb-team-name {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-bottom: 0.1em dashed rgba(255, 255, 255, 0.35);
+  border-radius: 0;
+  background: none;
+  color: #fff;
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 1.55em;
+  padding: 0.1em 0.1em 0.15em;
+  outline: none;
+}
+
+.hb-team-name:focus {
+  border-bottom: 0.1em solid var(--hb-gold);
+}
+
+.hb-team-remove {
+  flex: none;
+  width: 1.9em;
+  height: 1.9em;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--hb-text-soft);
+  font-size: 0.95em;
+  cursor: pointer;
+}
+
+.hb-team-remove:hover {
+  background: rgba(255, 77, 148, 0.35);
+  color: #fff;
+}
+
+.hb-team-add {
+  align-self: center;
+  font-size: 1.15em;
+}
+
+.hb-team-max {
+  margin: 0;
+  text-align: center;
+  color: var(--hb-text-soft);
+}
+
+/* ---------- stage intros: a chalkboard instead of the phone ---------- */
+
+.hb-class-preview {
+  position: relative;
+  width: 27em;
+  animation: hb-bob 3s ease-in-out infinite;
+}
+
+.hb-cp-board {
+  height: 17em;
+  display: grid;
+  place-items: center;
+  border-radius: 0.8em;
+  background: radial-gradient(120% 90% at 30% 20%, #2f6b52 0%, #1f4d3a 55%, #163a2c 100%);
+  box-shadow: inset 0 0 0 0.75em #b07a45, inset 0 0 0 0.95em #8a5a2e, inset 0 0 2.2em 1.2em rgba(0, 0, 0, 0.35), 0 1.4em 3em rgba(5, 0, 20, 0.6);
+  overflow: hidden;
+  padding: 1.6em;
+}
+
+.hb-cp-tray {
+  height: 0.9em;
+  margin: -0.2em 1.4em 0;
+  border-radius: 0 0 0.5em 0.5em;
+  background: linear-gradient(180deg, #a06a38, #6e4520);
+  box-shadow: 0 0.4em 0.8em rgba(5, 0, 20, 0.45);
+}
+
+/* tap: hands, sound waves and the computer's microphone */
+.hb-cp-clap {
+  display: flex;
+  align-items: center;
+  gap: 1.2em;
+  font-size: 1em;
+}
+
+.hb-cp-hands {
+  font-size: 5em;
+  display: inline-block;
+  animation: hb-cp-clap 0.5s ease-in-out infinite alternate;
+}
+
+.hb-cp-mic {
+  font-size: 3.6em;
+}
+
+.hb-cp-waves {
+  position: relative;
+  width: 4em;
+  height: 5em;
+}
+
+.hb-cp-waves::before,
+.hb-cp-waves::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0.4em;
+  width: 2.4em;
+  height: 2.4em;
+  margin-top: -1.2em;
+  border: 0.3em solid transparent;
+  border-left-color: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  animation: hb-cp-wave 1s ease-out infinite;
+}
+
+.hb-cp-waves::after {
+  animation-delay: -0.5s;
+}
+
+@keyframes hb-cp-clap {
+  from {
+    transform: scale(0.9) rotate(-8deg);
+  }
+  to {
+    transform: scale(1.08) rotate(6deg);
+  }
+}
+
+@keyframes hb-cp-wave {
+  from {
+    transform: translateX(1em) scale(0.5);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-1.2em) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* trivia: four answer cards held up */
+.hb-cp-cards {
+  display: flex;
+  gap: 0.9em;
+}
+
+.hb-cp-card {
+  position: relative;
+  width: 4.6em;
+  height: 6.2em;
+  border-radius: 0.6em;
+  display: grid;
+  place-items: center;
+  transform: rotate(var(--hb-cp-tilt, 0deg));
+  box-shadow: inset 0 0 0 0.25em rgba(255, 255, 255, 0.85), 0 0.5em 1em rgba(0, 0, 0, 0.35);
+}
+
+.hb-cp-card .hb-heart-icon {
+  width: 3em;
+  height: 2.8em;
+}
+
+.hb-cp-card b {
+  position: absolute;
+  font-family: var(--hb-display);
+  font-size: 1.5em;
+  color: var(--hb-ink);
+  padding-bottom: 0.2em;
+}
+
+/* charades, blessings: a big picture and a line in chalk */
+.hb-cp-big {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 5em;
+  line-height: 1;
+}
+
+.hb-cp-big small {
+  font-size: 0.24em;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--hb-display);
+  letter-spacing: 0.02em;
+}
+
+/* word: letter tiles and a raised hand */
+.hb-cp-word {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8em;
+}
+
+.hb-cp-hand {
+  font-size: 3em;
+  animation: hb-wave 1.2s ease-in-out infinite;
+}
+
+.hb-intro-phone .hb-mic {
+  transform: rotate(5deg);
+}
+
+/* ---------- tap: the clap meter ---------- */
+
+.hb-mic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.8em 1.2em;
+  width: 27em;
+  max-width: 100%;
+  text-align: center;
+  font-size: 1em;
+}
+
+.hb-mic.is-compact {
+  width: auto;
+  font-size: 0.9em;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.hb-mic-text {
+  font-weight: 700;
+  font-size: 1.05em;
+  line-height: 1.35;
+}
+
+.hb-mic-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+}
+
+.hb-mic-switch {
+  display: inline-flex;
+  padding: 0.2em;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.hb-mic-switch button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.4em 1em;
+  background: none;
+  color: var(--hb-text-soft);
+  font-weight: 700;
+  font-size: 0.95em;
+  cursor: pointer;
+}
+
+.hb-mic-switch button.is-on {
+  background: #fff;
+  color: var(--hb-ink);
+  box-shadow: 0 0.2em 0.5em rgba(10, 0, 30, 0.35);
+}
+
+.hb-mic-switch button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* the sound level: a row of lights, green to red */
+.hb-vu {
+  display: flex;
+  gap: 0.22em;
+  height: 1em;
+  direction: ltr;
+}
+
+.hb-vu-seg {
+  width: 0.9em;
+  border-radius: 0.2em;
+  background: rgba(255, 255, 255, 0.14);
+  transition: background 0.08s, box-shadow 0.08s;
+}
+
+.hb-vu-seg.is-lit {
+  background: hsl(var(--hb-vu-hue), 90%, 55%);
+  box-shadow: 0 0 0.6em hsla(var(--hb-vu-hue), 90%, 55%, 0.8);
+}
+
+.hb-vu.is-vertical {
+  flex-direction: column-reverse;
+  height: auto;
+  gap: 0.3em;
+}
+
+.hb-vu.is-vertical .hb-vu-seg {
+  width: 3.2em;
+  height: 1.05em;
+}
+
+.hb-ctap .hb-tap-center {
+  gap: 0.5em;
+}
+
+.hb-ctap-team {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+
+.hb-ctap-title {
+  margin: 0;
+  font-size: 3.2em;
+}
+
+.hb-ctap-heart {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2.4em;
+}
+
+.hb-ctap .hb-golden-heart {
+  width: 27em;
+  height: 24.6em;
+}
+
+.hb-ctap-pulse {
+  transition: transform 0.12s ease-out;
+}
+
+.hb-ctap-shout {
+  position: relative;
+  font-size: 1.9em;
+  font-weight: 800;
+  color: var(--hb-gold-light);
+  text-shadow: 0 0.1em 0.4em rgba(10, 0, 30, 0.6);
+  animation: hb-pulse 0.9s ease-in-out infinite;
+}
+
+.hb-ctap {
+  grid-template-columns: 26em 1fr 26em;
+}
+
+.hb-ctap-board .hb-tap-row {
+  grid-template-columns: auto 8.5em 1fr 3.2em;
+  border-radius: 0.6em;
+  padding: 0.2em 0.35em;
+}
+
+.hb-ctap-board .hb-tap-row.is-current {
+  background: rgba(255, 197, 61, 0.22);
+  box-shadow: inset 0 0 0 0.08em rgba(255, 197, 61, 0.7);
+}
+
+.hb-ctap-board .hb-tap-row.is-waiting {
+  opacity: 0.55;
+}
+
+.hb-ctap.is-done .hb-tap-center {
+  gap: 0.9em;
+}
+
+.hb-ctap-next {
+  position: relative;
+  font-size: 1.9em;
+  font-weight: 800;
+}
+
+.hb-ctap-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+}
+
+.hb-ctap-countdown .hb-countdown {
+  font-size: 0.82em;
+  gap: 1.2em;
+}
+
+/* ---------- trivia: cards up, the teacher marks them ---------- */
+
+.hb-raise {
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 1.9em;
+  padding: 0.3em 1.1em;
+  border-radius: 999px;
+  color: #6b3300;
+  background: linear-gradient(180deg, #fff3c4, #ffd666);
+  box-shadow: 0 0.2em 0 #c98200, 0 0 1.6em rgba(255, 197, 61, 0.55);
+}
+
+.hb-trivia.is-mark {
+  gap: 0.9em;
+}
+
+.hb-trivia.is-mark .hb-trivia-head {
+  min-height: 4em;
+}
+
+.hb-trivia.is-mark .hb-trivia-q {
+  font-size: 2.1em;
+  padding: 0.45em 0.8em;
+}
+
+.hb-trivia.is-mark .hb-trivia-options {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8em;
+}
+
+.hb-trivia.is-mark .hb-option {
+  min-height: 4.2em;
+  padding: 0.6em 0.9em;
+  gap: 0.6em;
+  border-radius: 1em;
+}
+
+.hb-trivia.is-mark .hb-option-heart {
+  width: 2.6em;
+  height: 2.4em;
+}
+
+.hb-trivia.is-mark .hb-option-heart span {
+  font-size: 1.15em;
+}
+
+.hb-trivia.is-mark .hb-option-text {
+  font-size: 1.3em;
+}
+
+.hb-mark {
+  padding: 0.9em 1.3em 1.1em;
+}
+
+.hb-mark-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  margin-bottom: 0.8em;
+  font-size: 1.35em;
+}
+
+.hb-mark-tip {
+  font-size: 0.72em;
+  color: var(--hb-text-soft);
+  margin-inline-start: auto;
+}
+
+.hb-mark-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7em 1em;
+}
+
+.hb-mark-team {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.2);
+  border-radius: 1em;
+  padding: 0.5em 0.7em;
+}
+
+.hb-mark-team.is-marked {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 0.1em rgba(255, 255, 255, 0.55);
+}
+
+.hb-mark-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 1.15em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hb-mark-cards {
+  display: flex;
+  gap: 0.35em;
+  flex: none;
+}
+
+.hb-mark-card {
+  width: 2.5em;
+  height: 2.9em;
+  border: 0;
+  border-radius: 0.5em;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 60%), var(--hb-mark-color);
+  color: #fff;
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 1.15em;
+  text-shadow: 0 0.06em 0.15em rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  box-shadow: inset 0 -0.2em 0 rgba(0, 0, 0, 0.2), 0 0.25em 0.5em rgba(10, 0, 30, 0.35);
+  transition: transform 0.12s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hb-mark-card:hover {
+  transform: translateY(-0.12em);
+}
+
+.hb-mark-card.is-on {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 0.16em #fff, 0 0 1.2em var(--hb-mark-color);
+}
+
+.hb-mark-card.is-off {
+  opacity: 0.32;
+}
+
+/* ---------- word: the scrambled letters and "who cracked it" ---------- */
+
+.hb-word-tiles {
+  display: flex;
+  gap: 0.6em;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: -0.6em;
+}
+
+.hb-word-tile {
+  width: 2.3em;
+  height: 2.5em;
+  display: grid;
+  place-items: center;
+  border-radius: 0.4em;
+  background: linear-gradient(180deg, #fff, #ffe0ef);
+  color: var(--hb-ink);
+  font-family: var(--hb-display);
+  font-weight: 700;
+  font-size: 2.2em;
+  box-shadow: 0 0.12em 0 #e0457e, 0 0.3em 0.7em rgba(10, 0, 30, 0.35);
+  transition: opacity 0.4s ease;
+}
+
+.hb-word-tile.is-used {
+  opacity: 0.28;
+}
+
+.hb-solve {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+}
+
+.hb-solve-label {
+  color: #fff;
+  font-weight: 700;
+}
+
+.hb-solve-teams {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5em 0.7em;
+  max-width: 64em;
+}
+
+.hb-solve-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.3em 1em 0.3em 0.4em;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85em;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.3), 0 0.3em 0.8em rgba(10, 0, 30, 0.3);
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+
+.hb-solve-team:hover {
+  background: rgba(255, 255, 255, 0.26);
+  transform: translateY(-0.1em);
+}
+
+.hb-solve-team.is-armed {
+  background: linear-gradient(180deg, #fff3c4, #ffd666);
+  color: #6b3300;
+  box-shadow: 0 0.2em 0 #c98200, 0 0 1.4em rgba(255, 197, 61, 0.6);
+  animation: hb-solve-armed 0.8s ease-in-out infinite alternate;
+}
+
+/* a glow, not a size change: the button stays put for the second click */
+@keyframes hb-solve-armed {
+  from {
+    box-shadow: 0 0.2em 0 #c98200, 0 0 0.6em rgba(255, 197, 61, 0.4);
+  }
+  to {
+    box-shadow: 0 0.2em 0 #c98200, 0 0 2em rgba(255, 197, 61, 0.95);
+  }
+}
+
+/* ---------- charades: a peek at the concept, eyes closed ---------- */
+
+.hb-peek-btn {
+  margin-top: 0.4em;
+  font-size: 1.2em;
+}
+
+.hb-tv > .hb-peek {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 45%, rgba(58, 12, 94, 0.97), rgba(10, 2, 24, 0.99));
+  cursor: pointer;
+}
+
+.hb-peek-eyes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 2.2em;
+  font-weight: 700;
+  text-align: center;
+}
+
+.hb-peek-emoji {
+  font-size: 4em;
+  line-height: 1;
+}
+
+.hb-peek-eyes strong {
+  font-family: var(--hb-display);
+  font-size: 1.9em;
+  color: var(--hb-gold-light);
+}
+
+.hb-peek-eyes b {
+  font-family: var(--hb-display);
+  color: var(--hb-gold-light);
+}
+
+.hb-peek-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+  min-width: 36em;
+  max-width: 80vw;
+  padding: 1.6em 2.4em 1.4em;
+  border-radius: 1.6em;
+  background: #fff;
+  color: var(--hb-ink);
+  text-align: center;
+  font-size: 1.6em;
+  font-weight: 700;
+  box-shadow: 0 0 0 0.3em var(--hb-gold), 0 0 4em rgba(255, 197, 61, 0.6);
+}
+
+.hb-peek-card strong {
+  font-family: var(--hb-display);
+  font-size: 3em;
+  line-height: 1.15;
+  color: var(--hb-rose);
+}
+
+.hb-peek-card small {
+  font-size: 0.6em;
+  color: var(--hb-ink-soft);
+}
+
+/* ---------- blessings: the teacher types ---------- */
+
+.hb-bless-pad {
+  display: flex;
+  gap: 0.6em;
+  width: 100%;
+}
+
+.hb-bless-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55em 1.1em;
+  font-family: inherit;
+  font-size: 1.35em;
+  font-weight: 700;
+  color: var(--hb-ink);
+  background: #fff;
+  box-shadow: 0 0 0 0.15em rgba(255, 159, 203, 0.6), 0 0.4em 1em rgba(10, 0, 30, 0.35);
+  outline: none;
+}
+
+.hb-bless-input:focus {
+  box-shadow: 0 0 0 0.18em var(--hb-gold), 0 0.4em 1em rgba(10, 0, 30, 0.35);
+}
+
+.hb-bless-item-icon {
+  font-size: 1.2em;
+  padding: 0 0.15em;
+}
+
+/* lite effects: still pictures */
+.fx-lite .hb-class-preview,
+.fx-lite .hb-cp-hands,
+.fx-lite .hb-cp-waves::before,
+.fx-lite .hb-cp-waves::after,
+.fx-lite .hb-cp-hand,
+.fx-lite .hb-ctap-shout,
+.fx-lite .hb-solve-team.is-armed {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-class-preview,
+  .hb-cp-hands,
+  .hb-cp-waves::before,
+  .hb-cp-waves::after,
+  .hb-cp-hand,
+  .hb-ctap-shout {
+    animation: none;
+  }
+}

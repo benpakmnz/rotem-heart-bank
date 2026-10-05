@@ -4,31 +4,56 @@ import { createGame, PHASES } from '../engine/engine';
 import { readJson, removeKey } from '../lib/storage';
 import { LogoHeart } from '../shared/Heart';
 import HostGame from './HostGame';
-import useHostGame, { SESSION_KEY } from './useHostGame';
+import useHostGame, { sessionKeyFor } from './useHostGame';
 import ErrorBoundary from '../shared/ErrorBoundary';
-import { loadSettings } from './settingsStore';
+import { loadSettings, settingsKeyFor } from './settingsStore';
 import Screensaver from './Screensaver';
 import { SAVER_PATH } from '../routes';
 import './host.css';
 import './stages.css';
+import './class.css';
 
 const SESSION_MAX_AGE = 12 * 60 * 60 * 1000;
 
 // A database created in "locked mode" refuses everything until the game's rules are published.
 const isPermissionError = (error) => /permission/i.test(String(error && error.message));
 
-// Resume the TV's game after a refresh, or open a new room.
-const bootHost = async () => {
-  const mode = transportMode();
-  const saved = readJson(SESSION_KEY);
+const CLASS_SERVER_WAIT_MS = 8000;
+
+const withTimeout = (promise, ms) =>
+  Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))]);
+
+// Resume the TV's game after a refresh, or open a new room. Class mode has
+// its own saved game and settings, and runs on this computer alone when the
+// school network blocks the game server (the teacher's phone remote is the
+// only thing that needs it).
+const bootHost = async (classMode) => {
+  let mode = transportMode();
+  const saved = readJson(sessionKeyFor(classMode));
   const fresh =
-    saved && saved.state && PHASES.includes(saved.state.phase) && saved.mode === mode && Date.now() - saved.savedAt < SESSION_MAX_AGE;
+    saved &&
+    saved.state &&
+    PHASES.includes(saved.state.phase) &&
+    Boolean(saved.state.classMode) === Boolean(classMode) &&
+    (saved.mode === mode || (classMode && saved.mode === 'local')) &&
+    Date.now() - saved.savedAt < SESSION_MAX_AGE;
   if (fresh) {
-    const conn = await connectRoom(saved.state.roomCode, { role: 'host' });
-    return { conn, initialState: saved.state, mode };
+    const conn = await connectRoom(saved.state.roomCode, { role: 'host', local: saved.mode === 'local' });
+    return { conn, initialState: saved.state, mode: saved.mode };
   }
-  const conn = await allocateRoom();
-  return { conn, initialState: createGame({ roomCode: conn.code, settings: loadSettings(), now: conn.serverNow() }), mode };
+  let conn;
+  if (classMode && mode !== 'local') {
+    try {
+      conn = await withTimeout(allocateRoom(), CLASS_SERVER_WAIT_MS);
+    } catch (e) {
+      conn = await allocateRoom({ local: true });
+      mode = 'local';
+    }
+  } else {
+    conn = await allocateRoom();
+  }
+  const settings = loadSettings(settingsKeyFor(classMode));
+  return { conn, initialState: createGame({ roomCode: conn.code, settings, now: conn.serverNow(), classMode }), mode };
 };
 
 const HostRoom = ({ conn, initialState, mode, onNewGame, covered, onShowSaver, onUncover }) => {
@@ -89,8 +114,8 @@ const BootCard = ({ boot, onRetry }) => (
 );
 
 // `saver`: start behind the birthday screensaver (/saver). The room opens
-// underneath, so a click shows the game right away.
-const HostApp = ({ saver = false }) => {
+// underneath, so a click shows the game right away. `classMode`: /class.
+const HostApp = ({ saver = false, classMode = false }) => {
   const [boot, setBoot] = useState({ status: 'loading' });
   const [attempt, setAttempt] = useState(0);
   const [saverOn, setSaverOn] = useState(saver);
@@ -106,23 +131,24 @@ const HostApp = ({ saver = false }) => {
   useEffect(() => {
     let alive = true;
     setBoot({ status: 'loading' });
-    bootHost()
+    bootHost(classMode)
       .then((result) => alive && setBoot({ status: 'ready', ...result }))
       .catch((error) => alive && setBoot({ status: 'error', error }));
     return () => {
       alive = false;
     };
-  }, [attempt]);
+  }, [attempt, classMode]);
 
+  const sessionKey = sessionKeyFor(classMode);
   const newGame = useCallback(() => {
-    removeKey(SESSION_KEY);
+    removeKey(sessionKey);
     setAttempt((n) => n + 1);
-  }, []);
+  }, [sessionKey]);
 
   let content = null;
   if (boot.status === 'ready') {
     content = (
-      <ErrorBoundary variant="tv" resetKey={SESSION_KEY}>
+      <ErrorBoundary variant="tv" resetKey={sessionKey}>
         <HostRoom
           key={boot.conn.code}
           conn={boot.conn}
@@ -142,7 +168,7 @@ const HostApp = ({ saver = false }) => {
   return (
     <>
       {content}
-      {saverOn && <Screensaver onExit={hideSaver} />}
+      {saverOn && <Screensaver onExit={hideSaver} classMode={classMode} />}
     </>
   );
 };

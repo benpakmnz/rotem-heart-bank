@@ -21,8 +21,10 @@ import useHostEffects from './useHostEffects';
 import SettingsPanel from './SettingsPanel';
 import AdminInvite from './AdminInvite';
 import useAdminBridge from './useAdminBridge';
-import { saveSettings } from './settingsStore';
+import { saveSettings, settingsKeyFor } from './settingsStore';
+import { openAnswerCards } from './classTools';
 import LobbyScreen from './screens/LobbyScreen';
+import ClassLobby from './screens/ClassLobby';
 import TapScreen from './screens/TapScreen';
 import TriviaScreen from './screens/TriviaScreen';
 import CharadesScreen from './screens/CharadesScreen';
@@ -53,7 +55,7 @@ const StageDots = ({ phase, order }) => {
 
 const TopBar = ({ state }) => {
   const order = stageOrder(state.settings);
-  const stage = stageInfo(state.phase, order);
+  const stage = stageInfo(state.phase, order, state.classMode);
   const name = state.settings.birthdayName;
   return (
     <header className="hb-topbar">
@@ -178,7 +180,7 @@ const RotateHint = () => (
 const renderScreen = (props) => {
   switch (props.state.phase) {
     case 'lobby':
-      return <LobbyScreen {...props} />;
+      return props.state.classMode ? <ClassLobby {...props} /> : <LobbyScreen {...props} />;
     case 'tap':
       return <TapScreen {...props} />;
     case 'trivia':
@@ -248,8 +250,10 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
     writeJson(MUSIC_KEY, musicOn ? 'on' : 'off');
   }, [musicOn]);
 
-  // A soundtrack for every part of the game (see audio/tracks.js).
-  useEffect(() => setMusicTrack(trackFor(state.phase, state.step)), [state.phase, state.step]);
+  // A soundtrack for every part of the game (see audio/tracks.js). The class
+  // clap meter listens to the room, so its stage is quiet until the results.
+  const listening = Boolean(state.classMode) && state.phase === 'tap' && state.step !== 'results';
+  useEffect(() => setMusicTrack(listening ? null : trackFor(state.phase, state.step)), [state.phase, state.step, listening]);
   useEffect(() => () => setMusicTrack(null), []);
 
   // Audio may only start after a user gesture.
@@ -275,7 +279,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
   // Keyboard / TV remote: Enter or Space = the main button.
   useEffect(() => {
     const onKey = (e) => {
-      if (coveredRef.current || settingsOpen || isTyping(e.target) || e.repeat) return;
+      if (coveredRef.current || settingsOpen || isTyping(e.target) || e.repeat || e.defaultPrevented) return;
       if (e.key === 'Enter' || e.key === ' ') {
         const { primary } = actionsRef.current;
         if (primary && !primary.disabled) {
@@ -302,10 +306,10 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
 
   const applySettings = useCallback(
     (settings) => {
-      saveSettings(settings);
+      saveSettings(settings, settingsKeyFor(state.classMode));
       dispatch({ type: 'settings', settings });
     },
-    [dispatch]
+    [dispatch, state.classMode]
   );
   useAdminBridge({ conn, state, dispatch, onSaveSettings: applySettings, onRemovePlayer: removePlayer });
 
@@ -314,6 +318,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
     { key: 'music', icon: musicOn ? '🎵' : '🎶', label: musicOn ? 'כיבוי המוזיקה' : 'הפעלת המוזיקה', run: () => setMusicOn((m) => !m) },
     { key: 'full', icon: '⛶', label: 'מסך מלא', run: toggleFullscreen },
     ...(onShowSaver ? [{ key: 'saver', icon: '🎈', label: 'שומר מסך', run: onShowSaver }] : []),
+    ...(state.classMode ? [{ key: 'cards', icon: '🖨️', label: 'כרטיסי תשובה להדפסה', run: openAnswerCards }] : []),
     {
       key: 'fx',
       icon: liteFx ? '✨' : '🪶',
@@ -330,7 +335,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
     ...stageOrder(state.settings).map((id, i) => ({
       key: `goto-${id}`,
       icon: stageInfo(id).icon,
-      label: `קפיצה לשלב ${i + 1}: ${stageInfo(id).title}`,
+      label: `קפיצה לשלב ${i + 1}: ${stageInfo(id, undefined, state.classMode).title}`,
       active: state.phase === id,
       run: () => dispatch({ type: 'goto', phase: id }),
     })),

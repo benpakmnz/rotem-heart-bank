@@ -6,7 +6,7 @@ import { Heart, HEART_PATH } from '../shared/Heart';
 import useWakeLock from '../shared/useWakeLock';
 import { initialLiteFx } from '../lib/effects';
 import { createRng } from '../lib/random';
-import { loadSettings } from './settingsStore';
+import { loadSettings, settingsKeyFor } from './settingsStore';
 import Castle from './Castle';
 import './saver.css';
 
@@ -87,9 +87,9 @@ const Confetti = ({ lite }) => {
 // details or QR. A click (or a key) opens the game itself;
 // F switches to full screen. Lite effects (screen mirroring) keep only small
 // things moving: twinkles and a little confetti.
-const Screensaver = ({ onExit }) => {
+const Screensaver = ({ onExit, classMode = false }) => {
   const [lite] = useState(initialLiteFx);
-  const { birthdayName: name, age } = useMemo(() => loadSettings(), []);
+  const { birthdayName: name, age } = useMemo(() => loadSettings(settingsKeyFor(classMode)), [classMode]);
   const wishes = useMemo(() => [age ? `יום הולדת ${age} שמח! 🎂` : 'יום הולדת שמח! 🎂', ...WISHES], [age]);
   const [wish, setWish] = useState(0);
   const [hint, setHint] = useState(false);

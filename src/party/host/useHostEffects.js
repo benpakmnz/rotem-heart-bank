@@ -46,6 +46,10 @@ const useHostEffects = (state, now) => {
           play('fanfare');
           celebrate();
           break;
+        case 'tap:turnDone':
+          play('correct');
+          heartBurst();
+          break;
         case 'trivia:question':
         case 'charades:ready':
           play('ding');
@@ -87,7 +91,8 @@ const useHostEffects = (state, now) => {
       return;
     }
 
-    if (state.phase === 'tap' && state.step === 'active') {
+    // (the class clap meter's microphone would hear the taps' sound)
+    if (state.phase === 'tap' && state.step === 'active' && !state.classMode) {
       const taps = totalTaps(state);
       if (taps > totalTaps(p)) play('tap', Math.min(1, taps / 2000));
     }
@@ -109,8 +114,8 @@ const useHostEffects = (state, now) => {
     lastSecs.current = secs;
     if (secs == null || secs <= 0) return;
     if (state.step === 'countdown') play('count');
-    else if (secs <= 5 && ['active', 'question', 'perform', 'play'].includes(state.step)) play('tick');
-  }, [secs, state.step]);
+    else if (secs <= 5 && ['active', 'question', 'perform', 'play'].includes(state.step) && !(state.classMode && state.phase === 'tap')) play('tick');
+  }, [secs, state.step, state.phase, state.classMode]);
 };
 
 export default useHostEffects;

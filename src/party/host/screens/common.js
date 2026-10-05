@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import QRCode from 'qrcode';
 import { ANSWER_COLORS, heartKind, stageInfo, stageOrder, stageScoring, withName } from '../../config/game';
+import { wordLetters } from '../../lib/text';
 import { playerBadges, rankPlayers } from '../../engine/engine';
 import { fmt, secondsLeft } from '../../lib/format';
 import Avatar from '../../shared/Avatar';
@@ -89,12 +90,76 @@ export const PhonePreview = ({ stageId }) => {
   );
 };
 
+// Class mode: what happens in the classroom, on a little chalkboard.
+export const ClassPreview = ({ stageId }) => {
+  let board = null;
+  if (stageId === 'tap') {
+    board = (
+      <div className="hb-cp-clap">
+        <span className="hb-cp-hands">👏</span>
+        <span className="hb-cp-waves" />
+        <span className="hb-cp-mic">🎤</span>
+      </div>
+    );
+  } else if (stageId === 'trivia') {
+    board = (
+      <div className="hb-cp-cards">
+        {ANSWER_COLORS.map((c, i) => (
+          <span key={c} className="hb-cp-card" style={{ background: c, '--hb-cp-tilt': `${(i - 1.5) * 7}deg` }}>
+            <Heart color="rgba(255,255,255,.9)" />
+            <b>{i + 1}</b>
+          </span>
+        ))}
+      </div>
+    );
+  } else if (stageId === 'charades') {
+    board = (
+      <div className="hb-cp-big">
+        🎭<small>🤫 המושג אצל המורה</small>
+      </div>
+    );
+  } else if (stageId === 'word') {
+    board = (
+      <div className="hb-cp-word">
+        <div className="hb-pp-tiles">
+          {wordLetters('לבבות').map((l, i) => (
+            <span key={i}>{l}</span>
+          ))}
+        </div>
+        <span className="hb-cp-hand">✋</span>
+      </div>
+    );
+  } else if (stageId === 'hunt') {
+    board = (
+      <div className="hb-pp-hunt">
+        {['gold', 'silver', 'silver', 'silver', 'red', 'red'].map((kind, i) => (
+          <span key={i} className={i < 2 ? 'is-found' : ''}>
+            <GlossyHeart from={heartKind(kind).colors[0]} to={heartKind(kind).colors[1]} />
+          </span>
+        ))}
+      </div>
+    );
+  } else if (stageId === 'blessings') {
+    board = (
+      <div className="hb-cp-big">
+        ✍️<small>שמחה · אהבה · הצלחה</small>
+      </div>
+    );
+  }
+  return (
+    <div className="hb-class-preview" aria-hidden="true">
+      <div className="hb-cp-board">{board}</div>
+      <div className="hb-cp-tray" />
+    </div>
+  );
+};
+
 const pop = (delay, extra = {}) => ({ initial: { opacity: 0, ...extra }, animate: { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0 }, transition: { delay, type: 'spring', stiffness: 200, damping: 16 } });
 
 // The stage's big title card: badge slams in, the icon medal spins in, the
 // title bounces, then the rules slide in one by one.
-export const StageIntro = ({ state }) => {
-  const stage = stageInfo(state.phase, stageOrder(state.settings));
+export const StageIntro = ({ state, children }) => {
+  const stage = stageInfo(state.phase, stageOrder(state.settings), state.classMode);
   const name = state.settings.birthdayName;
   return (
     <div className="hb-intro">
@@ -136,8 +201,11 @@ export const StageIntro = ({ state }) => {
         animate={{ opacity: 1, rotate: -5, x: 0 }}
         transition={{ delay: 0.5, type: 'spring', stiffness: 110, damping: 13 }}
       >
-        <PhonePreview stageId={stage.id} />
-        <div className="hb-intro-phone-label">📱 בטלפון: {stage.phoneHint}</div>
+        {state.classMode ? <ClassPreview stageId={stage.id} /> : <PhonePreview stageId={stage.id} />}
+        <div className="hb-intro-phone-label">
+          {state.classMode ? '🏫 בכיתה' : '📱 בטלפון'}: {stage.phoneHint}
+        </div>
+        {children}
       </motion.div>
     </div>
   );
@@ -166,14 +234,15 @@ const LeaderRow = ({ rank, player, score, max, badges }) => {
   );
 };
 
-// Personal heart treasures ("האוצר האישי") of the top players.
-export const Leaderboard = ({ state, limit = 5, title = 'האוצרות האישיים' }) => {
+// Personal heart treasures ("האוצר האישי") of the top players (the teams in class mode).
+export const Leaderboard = ({ state, limit = 5, title }) => {
+  const heading = title || (state.classMode ? 'האוצרות של הקבוצות' : 'האוצרות האישיים');
   const ranking = rankPlayers(state).slice(0, limit);
   const max = ranking.length ? state.scores[ranking[0]] || 0 : 0;
   const badges = playerBadges(state);
   return (
     <div className="hb-leaderboard hb-glass">
-      <h2>🏦 {title}</h2>
+      <h2>🏦 {heading}</h2>
       <ol>
         {ranking.map((pid, i) => (
           <LeaderRow key={pid} rank={i} player={state.players[pid]} score={state.scores[pid] || 0} max={max} badges={badges[pid]} />
@@ -184,7 +253,7 @@ export const Leaderboard = ({ state, limit = 5, title = 'האוצרות האיש
 };
 
 export const StageResults = ({ state, children }) => {
-  const stage = stageInfo(state.phase, stageOrder(state.settings));
+  const stage = stageInfo(state.phase, stageOrder(state.settings), state.classMode);
   const stats = state.stageStats[state.phase] || { gained: 0 };
   const gained = useAnimatedNumber(stats.gained, 1600);
   return (
@@ -199,7 +268,7 @@ export const StageResults = ({ state, children }) => {
       </motion.div>
       <div className="hb-results-body">
         {children && <div className="hb-results-highlight">{children}</div>}
-        <Leaderboard state={state} />
+        <Leaderboard state={state} limit={state.classMode ? 8 : 5} />
       </div>
     </div>
   );

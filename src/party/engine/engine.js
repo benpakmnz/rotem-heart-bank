@@ -14,6 +14,7 @@ import {
   huntKind,
   stageOrder,
 } from '../config/game';
+import { AVATARS } from '../config/avatars';
 import { tapPoints, triviaPoints, topTappers, computeBankTarget, meterFraction } from '../lib/scoring';
 import { pick, shuffle } from '../lib/random';
 import { cleanText, normalizeWord, scrambleLetters, wordLetters, wordShape } from '../lib/text';
@@ -32,6 +33,17 @@ import { cleanText, normalizeWord, scrambleLetters, wordLetters, wordShape } fro
 //   charades:  intro -> (pick -> ready -> perform -> outcome) x N -> results
 //   blessings: intro -> write
 //   finale:    fill -> celebrate
+//
+// Class mode (a classroom with a projector, no phones): the "players" are
+// teams the teacher sets up, and the teacher enters what the phones would
+// send. Differences:
+//   tap:       intro -> (countdown -> active -> turnDone) x teams -> results
+//              (one team at a time; the TV counts its claps or key presses)
+//   trivia:    question -> mark -> reveal (the teacher enters each team's
+//              raised card; no speed bonus)
+//   word:      the teacher picks the team that cracked the word
+//   charades:  one round per team; a success scores for the presenting team
+//   blessings: the teacher types the words
 
 export const PHASES = ['lobby', ...STAGE_IDS, 'finale'];
 
@@ -101,13 +113,70 @@ export const rankPlayers = (s) =>
   playerIds(s).sort((a, b) => (s.scores[b] || 0) - (s.scores[a] || 0));
 
 // ---------------------------------------------------------------------------
+// Class mode teams
+
+export const MAX_TEAMS = 8;
+export const MAX_TEAM_NAME = 18;
+export const DEFAULT_TEAMS = [
+  { name: 'האריות', avatar: 'lion' },
+  { name: 'הדולפינים', avatar: 'dolphin' },
+  { name: 'הפרפרים', avatar: 'butterfly' },
+  { name: 'הדבורים', avatar: 'bee' },
+];
+// animals for new teams, in this order (then the rest of the avatars)
+const TEAM_ANIMALS = ['lion', 'dolphin', 'butterfly', 'bee', 'frog', 'penguin', 'owl', 'fox', 'tiger', 'turtle', 'koala', 'unicorn'];
+
+const freeAvatar = (s) => {
+  const used = new Set(playerIds(s).map((pid) => s.players[pid].avatar));
+  const order = [...TEAM_ANIMALS, ...AVATARS.map((a) => a.id)];
+  return order.find((id) => !used.has(id)) || order[0];
+};
+
+const addTeam = (s, team = {}) => {
+  if (playerIds(s).length >= MAX_TEAMS) return false;
+  s.teamSeq = (s.teamSeq || 0) + 1;
+  const pid = `t${s.teamSeq}`;
+  const avatar = AVATARS.some((a) => a.id === team.avatar) ? team.avatar : freeAvatar(s);
+  s.players[pid] = {
+    name: cleanText(team.name, MAX_TEAM_NAME) || `קבוצה ${playerIds(s).length + 1}`,
+    avatar,
+    joinedAt: s.teamSeq,
+    online: true,
+  };
+  if (s.scores[pid] == null) s.scores[pid] = 0;
+  return true;
+};
+
+const updateTeam = (s, pid, { name, avatar }) => {
+  const team = s.players[pid];
+  if (!team) return false;
+  if (name != null) {
+    const clean = cleanText(name, MAX_TEAM_NAME);
+    if (clean) team.name = clean;
+  }
+  if (avatar && AVATARS.some((a) => a.id === avatar)) team.avatar = avatar;
+  return true;
+};
+
+// ---------------------------------------------------------------------------
 // State
 
-export const createGame = ({ roomCode, settings, now }) => ({
+export const createGame = ({ roomCode, settings, now, classMode = false }) => {
+  const s = createState({ roomCode, settings, now });
+  if (classMode) {
+    s.classMode = true;
+    DEFAULT_TEAMS.forEach((team) => addTeam(s, team));
+  }
+  return s;
+};
+
+const createState = ({ roomCode, settings, now }) => ({
   v: 1,
   roomCode,
   createdAt: now,
   settings,
+  classMode: false,
+  teamSeq: 0,
   players: {},
   phase: 'lobby',
   step: 'waiting',
@@ -179,13 +248,18 @@ const ensureTarget = (s) => {
       : computeBankTarget({
           players: playerIds(s).length,
           questions: on.includes('trivia') ? playableQuestions(settings).length : 0,
-          charadesRounds: on.includes('charades') ? Math.max(1, Number(settings.timings.charadesRounds) || 1) : 0,
+          charadesRounds: on.includes('charades') ? charadesRounds(s) : 0,
           words: on.includes('word') ? playableWords(settings).length : 0,
-          tapSeconds: on.includes('tap') ? Number(settings.timings.tapSeconds) || 60 : 0,
+          tapSeconds: on.includes('tap') ? Number(settings.timings[s.classMode ? 'classTapSeconds' : 'tapSeconds']) || 10 : 0,
           blessings: on.includes('blessings'),
           huntPoints: on.includes('hunt') ? huntHearts(settings).reduce((sum, h) => sum + h.points, 0) : 0,
+          classMode: Boolean(s.classMode),
         });
 };
+
+// Charades rounds: from the settings, or one per team in class mode.
+const charadesRounds = (s) =>
+  s.classMode ? Math.max(1, playerIds(s).length) : Math.max(1, Math.floor(Number(s.settings.timings.charadesRounds) || 1));
 
 const enterPhase = (s, phase, now) => {
   if (!PHASES.includes(phase)) return;
@@ -213,14 +287,14 @@ const enterPhase = (s, phase, now) => {
   }
   s.roundId = `${phase}-intro`;
   setStep(s, 'intro', now);
-  if (phase === 'tap') s.tap = { startedAt: 0, endedAt: 0, results: null };
+  if (phase === 'tap') s.tap = { startedAt: 0, endedAt: 0, results: null, turn: 0, order: [], counts: {} };
   if (phase === 'trivia') {
     s.trivia = { total: playableQuestions(s.settings).length, current: null, reveal: null, correctCounts: {} };
   }
   if (phase === 'charades') {
     const prev = s.charades || {};
     s.charades = {
-      rounds: Math.max(1, Math.floor(Number(s.settings.timings.charadesRounds) || 1)),
+      rounds: charadesRounds(s),
       performed: prev.performed || [],
       usedConcepts: prev.usedConcepts || [],
       current: null,
@@ -303,7 +377,53 @@ const startTapCountdown = (s, now) => {
 
 const startTapActive = (s, now) => {
   s.tap.startedAt = now;
-  setStep(s, 'active', now, now + ms(s, 'tapSeconds'));
+  setStep(s, 'active', now, now + ms(s, s.classMode ? 'classTapSeconds' : 'tapSeconds'));
+};
+
+// Class mode: one team at a time (order = the teams when the stage starts).
+const startClassTapTurn = (s, turn, now) => {
+  if (!s.tap.order || !s.tap.order.length || turn === 0) s.tap.order = playerIds(s);
+  const order = s.tap.order.filter((pid) => s.players[pid]);
+  if (turn >= order.length) {
+    finishClassTap(s, now);
+    return;
+  }
+  s.tap.order = order;
+  s.tap.turn = turn;
+  s.round = turn;
+  s.roundId = newRoundId(s, 'tap');
+  setStep(s, 'countdown', now, now + COUNTDOWN_MS);
+};
+
+const endClassTapTurn = (s, now) => {
+  s.tap.endedAt = Math.min(now, s.endsAt || now);
+  setStep(s, 'turnDone', now);
+};
+
+// The TV reports the running count of the team on turn (claps or key presses).
+// Its last count may arrive a moment after the turn's time is up.
+const CLASS_TAP_LATE_MS = 1500;
+const classTap = (s, pid, count, now) => {
+  const late = s.step === 'turnDone' && now - s.stepStartedAt <= CLASS_TAP_LATE_MS;
+  if ((s.step !== 'active' && !late) || pid !== s.tap.order[s.tap.turn] || !s.players[pid]) return false;
+  const seconds = Number(s.settings.timings.classTapSeconds) || 10;
+  const n = Math.min(Math.floor(Number(count) || 0), Math.ceil((seconds + 1) * MAX_TAPS_PER_SECOND));
+  if (n <= (s.tap.counts[pid] || 0)) return false;
+  s.tap.counts[pid] = n;
+  return true;
+};
+
+const finishClassTap = (s, now) => {
+  const counts = {};
+  Object.entries(s.tap.counts || {}).forEach(([pid, n]) => {
+    if (s.players[pid] && n > 0) counts[pid] = n;
+  });
+  const bonusWinners = topTappers(counts);
+  Object.keys(counts).forEach((pid) => award(s, pid, tapPoints(counts[pid]), 'tap', now));
+  bonusWinners.forEach((pid) => award(s, pid, SCORING.tapTopBonus, 'tapTop', now));
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  s.tap.results = { counts, bonusWinners, total };
+  setStep(s, 'results', now);
 };
 
 const startTapTally = (s, now) => {
@@ -386,6 +506,22 @@ const revealTrivia = (s, now) => {
   setStep(s, 'reveal', now);
 };
 
+// Class mode: the teacher enters the card a team raised (-1 clears it). It
+// counts as answered at the deadline - every team raises its card together.
+const classAnswer = (s, pid, choice) => {
+  const cur = s.trivia && s.trivia.current;
+  if (!cur || (s.step !== 'question' && s.step !== 'mark') || !s.players[pid]) return false;
+  const c = Number(choice);
+  if (Number.isInteger(c) && c >= 0 && c < cur.options.length) {
+    if (s.inputs[pid] && s.inputs[pid].choice === c) return false;
+    s.inputs[pid] = { choice: c, at: cur.deadline };
+  } else {
+    if (!s.inputs[pid]) return false;
+    delete s.inputs[pid];
+  }
+  return true;
+};
+
 const revealIfEveryoneAnswered = (s, now) => {
   const online = onlinePlayerIds(s);
   if (online.length && online.every((pid) => answerOf(s, pid) >= 0)) revealTrivia(s, now);
@@ -447,7 +583,8 @@ const finishCharades = (s, success, now) => {
   cur.success = success;
   s.charades.performed.push(cur.performerId);
   s.charades.results.push({ round: cur.round, performerId: cur.performerId, concept: cur.concept, success });
-  if (success) award(s, null, SCORING.charadesGroup, 'charades', now, { from: cur.performerId });
+  if (success && s.classMode) award(s, cur.performerId, SCORING.charadesTeam, 'charades', now);
+  else if (success) award(s, null, SCORING.charadesGroup, 'charades', now, { from: cur.performerId });
   setStep(s, 'outcome', now);
 };
 
@@ -575,6 +712,17 @@ const collectBlessings = (s, now) => {
     });
 };
 
+// Class mode: the teacher types a word.
+const classBlessing = (s, text, now) => {
+  const clean = cleanText(text, MAX_BLESSING_LENGTH);
+  if (!clean || !s.blessings) return false;
+  s.blessings.typed = (s.blessings.typed || 0) + 1;
+  const b = { id: `class-${s.blessings.typed}`, pid: null, text: clean, at: now };
+  s.blessings.list.push(b);
+  award(s, null, SCORING.blessing, 'blessing', now, { text: clean });
+  return true;
+};
+
 // ---------------------------------------------------------------------------
 // Reducer
 
@@ -584,7 +732,8 @@ export const nextDueAt = (s) => {
     case 'tap':
       return ['countdown', 'active', 'tally'].includes(s.step) ? s.endsAt : null;
     case 'trivia':
-      return s.step === 'question' ? s.trivia.current.deadline + TRIVIA_GRACE_MS : null;
+      // (the grace is for phone answers still in flight - class mode has none)
+      return s.step === 'question' ? s.trivia.current.deadline + (s.classMode ? 0 : TRIVIA_GRACE_MS) : null;
     case 'charades':
       return s.step === 'pick' || s.step === 'perform' ? s.endsAt : null;
     case 'word':
@@ -606,10 +755,12 @@ export const nextDueAt = (s) => {
 const onTick = (s, now) => {
   if (s.phase === 'tap') {
     if (s.step === 'countdown') startTapActive(s, now);
+    else if (s.step === 'active' && s.classMode) endClassTapTurn(s, now);
     else if (s.step === 'active') startTapTally(s, now);
     else if (s.step === 'tally') finishTap(s, now);
   } else if (s.phase === 'trivia' && s.step === 'question') {
-    revealTrivia(s, now);
+    if (s.classMode) setStep(s, 'mark', now);
+    else revealTrivia(s, now);
   } else if (s.phase === 'charades') {
     if (s.step === 'pick') setStep(s, 'ready', now);
     else if (s.step === 'perform') finishCharades(s, false, now);
@@ -631,12 +782,17 @@ const onNext = (s, now, rng) => {
     enterPhase(s, nextPhase(s, 'lobby'), now);
   } else if (step === 'results') {
     enterPhase(s, nextPhase(s, phase), now);
+  } else if (phase === 'tap' && s.classMode) {
+    if (step === 'intro') startClassTapTurn(s, 0, now);
+    else if (step === 'turnDone') startClassTapTurn(s, s.tap.turn + 1, now);
+    else return false;
   } else if (phase === 'tap') {
     if (step !== 'intro') return false;
     startTapCountdown(s, now);
   } else if (phase === 'trivia') {
     if (step === 'intro') startQuestion(s, 0, now);
-    else if (step === 'question') revealTrivia(s, now);
+    else if (step === 'question' && s.classMode) setStep(s, 'mark', now);
+    else if (step === 'question' || step === 'mark') revealTrivia(s, now);
     else if (step === 'reveal') startQuestion(s, s.round + 1, now);
     else return false;
   } else if (phase === 'charades') {
@@ -665,7 +821,9 @@ const onNext = (s, now, rng) => {
 
 const onSkip = (s, now) => {
   const { phase, step } = s;
-  if (phase === 'tap' && (step === 'countdown' || step === 'active')) startTapTally(s, now);
+  if (phase === 'tap' && (step === 'countdown' || step === 'active') && s.classMode) endClassTapTurn(s, now);
+  else if (phase === 'tap' && (step === 'countdown' || step === 'active')) startTapTally(s, now);
+  else if (phase === 'trivia' && step === 'question' && s.classMode) setStep(s, 'mark', now);
   else if (phase === 'trivia' && step === 'question') revealTrivia(s, now);
   else if (phase === 'charades' && ['pick', 'ready', 'perform'].includes(step)) finishCharades(s, false, now);
   else if (phase === 'word' && (step === 'countdown' || step === 'play')) finishWord(s, null, now);
@@ -695,6 +853,8 @@ export const reduce = (state, action, ctx) => {
     if (due == null || now < due) return state;
   }
   if (action.type === 'inputs' && action.roundId !== state.roundId) return state;
+  // class mode: no phones - the teams come from the teacher, the inputs too
+  if (state.classMode && (action.type === 'players' || action.type === 'inputs')) return state;
 
   const s = clone(state);
   let changed = true;
@@ -741,6 +901,25 @@ export const reduce = (state, action, ctx) => {
     case 'removePlayer':
       delete s.players[action.pid];
       delete s.scores[action.pid];
+      break;
+    case 'addTeam':
+      changed = Boolean(s.classMode) && s.phase === 'lobby' && addTeam(s, action.team || {});
+      break;
+    case 'updateTeam':
+      changed = Boolean(s.classMode) && updateTeam(s, action.pid, action.team || {});
+      break;
+    case 'classTap':
+      changed = Boolean(s.classMode) && s.phase === 'tap' && classTap(s, action.pid, action.count, now);
+      break;
+    case 'classAnswer':
+      changed = Boolean(s.classMode) && s.phase === 'trivia' && classAnswer(s, action.pid, action.choice);
+      break;
+    case 'classSolve':
+      changed = Boolean(s.classMode) && s.phase === 'word' && s.step === 'play' && Boolean(s.players[action.pid]);
+      if (changed) finishWord(s, action.pid, now);
+      break;
+    case 'classBlessing':
+      changed = Boolean(s.classMode) && s.phase === 'blessings' && s.step === 'write' && classBlessing(s, action.text, now);
       break;
     case 'settings':
       s.settings = action.settings;
@@ -829,6 +1008,9 @@ export const toPublic = (s) => ({
   meter: meterFraction(s.bank, s.target, { full: s.phase === 'finale' }),
   scores: s.scores,
   name: s.settings.birthdayName,
+  classMode: Boolean(s.classMode),
+  // class mode: the teams (no phones join, so the teacher's phone gets them here)
+  ...(s.classMode ? { teams: s.players } : {}),
   stages: stageOrder(s.settings),
   badges: playerBadges(s),
   data: publicData(s),
@@ -836,6 +1018,7 @@ export const toPublic = (s) => ({
 
 // Secrets for one phone only (rooms/<code>/private/<pid>): the charades concept.
 export const privateMessages = (s) => {
+  if (s.classMode) return {}; // the teacher passes the concept on
   const cur = s.phase === 'charades' && s.charades && s.charades.current;
   if (!cur || !['pick', 'ready', 'perform'].includes(s.step)) return {};
   return {

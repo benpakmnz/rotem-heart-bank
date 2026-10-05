@@ -3,6 +3,8 @@ import { reduce, toPublic, privateMessages } from '../engine/engine';
 import { writeJson } from '../lib/storage';
 
 export const SESSION_KEY = 'hb-host-session-v1';
+export const CLASS_SESSION_KEY = 'hb-class-session-v1';
+export const sessionKeyFor = (classMode) => (classMode ? CLASS_SESSION_KEY : SESSION_KEY);
 
 // Wires the pure engine to the room: listens to players and inputs, runs the
 // clock, publishes the public state and the performer's secret, and saves
@@ -90,7 +92,7 @@ const useHostGame = (conn, initialState, mode) => {
   useEffect(() => {
     const save = () => {
       lastSave.current = Date.now();
-      writeJson(SESSION_KEY, { savedAt: Date.now(), mode, state: stateRef.current });
+      writeJson(sessionKeyFor(stateRef.current.classMode), { savedAt: Date.now(), mode, state: stateRef.current });
     };
     const wait = 1000 - (Date.now() - lastSave.current);
     if (wait <= 0) {

@@ -6,11 +6,13 @@ export const SCORING = {
   triviaPerSecond: 200, // +200 על כל שנייה של מהירות
   wordFirst: 2500, // פיצוח מילה - רק לראשון שמפצח
   charadesGroup: 5000, // הצגת פנטומימה - בונוס קבוצתי לכל המשפחה
+  charadesTeam: 2500, // class mode: the presenting team guessed its concept
   blessing: 500, // every blessing charges Rotem's (family) bank
 };
 
 export const DEFAULT_TIMINGS = {
   tapSeconds: 60,
+  classTapSeconds: 10, // class mode: each team's turn on the clap meter
   triviaReadSeconds: 3,
   triviaAnswerSeconds: 15,
   charadesRounds: 3,
@@ -45,6 +47,13 @@ const STAGE_LIST = [
     ],
     phoneHint: 'לב ענק ורוד במרכז המסך',
     scoring: [`${SCORING.tapPerTap} לבבות לכל לחיצה`, `+${SCORING.tapTopBonus} ללוחץ הכי מהיר`],
+    class: {
+      title: 'מטר מחיאות הכפיים',
+      subtitle: 'כמה לבבות שווה הרעש של הקבוצה שלכם?',
+      how: ['כל קבוצה בתורה מוחאת כפיים ומריעה בכל הכוח', 'המחשב מקשיב - וככל שחזק יותר, הלב מתמלא באור זהוב'],
+      hint: 'מחיאות כפיים חזקות!',
+      scoring: [`${SCORING.tapPerTap} לבבות לכל מחיאה`, `+${SCORING.tapTopBonus} לקבוצה הכי רועשת`],
+    },
   },
   {
     id: 'trivia',
@@ -57,6 +66,11 @@ const STAGE_LIST = [
     ],
     phoneHint: '4 כפתורים גדולים ונוחים',
     scoring: [`${SCORING.triviaCorrect.toLocaleString('he-IL')} לתשובה נכונה`, `+${SCORING.triviaPerSecond} על כל שנייה של מהירות`],
+    class: {
+      how: ['השאלה והתשובות מופיעות על המסך', 'כל קבוצה מתייעצת ובוחרת כרטיס צבע', 'כשהזמן נגמר - כל הקבוצות מרימות את הכרטיס ביחד!'],
+      hint: '4 כרטיסי צבע לכל קבוצה',
+      scoring: [`${SCORING.triviaCorrect.toLocaleString('he-IL')} לכל קבוצה שצדקה`],
+    },
   },
   {
     id: 'charades',
@@ -70,6 +84,12 @@ const STAGE_LIST = [
     ],
     phoneHint: 'מושג סודי רק למציג',
     scoring: [`${SCORING.charadesGroup.toLocaleString('he-IL')} לבבות לכל הצלחה`, 'בונוס קבוצתי לכל המשפחה'],
+    class: {
+      subtitle: 'המשחק עובר מהמסך אל מרכז הכיתה',
+      how: ['כל קבוצה בתורה שולחת נציג להציג', 'המורה לוחשת לנציג את המושג הסודי', 'הקבוצה שלו מנחשת - בלי מילים, רק תנועות!'],
+      hint: 'מושג סודי אצל המורה',
+      scoring: [`${SCORING.charadesTeam.toLocaleString('he-IL')} לבבות לקבוצה שניחשה`],
+    },
   },
   {
     id: 'word',
@@ -82,6 +102,11 @@ const STAGE_LIST = [
     ],
     phoneHint: 'מקלדת אותיות מעוצבת',
     scoring: [`${SCORING.wordFirst.toLocaleString('he-IL')} לבבות`, 'רק לראשון שמפצח'],
+    class: {
+      how: ['על המסך: רמז, משבצות ריקות והאותיות מבולבלות', 'פיצחתם? מרימים יד וקוראים בקול', 'הקבוצה הראשונה שפיצחה זוכה'],
+      hint: 'מרימים יד ופותרים בקול',
+      scoring: [`${SCORING.wordFirst.toLocaleString('he-IL')} לבבות`, 'רק לקבוצה הראשונה שמפצחת'],
+    },
   },
   {
     id: 'blessings',
@@ -94,6 +119,11 @@ const STAGE_LIST = [
     ],
     phoneHint: 'כותבים ברכה ושולחים',
     scoring: [`כל ברכה טוענת ${SCORING.blessing} לבבות`, 'מזכרת דיגיטלית מהערב'],
+    class: {
+      how: ['כל קבוצה בוחרת מילה של ברכה ל{name}', 'המורה מקלידה אותה - והיא עפה ללב על המסך'],
+      hint: 'המורה מקלידה את המילים',
+      scoring: [`כל ברכה טוענת ${SCORING.blessing} לבבות`, 'מזכרת מהכיתה'],
+    },
   },
   {
     id: 'hunt',
@@ -106,6 +136,15 @@ const STAGE_LIST = [
       'מי מצא איזה לב - מופיע מיד בטלוויזיה ובטלפונים',
     ],
     phoneHint: 'מי מצא איזה לב - בזמן אמת',
+    class: {
+      subtitle: 'הפכו לציידי לבבות וחפשו בכיתה את הלבבות המוחבאים!',
+      how: [
+        'בכיתה מוחבאים לבבות: זהב, כסף ואדומים - לב הזהב שווה הכי הרבה!',
+        'מצאתם לב? מביאים אותו למורה',
+        'המורה מסמנת איזו קבוצה מצאה - וזה מופיע מיד על המסך',
+      ],
+      hint: 'מביאים את הלב למורה',
+    },
     scoring: (settings) => HEART_KINDS.filter((k) => huntKind(settings, k.id).count > 0).map((k) => `${k.label}: ${fmtPoints(huntKind(settings, k.id).points)}`),
     real: true,
   },
@@ -129,11 +168,14 @@ export const stageOrder = (settings) => {
   return order.length ? order : STAGE_IDS;
 };
 
-// The stage + its number in this game ("שלב 3 מתוך 6").
-export const stageInfo = (id, order = STAGE_IDS) => {
+// The stage + its number in this game ("שלב 3 מתוך 6"). In class mode the
+// stage's class texts replace the phone ones.
+export const stageInfo = (id, order = STAGE_IDS, classMode = false) => {
   const stage = stageById(id);
   if (!stage) return null;
-  return { ...stage, num: order.indexOf(id) + 1, total: order.length };
+  const { class: forClass, ...base } = stage;
+  const texts = classMode && forClass ? { ...forClass, phoneHint: forClass.hint || base.phoneHint } : {};
+  return { ...base, ...texts, num: order.indexOf(id) + 1, total: order.length };
 };
 
 export const stageScoring = (stage, settings) => (typeof stage.scoring === 'function' ? stage.scoring(settings) : stage.scoring);

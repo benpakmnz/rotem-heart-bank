@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { SCORING } from '../../config/game';
+import { playerIds } from '../../engine/engine';
 import { fmt, secondsLeft } from '../../lib/format';
 import { wordLetters } from '../../lib/text';
 import Avatar from '../../shared/Avatar';
@@ -39,7 +40,72 @@ export const LetterBoxes = ({ shape, letters, visible, solved }) => {
   );
 };
 
-const WordRound = ({ state, now }) => {
+// Class mode: the scrambled letters for everyone to see (the ones already
+// shown as hints fade out).
+const LetterTiles = ({ letters, hints }) => {
+  const used = new Set();
+  hints.forEach((letter) => {
+    const i = letters.findIndex((l, k) => l === letter && !used.has(k));
+    if (i >= 0) used.add(i);
+  });
+  return (
+    <div className="hb-word-tiles" aria-label="האותיות המבולבלות">
+      {letters.map((l, i) => (
+        <motion.span
+          key={i}
+          className={`hb-word-tile ${used.has(i) ? 'is-used' : ''}`}
+          initial={{ y: -40, opacity: 0, rotate: (i % 2 ? 1 : -1) * 20 }}
+          animate={{ y: 0, opacity: 1, rotate: (i % 3) - 1 }}
+          transition={{ delay: 0.05 * i, type: 'spring', stiffness: 260, damping: 14 }}
+        >
+          {l}
+        </motion.span>
+      ))}
+    </div>
+  );
+};
+
+const ARM_MS = 4000;
+
+// Class mode: the teacher clicks the team that called out the word first -
+// and once more to confirm (a slip of the mouse doesn't give the word away).
+const SolvePicker = ({ state, dispatch }) => {
+  const [armed, setArmed] = useState(null);
+  useEffect(() => {
+    if (!armed) return undefined;
+    const id = setTimeout(() => setArmed(null), ARM_MS);
+    return () => clearTimeout(id);
+  }, [armed]);
+  return (
+    <div className="hb-solve" data-testid="solve-picker">
+      <span className="hb-solve-label">✋ פיצחתם? מרימים יד וקוראים בקול! איזו קבוצה פיצחה ראשונה?</span>
+      <div className="hb-solve-teams">
+        {playerIds(state).map((pid) => {
+          const team = state.players[pid];
+          const isArmed = armed === pid;
+          return (
+            <button
+              key={pid}
+              type="button"
+              className={`hb-solve-team ${isArmed ? 'is-armed' : ''}`}
+              onClick={(e) => {
+                e.currentTarget.blur();
+                if (isArmed) dispatch({ type: 'classSolve', pid });
+                else setArmed(pid);
+              }}
+              data-testid={`solve-${pid}`}
+            >
+              <Avatar player={team} size="xs" />
+              <span>{isArmed ? `${team.name} - לאישור לוחצים שוב ✔` : team.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const WordRound = ({ state, now, dispatch }) => {
   const cur = state.word.current;
   const letters = wordLetters(cur.answer);
   const visible = cur.revealOrder.slice(0, cur.revealed);
@@ -66,9 +132,14 @@ const WordRound = ({ state, now }) => {
         <span className="hb-word-hint-label">💡 רמז:</span> {cur.hint || '...'}
       </div>
       <LetterBoxes shape={cur.shape} letters={letters} visible={visible} solved={state.step === 'outcome'} />
+      {state.step === 'play' && state.classMode && <LetterTiles letters={cur.letters} hints={visible.map((i) => letters[i])} />}
       {state.step === 'play' ? (
         <div className="hb-word-foot">
-          <span>📱 סדרו את האותיות בטלפון - הראשון שמפצח מקבל {fmt(SCORING.wordFirst)} לבבות!</span>
+          {state.classMode ? (
+            <SolvePicker state={state} dispatch={dispatch} />
+          ) : (
+            <span>📱 סדרו את האותיות בטלפון - הראשון שמפצח מקבל {fmt(SCORING.wordFirst)} לבבות!</span>
+          )}
           {nextHintIn > 0 && <span className="hb-chip hb-chip-soft">רמז נוסף בעוד {nextHintIn} שניות</span>}
         </div>
       ) : (
@@ -77,7 +148,7 @@ const WordRound = ({ state, now }) => {
             <>
               <Avatar player={winner} size="xl" />
               <div>
-                <div className="hb-word-winner">🏆 כל הכבוד ל{winner.name}!</div>
+                <div className="hb-word-winner">{state.classMode ? `🏆 כל הכבוד, ${winner.name}!` : `🏆 כל הכבוד ל${winner.name}!`}</div>
                 <div className="hb-word-prize">פיצוח ראשון: +{fmt(SCORING.wordFirst)} לבבות</div>
               </div>
             </>
@@ -90,7 +161,7 @@ const WordRound = ({ state, now }) => {
   );
 };
 
-const WordScreen = ({ state, now }) => {
+const WordScreen = ({ state, now, dispatch }) => {
   if (state.step === 'intro') return <StageIntro state={state} />;
   if (state.step === 'results' || !state.word.current) {
     return (
@@ -112,7 +183,7 @@ const WordScreen = ({ state, now }) => {
       </StageResults>
     );
   }
-  return <WordRound state={state} now={now} />;
+  return <WordRound state={state} now={now} dispatch={dispatch} />;
 };
 
 export default WordScreen;

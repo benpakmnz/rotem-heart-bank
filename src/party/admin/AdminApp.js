@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { heartKind, stageInfo, stageOrder, STAGE_IDS } from '../config/game';
+import { ANSWER_COLORS, heartKind, stageInfo, stageOrder, STAGE_IDS } from '../config/game';
 import { connectRoom } from '../net/room';
 import { useConnectionStatus, useRoomValue } from '../net/hooks';
 import { ADMIN_PATH, isValidRoomCode, ROOM_CODE_LENGTH } from '../routes';
@@ -27,12 +27,14 @@ const STEP_NAMES = {
   active: 'משחקים!',
   tally: 'סופרים',
   question: 'שאלה על המסך',
+  mark: 'מסמנים את הכרטיסים',
   reveal: 'חשיפת התשובה',
   pick: 'בוחרים מציג',
   ready: 'המציג מתכונן',
   perform: 'מציגים!',
   outcome: 'תוצאה',
   play: 'מפצחים',
+  turnDone: 'סוף התור של הקבוצה',
   search: 'מחפשים לבבות',
   write: 'כותבים ברכות',
   results: 'סיכום השלב',
@@ -142,12 +144,46 @@ const HuntTools = ({ state, players, send }) => {
   );
 };
 
+// Class mode: which card each team raised (the TV's marking panel, on the phone).
+const ClassMark = ({ mark, players, send }) => (
+  <Section title="✋ איזה כרטיס כל קבוצה הרימה?">
+    <div className="hb-admin-mark">
+      {mark.teams
+        .filter((t) => players[t.pid])
+        .map((t) => (
+          <div key={t.pid} className="hb-admin-mark-row">
+            <Avatar player={players[t.pid]} size="xs" />
+            <span className="hb-admin-mark-name">{players[t.pid].name}</span>
+            <span className="hb-admin-mark-cards">
+              {Array.from({ length: mark.options }, (_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`hb-admin-mark-card ${t.choice === i ? 'is-on' : ''}`}
+                  style={{ background: ANSWER_COLORS[i] }}
+                  onClick={() => send({ type: 'classAnswer', pid: t.pid, choice: t.choice === i ? -1 : i }, `mark-${t.pid}`)}
+                  aria-label={`${players[t.pid].name}: כרטיס ${i + 1}`}
+                  data-testid={`admin-mark-${t.pid}-${i}`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </span>
+          </div>
+        ))}
+    </div>
+  </Section>
+);
+
 // ---------- the console ----------
 
 const Console = ({ conn, code, send, onLogout }) => {
   const state = useRoomValue(conn, 'state');
   const view = useRoomValue(conn, 'admin/view');
-  const players = useRoomValue(conn, 'players', { throttleMs: 400 }) || {};
+  const joined = useRoomValue(conn, 'players', { throttleMs: 400 }) || {};
+  // class mode: the teams come with the state (no phones join)
+  const classMode = Boolean(state && state.classMode);
+  const players = (classMode && state.teams) || joined;
   const online = useConnectionStatus(conn);
   const [busy, setBusy] = useState(null);
   const [message, setMessage] = useState(null);
@@ -175,7 +211,7 @@ const Console = ({ conn, code, send, onLogout }) => {
     .filter((pid) => players[pid] && players[pid].name)
     .sort((a, b) => ((state && state.scores && state.scores[b]) || 0) - ((state && state.scores && state.scores[a]) || 0));
   const order = (state && state.stages) || STAGE_IDS;
-  const stage = state && stageInfo(state.phase, order);
+  const stage = state && stageInfo(state.phase, order, classMode);
 
   if (settings) {
     return (
@@ -243,11 +279,18 @@ const Console = ({ conn, code, send, onLogout }) => {
             🤫 המושג בפנטומימה: <b>{view.concept}</b>
           </div>
         )}
+        {view && view.answer && (
+          <div className="hb-admin-secret" data-testid="admin-word-answer">
+            🔤 התשובה: <b>{view.answer}</b>
+          </div>
+        )}
       </Section>
+
+      {view && view.mark && <ClassMark mark={view.mark} players={players} send={run} />}
 
       {state && state.phase === 'hunt' && (state.step === 'search' || state.step === 'results') && <HuntTools state={state} players={players} send={run} />}
 
-      <Section title={`👨‍👩‍👧 משתתפים (${playing.length})`}>
+      <Section title={classMode ? `🏫 קבוצות (${playing.length})` : `👨‍👩‍👧 משתתפים (${playing.length})`}>
         <div className="hb-admin-players">
           {playing.map((pid) => (
             <div key={pid} className="hb-admin-player">
@@ -286,13 +329,13 @@ const Console = ({ conn, code, send, onLogout }) => {
                 className={`hb-btn hb-btn-soft ${state && state.phase === id ? 'is-current' : ''}`}
                 onClick={() => {
                   // eslint-disable-next-line no-alert
-                  if (window.confirm(`לקפוץ לשלב ${i + 1}: ${stageInfo(id).title}?`)) {
+                  if (window.confirm(`לקפוץ לשלב ${i + 1}: ${stageInfo(id, undefined, classMode).title}?`)) {
                     setShowJump(false);
                     run({ type: 'goto', phase: id });
                   }
                 }}
               >
-                {stageInfo(id).icon} {i + 1}. {stageInfo(id).title}
+                {stageInfo(id).icon} {i + 1}. {stageInfo(id, undefined, classMode).title}
               </button>
             ))}
             <button

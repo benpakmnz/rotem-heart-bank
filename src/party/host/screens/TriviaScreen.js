@@ -32,10 +32,63 @@ const OptionCard = ({ index, text, status, voters, players }) => (
   </motion.div>
 );
 
-const TriviaQuestion = ({ state, now }) => {
+// Class mode, when the time is up: every team raises a colored card and the
+// teacher marks it here (a second click clears it). Then "show the answer".
+const ClassMarkPanel = ({ state, dispatch }) => {
   const cur = state.trivia.current;
+  const ids = playerIds(state);
+  const choiceOf = (pid) => (state.inputs[pid] && Number.isInteger(state.inputs[pid].choice) ? state.inputs[pid].choice : -1);
+  const marked = ids.filter((pid) => choiceOf(pid) >= 0).length;
+  return (
+    <motion.div className="hb-mark hb-glass" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} data-testid="mark-panel">
+      <div className="hb-mark-head">
+        <strong>איזה כרטיס הרימה כל קבוצה?</strong>
+        <span className="hb-count-pill">
+          {marked}/{ids.length}
+        </span>
+        <span className="hb-mark-tip">לחיצה על הצבע שהקבוצה הרימה (לחיצה נוספת מבטלת)</span>
+      </div>
+      <div className="hb-mark-grid">
+        {ids.map((pid) => {
+          const choice = choiceOf(pid);
+          const team = state.players[pid];
+          return (
+            <div key={pid} className={`hb-mark-team ${choice >= 0 ? 'is-marked' : ''}`}>
+              <Avatar player={team} size="sm" />
+              <span className="hb-mark-name">{team.name}</span>
+              <div className="hb-mark-cards">
+                {cur.options.map((opt, i) => (
+                  <button
+                    key={`${opt}-${i}`}
+                    type="button"
+                    className={`hb-mark-card ${choice === i ? 'is-on' : ''} ${choice >= 0 && choice !== i ? 'is-off' : ''}`}
+                    style={{ '--hb-mark-color': ANSWER_COLORS[i] }}
+                    aria-pressed={choice === i}
+                    aria-label={`${team.name}: כרטיס ${i + 1}`}
+                    onClick={(e) => {
+                      dispatch({ type: 'classAnswer', pid, choice: choice === i ? -1 : i });
+                      e.currentTarget.blur(); // Enter / Space stay the main button (show the answer)
+                    }}
+                    data-testid={`mark-${pid}-${i}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+};
+
+const TriviaQuestion = ({ state, now, dispatch }) => {
+  const cur = state.trivia.current;
+  const cls = Boolean(state.classMode);
   const reveal = state.step === 'reveal' ? state.trivia.reveal : null;
-  const reading = !reveal && now < cur.openAt;
+  const marking = cls && state.step === 'mark';
+  const reading = !reveal && !marking && now < cur.openAt;
   const ids = playerIds(state);
   const answered = ids.filter((pid) => {
     const input = state.inputs[pid];
@@ -52,12 +105,18 @@ const TriviaQuestion = ({ state, now }) => {
     : [];
 
   return (
-    <div className={`hb-trivia ${reveal ? 'is-reveal' : ''}`}>
+    <div className={`hb-trivia ${reveal ? 'is-reveal' : ''} ${marking ? 'is-mark' : ''}`}>
       <div className="hb-trivia-head">
         <span className="hb-chip">
           שאלה {cur.index + 1} מתוך {state.trivia.total}
         </span>
+        {marking && (
+          <motion.div className="hb-raise" initial={{ scale: 0.3, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 11 }}>
+            ✋ מרימים כרטיסים!
+          </motion.div>
+        )}
         {!reveal &&
+          !marking &&
           (reading ? (
             <TimerRing endsAt={cur.openAt} total={cur.openAt - state.stepStartedAt} now={now} label="מתכוננים" className="is-reading" />
           ) : (
@@ -74,20 +133,30 @@ const TriviaQuestion = ({ state, now }) => {
           return <OptionCard key={opt + i} index={i} text={opt} status={status} voters={votersFor(i)} players={state.players} />;
         })}
       </div>
-      {reveal ? (
+      {marking && <ClassMarkPanel state={state} dispatch={dispatch} />}
+      {reveal && (
         <div className="hb-trivia-winners">
           {winners.length ? (
             winners.map((pid, i) => (
-              <PlayerChip key={pid} player={state.players[pid]} className={i === 0 ? 'is-first' : ''}>
-                {i === 0 && <span>⚡</span>}
+              // (class mode: every team answers at the same moment - no "fastest")
+              <PlayerChip key={pid} player={state.players[pid]} className={i === 0 && !cls ? 'is-first' : ''}>
+                {i === 0 && !cls && <span>⚡</span>}
                 <b>+{fmt(reveal.results[pid].points)}</b>
               </PlayerChip>
             ))
           ) : (
-            <span className="hb-muted">הפעם אף אחד לא צדק... בשאלה הבאה! 💪</span>
+            <span className="hb-muted">{cls ? 'הפעם אף קבוצה לא צדקה... בשאלה הבאה! 💪' : 'הפעם אף אחד לא צדק... בשאלה הבאה! 💪'}</span>
           )}
         </div>
-      ) : (
+      )}
+      {!reveal && !marking && cls && (
+        <div className="hb-answered">
+          <span className="hb-answered-label">
+            {reading ? '📖 קוראים את השאלה ביחד...' : '🤫 מתייעצים בשקט ובוחרים כרטיס - כשהזמן נגמר, כולם מרימים ביחד!'}
+          </span>
+        </div>
+      )}
+      {!reveal && !marking && !cls && (
         <div className="hb-answered">
           <span className="hb-answered-label">
             {reading ? '📱 הכפתורים יופיעו בטלפון עוד רגע...' : `ענו: ${answered.length} מתוך ${ids.length}`}
@@ -128,10 +197,10 @@ const TriviaSummary = ({ state }) => {
   );
 };
 
-const TriviaScreen = ({ state, now }) => {
+const TriviaScreen = ({ state, now, dispatch }) => {
   if (state.step === 'intro') return <StageIntro state={state} />;
-  if ((state.step === 'question' || state.step === 'reveal') && state.trivia.current) {
-    return <TriviaQuestion state={state} now={now} />;
+  if (['question', 'mark', 'reveal'].includes(state.step) && state.trivia.current) {
+    return <TriviaQuestion state={state} now={now} dispatch={dispatch} />;
   }
   return (
     <StageResults state={state}>

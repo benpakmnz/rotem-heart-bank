@@ -81,7 +81,7 @@ const FinaleScreen = ({ state }) => {
           <GameTitle as="h2" text={`הברכות של ${name}`} />
           <WordCloud items={cloud} />
           <div className="hb-finale-cloud-actions">
-            <button type="button" className="hb-btn hb-btn-primary" onClick={() => saveSouvenir(cloud, state.settings)}>
+            <button type="button" className="hb-btn hb-btn-primary" onClick={() => saveSouvenir(cloud, state.settings, state.classMode)}>
               ⬇️ שמירת המזכרת
             </button>
             <button type="button" className="hb-btn hb-btn-soft" onClick={() => setShowCloud(false)}>
@@ -105,7 +105,7 @@ const FinaleScreen = ({ state }) => {
             </div>
           </div>
           <motion.div className="hb-finale-total" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}>
-            כל המשפחה אספה יחד {fmt(state.bank)} לבבות 💖
+            {state.classMode ? 'כל הכיתה אספה יחד' : 'כל המשפחה אספה יחד'} {fmt(state.bank)} לבבות 💖
           </motion.div>
           {winners.length > 0 && (
             <motion.div className="hb-finale-winner" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.6 }}>

@@ -537,3 +537,194 @@ describe('stage "hunt" - hidden hearts', () => {
     expect(g.state.phase).toBe('word');
   });
 });
+
+describe('class mode (teams, no phones)', () => {
+  const makeClass = (settings = createDefaultSettings()) => {
+    const g = { now: 1000000, rng: createRng(11), state: null };
+    g.state = createGame({ roomCode: '5678', settings, now: g.now, classMode: true });
+    g.dispatch = (action) => {
+      g.state = reduce(g.state, action, { now: g.now, rng: g.rng });
+      return g.state;
+    };
+    g.advance = (ms) => {
+      g.now += ms;
+      return g.dispatch({ type: 'tick' });
+    };
+    return g;
+  };
+  const teams = (g) => Object.keys(g.state.players).sort((a, b) => g.state.players[a].joinedAt - g.state.players[b].joinedAt);
+
+  test('starts with 4 teams; phones (players / inputs) are ignored', () => {
+    const g = makeClass();
+    expect(g.state.classMode).toBe(true);
+    expect(teams(g).map((pid) => g.state.players[pid].name)).toEqual(['האריות', 'הדולפינים', 'הפרפרים', 'הדבורים']);
+    const before = g.state;
+    expect(g.dispatch({ type: 'players', players: PLAYERS })).toBe(before);
+    expect(g.dispatch({ type: 'inputs', roundId: g.state.roundId, inputs: { a: { count: 5 } } })).toBe(before);
+  });
+
+  test('the teacher adds, renames and removes teams in the lobby (up to 8)', () => {
+    const g = makeClass();
+    g.dispatch({ type: 'addTeam', team: { name: '  הנמרים הכי מהירים בכיתה ג׳  ' } });
+    const ids = teams(g);
+    expect(ids).toHaveLength(5);
+    const added = g.state.players[ids[4]];
+    expect(added.name.length).toBeLessThanOrEqual(18);
+    expect(added.avatar).not.toBe(g.state.players[ids[0]].avatar); // a free animal
+    g.dispatch({ type: 'updateTeam', pid: ids[0], team: { name: 'הלביאות', avatar: 'tiger' } });
+    expect(g.state.players[ids[0]]).toMatchObject({ name: 'הלביאות', avatar: 'tiger' });
+    g.dispatch({ type: 'updateTeam', pid: ids[0], team: { name: '   ', avatar: 'no-such' } });
+    expect(g.state.players[ids[0]]).toMatchObject({ name: 'הלביאות', avatar: 'tiger' });
+    g.dispatch({ type: 'removePlayer', pid: ids[1] });
+    expect(teams(g)).toHaveLength(4);
+    for (let i = 0; i < 6; i += 1) g.dispatch({ type: 'addTeam', team: {} });
+    expect(teams(g)).toHaveLength(8);
+    g.dispatch({ type: 'next' });
+    const during = g.state;
+    expect(g.dispatch({ type: 'addTeam', team: { name: 'מאוחרים' } })).toBe(during); // only in the lobby
+  });
+
+  test('clap meter: one team at a time, 10 hearts per clap, +500 to the loudest', () => {
+    const g = makeClass();
+    const [t1, t2, t3, t4] = teams(g);
+    g.dispatch({ type: 'next' });
+    expect(g.state.phase).toBe('tap');
+    g.dispatch({ type: 'next' }); // intro -> team 1 countdown
+    expect(g.state.step).toBe('countdown');
+    expect(g.state.tap.order[g.state.tap.turn]).toBe(t1);
+    g.dispatch({ type: 'classTap', pid: t1, count: 30 });
+    expect(g.state.tap.counts[t1]).toBeUndefined(); // not before the turn starts
+    g.advance(COUNTDOWN_MS);
+    expect(g.state.step).toBe('active');
+    expect(g.state.endsAt - g.state.stepStartedAt).toBe(10000);
+    g.dispatch({ type: 'classTap', pid: t1, count: 40 });
+    g.dispatch({ type: 'classTap', pid: t1, count: 25 }); // the count only goes up
+    g.dispatch({ type: 'classTap', pid: t2, count: 99 }); // not t2's turn
+    expect(g.state.tap.counts).toEqual({ [t1]: 40 });
+    g.advance(10000);
+    expect(g.state.step).toBe('turnDone');
+    const scores = (pid) => g.state.scores[pid];
+    expect(scores(t1)).toBe(0); // points come at the end
+    const turn = (pid, count) => {
+      g.dispatch({ type: 'next' });
+      g.advance(COUNTDOWN_MS);
+      g.dispatch({ type: 'classTap', pid, count });
+      g.advance(10000);
+    };
+    turn(t2, 9999); // capped: (10 + 1) * 20 = 220
+    expect(g.state.tap.counts[t2]).toBe(220);
+    turn(t3, 0);
+    // the last team ends early
+    g.dispatch({ type: 'next' });
+    g.advance(COUNTDOWN_MS);
+    g.dispatch({ type: 'classTap', pid: t4, count: 12 });
+    g.dispatch({ type: 'skip' });
+    expect(g.state.step).toBe('turnDone');
+    g.dispatch({ type: 'next' });
+    expect(g.state.step).toBe('results');
+    expect(scores(t1)).toBe(400);
+    expect(scores(t2)).toBe(2200 + SCORING.tapTopBonus);
+    expect(scores(t3)).toBe(0);
+    expect(scores(t4)).toBe(120);
+    expect(g.state.tap.results).toMatchObject({ bonusWinners: [t2], total: 272 });
+  });
+
+  test('clap meter: the last count of a turn may arrive a moment late', () => {
+    const g = makeClass();
+    const [t1, t2] = teams(g);
+    g.dispatch({ type: 'goto', phase: 'tap' });
+    g.dispatch({ type: 'next' });
+    g.advance(COUNTDOWN_MS);
+    g.dispatch({ type: 'classTap', pid: t1, count: 50 });
+    g.advance(10000);
+    expect(g.state.step).toBe('turnDone');
+    g.now += 300;
+    g.dispatch({ type: 'classTap', pid: t1, count: 54 }); // the TV's final count
+    expect(g.state.tap.counts[t1]).toBe(54);
+    g.dispatch({ type: 'classTap', pid: t2, count: 10 }); // only the team that just played
+    g.now += 2000;
+    g.dispatch({ type: 'classTap', pid: t1, count: 80 }); // too late
+    expect(g.state.tap.counts).toEqual({ [t1]: 54 });
+  });
+
+  test('trivia: the teacher marks each team\'s card, 1000 per correct team, no speed bonus', () => {
+    const g = makeClass();
+    const [t1, t2, t3] = teams(g);
+    g.dispatch({ type: 'goto', phase: 'trivia' });
+    g.dispatch({ type: 'next' });
+    expect(g.state.step).toBe('question');
+    const { correct } = g.state.trivia.current;
+    const wrong = (correct + 1) % g.state.trivia.current.options.length;
+    g.dispatch({ type: 'classAnswer', pid: t1, choice: correct }); // early cards count too
+    const deadline = g.state.trivia.current.deadline;
+    g.advance(deadline - g.now);
+    expect(g.state.step).toBe('mark'); // the timer does not reveal in class mode
+    g.dispatch({ type: 'classAnswer', pid: t2, choice: wrong });
+    g.dispatch({ type: 'classAnswer', pid: t3, choice: correct });
+    g.dispatch({ type: 'classAnswer', pid: t3, choice: -1 }); // a mistake, cleared
+    g.dispatch({ type: 'classAnswer', pid: t3, choice: correct });
+    g.dispatch({ type: 'classAnswer', pid: 'nobody', choice: correct });
+    g.now += 60000; // however long the marking takes
+    g.dispatch({ type: 'next' });
+    expect(g.state.step).toBe('reveal');
+    const { results } = g.state.trivia.reveal;
+    expect(results[t1]).toMatchObject({ correct: true, points: SCORING.triviaCorrect });
+    expect(results[t2]).toMatchObject({ correct: false, points: 0 });
+    expect(results[t3]).toMatchObject({ correct: true, points: SCORING.triviaCorrect });
+    expect(Object.keys(results)).toHaveLength(3);
+    // "raise the cards" before the timer: skip goes to marking
+    g.dispatch({ type: 'next' });
+    g.dispatch({ type: 'skip' });
+    expect(g.state.step).toBe('mark');
+  });
+
+  test('letters: the teacher picks the team that cracked the word', () => {
+    const g = makeClass();
+    const [t1, t2] = teams(g);
+    g.dispatch({ type: 'goto', phase: 'word' });
+    g.dispatch({ type: 'next' });
+    const early = g.state;
+    expect(g.dispatch({ type: 'classSolve', pid: t2 })).toBe(early); // still counting down
+    g.advance(COUNTDOWN_MS);
+    g.dispatch({ type: 'classSolve', pid: t2 });
+    expect(g.state.step).toBe('outcome');
+    expect(g.state.word.current.winnerId).toBe(t2);
+    expect(g.state.scores[t2]).toBe(SCORING.wordFirst);
+    expect(g.state.scores[t1]).toBe(0);
+  });
+
+  test('charades: one round per team, a success scores for the presenting team', () => {
+    const g = makeClass();
+    g.dispatch({ type: 'goto', phase: 'charades' });
+    expect(g.state.charades.rounds).toBe(4);
+    g.dispatch({ type: 'next' });
+    g.advance(CHARADES_PICK_MS);
+    const performer = g.state.charades.current.performerId;
+    expect(privateMessages(g.state)).toEqual({}); // no phones: the teacher passes it on
+    g.dispatch({ type: 'next' }); // the clock
+    g.dispatch({ type: 'next' }); // guessed!
+    expect(g.state.scores[performer]).toBe(SCORING.charadesTeam);
+    expect(g.state.bank).toBe(SCORING.charadesTeam);
+  });
+
+  test('blessings: the teacher types the words, each one charges the bank', () => {
+    const g = makeClass();
+    g.dispatch({ type: 'goto', phase: 'blessings' });
+    const intro = g.state;
+    expect(g.dispatch({ type: 'classBlessing', text: 'שמחה' })).toBe(intro);
+    g.dispatch({ type: 'next' });
+    g.dispatch({ type: 'classBlessing', text: '  אהבה  ' });
+    g.dispatch({ type: 'classBlessing', text: 'הצלחה' });
+    g.dispatch({ type: 'classBlessing', text: '   ' });
+    expect(g.state.blessings.list.map((b) => b.text)).toEqual(['אהבה', 'הצלחה']);
+    expect(g.state.bank).toBe(2 * SCORING.blessing);
+  });
+
+  test('the bank target fits teams', () => {
+    const g = makeClass();
+    g.dispatch({ type: 'next' });
+    expect(g.state.target).toBeGreaterThanOrEqual(10000);
+    expect(g.state.target).toBeLessThan(200000);
+    expect(toPublic(g.state).classMode).toBe(true);
+  });
+});

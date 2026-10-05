@@ -5,8 +5,10 @@ const NEXT = { type: 'next' };
 const SKIP = { type: 'skip' };
 
 // The buttons the host (whoever holds the TV remote/mouse) sees right now.
-// primary also runs on Enter/Space.
+// primary also runs on Enter/Space. teamPick (class mode): one button per
+// team - the TV screen draws them itself, the teacher's phone lists them.
 const hostActions = (s) => {
+  const cls = Boolean(s.classMode);
   if (s.phase === 'lobby') {
     return {
       primary: { icon: '▶', label: 'מתחילים לשחק!', action: NEXT, disabled: playerIds(s).length === 0 },
@@ -31,16 +33,24 @@ const hostActions = (s) => {
   switch (`${s.phase}:${s.step}`) {
     case 'tap:countdown':
     case 'tap:active':
-      return { primary: null, secondary: [{ icon: '⏭', label: 'סיום מוקדם', action: SKIP }] };
+      return { primary: null, secondary: [{ icon: '⏭', label: cls ? 'סיום התור' : 'סיום מוקדם', action: SKIP }] };
+    case 'tap:turnDone': {
+      const next = s.players[(s.tap.order || [])[s.tap.turn + 1]];
+      return { primary: { icon: next ? '👏' : '▶', label: next ? `התור של ${next.name}` : 'לסיכום השלב', action: NEXT }, secondary: [] };
+    }
     case 'trivia:question':
-      return { primary: null, secondary: [{ icon: '👀', label: 'חשיפת התשובה', action: NEXT }] };
+      return cls
+        ? { primary: null, secondary: [{ icon: '✋', label: 'מרימים כרטיסים!', action: NEXT }] }
+        : { primary: null, secondary: [{ icon: '👀', label: 'חשיפת התשובה', action: NEXT }] };
+    case 'trivia:mark':
+      return { primary: { icon: '👀', label: 'חשיפת התשובה', action: NEXT }, secondary: [] };
     case 'trivia:reveal':
       return { primary: { icon: '▶', label: lastTrivia ? 'לסיכום השלב' : 'לשאלה הבאה', action: NEXT }, secondary: [] };
     case 'charades:ready':
       return {
         primary: { icon: '⏱', label: 'הפעלת השעון', action: NEXT },
         secondary: [
-          { icon: '🔄', label: 'מציג אחר', action: { type: 'repick' } },
+          { icon: '🔄', label: cls ? 'קבוצה אחרת' : 'מציג אחר', action: { type: 'repick' } },
           { icon: '⏭', label: 'דילוג', action: SKIP },
         ],
       };
@@ -52,7 +62,11 @@ const hostActions = (s) => {
     case 'charades:outcome':
       return { primary: { icon: '▶', label: lastCharades ? 'לסיכום השלב' : 'לסיבוב הבא', action: NEXT }, secondary: [] };
     case 'word:play':
-      return { primary: null, secondary: [{ icon: '⏭', label: 'דילוג על המילה', action: SKIP }] };
+      return {
+        primary: null,
+        secondary: [{ icon: '⏭', label: 'דילוג על המילה', action: SKIP }],
+        teamPick: cls ? { label: (name) => `${name} פיצחו!`, action: (pid) => ({ type: 'classSolve', pid }) } : null,
+      };
     case 'word:outcome':
       return { primary: { icon: '▶', label: lastWord ? 'לסיכום השלב' : 'למילה הבאה', action: NEXT }, secondary: [] };
     case 'hunt:search':

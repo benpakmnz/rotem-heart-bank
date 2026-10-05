@@ -23,6 +23,8 @@ export const topTappers = (counts) => {
 // the five stages close to the target (a typical kid taps ~4.5 times/second,
 // answers ~60% correctly with ~8 seconds left, most charades/words succeed).
 // The hunt adds every hidden heart (huntPoints = all of them get found).
+// classMode: the "players" are teams - a clap turn scores ~110 claps, a correct
+// card has no speed bonus, and a team's charades success is worth less.
 export const computeBankTarget = ({
   players,
   questions,
@@ -31,12 +33,13 @@ export const computeBankTarget = ({
   tapSeconds,
   blessings = true,
   huntPoints = 0,
+  classMode = false,
 }) => {
-  const perPlayer =
-    4.5 * tapSeconds * SCORING.tapPerTap +
-    questions * 0.6 * (SCORING.triviaCorrect + 8 * SCORING.triviaPerSecond) +
-    (blessings ? 1.5 * SCORING.blessing : 0);
-  const group = charadesRounds * 0.8 * SCORING.charadesGroup + words * 0.9 * SCORING.wordFirst + huntPoints;
+  const tap = classMode ? (tapSeconds ? 110 * SCORING.tapPerTap : 0) : 4.5 * tapSeconds * SCORING.tapPerTap;
+  const answer = classMode ? SCORING.triviaCorrect : SCORING.triviaCorrect + 8 * SCORING.triviaPerSecond;
+  const perPlayer = tap + questions * 0.6 * answer + (blessings ? 1.5 * SCORING.blessing : 0);
+  const charades = classMode ? SCORING.charadesTeam : SCORING.charadesGroup;
+  const group = charadesRounds * 0.8 * charades + words * 0.9 * SCORING.wordFirst + huntPoints;
   const raw = Math.max(1, players) * perPlayer + group;
   return Math.max(10000, Math.round(raw / 1000) * 1000);
 };

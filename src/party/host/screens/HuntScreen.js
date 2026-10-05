@@ -60,12 +60,12 @@ const LatestFind = ({ state }) => {
           >
             <Avatar player={player} size="sm" />
             <span>
-              🎉 <b>{player.name}</b> מצא/ה {heartKind(heart.kind).label}! <b className="hb-hunt-latest-points">+{fmt(heart.points)}</b>
+              🎉 <b>{player.name}</b> {state.classMode ? 'מצאו' : 'מצא/ה'} {heartKind(heart.kind).label}! <b className="hb-hunt-latest-points">+{fmt(heart.points)}</b>
             </span>
           </motion.div>
         ) : (
           <motion.div key="none" className="hb-hunt-latest-hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            מצאתם לב? הראו אותו למנהל/ת המשחק 🙋
+            {state.classMode ? 'מצאתם לב? הביאו אותו למורה 🙋' : 'מצאתם לב? הראו אותו למנהל/ת המשחק 🙋'}
           </motion.div>
         )}
       </AnimatePresence>
@@ -109,7 +109,7 @@ const HuntBoard = ({ state, now, dispatch }) => {
       <LatestFind state={state} />
       {pickingHeart && (
         <PlayerPicker
-          title={`מי מצא את ${heartKind(pickingHeart.kind).the}?`}
+          title={state.classMode ? `איזו קבוצה מצאה את ${heartKind(pickingHeart.kind).the}?` : `מי מצא את ${heartKind(pickingHeart.kind).the}?`}
           players={state.players}
           ids={playerIds(state)}
           selected={found[picking] ? found[picking].pid : null}

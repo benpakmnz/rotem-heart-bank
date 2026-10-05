@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { normalizeSettings } from '../config/content';
+import { avatarById } from '../config/avatars';
+import { playerIds } from '../engine/engine';
 import hostActions from './hostActions';
 
 const MAX_AGE_MS = 2 * 60 * 1000;
@@ -7,23 +9,47 @@ const MAX_AGE_MS = 2 * 60 * 1000;
 // What the admin's phone sees: the TV's current buttons, plus the secret
 // charades concept so the admin can judge (rooms/<code>/admin/view).
 export const adminView = (s) => {
-  const { primary, secondary } = hostActions(s);
+  const { primary, secondary, teamPick } = hostActions(s);
   const actions = [];
   if (primary) actions.push({ key: 'primary', icon: primary.icon, label: primary.label, disabled: Boolean(primary.disabled), primary: true });
+  if (teamPick) {
+    playerIds(s).forEach((pid) =>
+      actions.push({ key: `team:${pid}`, icon: avatarById(s.players[pid].avatar).emoji, label: teamPick.label(s.players[pid].name) })
+    );
+  }
   secondary.forEach((b, i) => actions.push({ key: `s${i}`, icon: b.icon, label: b.label, disabled: Boolean(b.disabled) }));
   const cur = s.phase === 'charades' && s.charades && s.charades.current;
+  const question = s.phase === 'trivia' && s.trivia && s.trivia.current;
+  const word = s.phase === 'word' && s.word && s.word.current;
   return {
     phase: s.phase,
     step: s.step,
     roundId: s.roundId,
     actions,
     concept: cur && ['pick', 'ready', 'perform', 'outcome'].includes(s.step) ? cur.concept : null,
+    // class mode: the teacher checks the word the teams call out
+    answer: s.classMode && word && (s.step === 'countdown' || s.step === 'play') ? word.answer : null,
+    // class mode: the cards the teams raised, entered from the phone too
+    mark:
+      s.classMode && question && (s.step === 'question' || s.step === 'mark')
+        ? {
+            options: question.options.length,
+            teams: playerIds(s).map((pid) => ({
+              pid,
+              choice: s.inputs[pid] && Number.isInteger(s.inputs[pid].choice) ? s.inputs[pid].choice : -1,
+            })),
+          }
+        : null,
   };
 };
 
 const findAction = (s, key) => {
-  const { primary, secondary } = hostActions(s);
+  const { primary, secondary, teamPick } = hostActions(s);
   if (key === 'primary') return primary && !primary.disabled ? primary.action : null;
+  if (String(key).startsWith('team:')) {
+    const pid = String(key).slice(5);
+    return teamPick && s.players[pid] ? teamPick.action(pid) : null;
+  }
   const b = secondary[Number(String(key).slice(1))];
   return b && !b.disabled ? b.action : null;
 };
@@ -63,6 +89,10 @@ const useAdminBridge = ({ conn, state, dispatch, onSaveSettings, onRemovePlayer 
         }
         case 'huntAssign':
           dispatch({ type: 'huntAssign', heartId: String(cmd.heartId || ''), pid: cmd.pid || null });
+          return { ok: true };
+        case 'classAnswer':
+          if (!s.classMode || !s.players[cmd.pid]) return { ok: false, error: 'unknown' };
+          dispatch({ type: 'classAnswer', pid: String(cmd.pid), choice: Number(cmd.choice) });
           return { ok: true };
         case 'goto':
           dispatch({ type: 'goto', phase: String(cmd.phase || '') });

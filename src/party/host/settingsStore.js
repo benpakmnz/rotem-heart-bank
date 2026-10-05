@@ -1,13 +1,16 @@
 import { createDefaultSettings, normalizeSettings, TRIVIA_VERSION, WORDS_VERSION } from '../config/content';
 import { readJson, writeJson } from '../lib/storage';
 
-// The content editor's result is kept on the TV computer for future games.
-const SETTINGS_KEY = 'hb-settings-v1';
+// The content editor's result is kept on the TV computer for future games
+// (class mode keeps its own: the class's questions, names and timings).
+export const SETTINGS_KEY = 'hb-settings-v1';
+export const CLASS_SETTINGS_KEY = 'hb-class-settings-v1';
+export const settingsKeyFor = (classMode) => (classMode ? CLASS_SETTINGS_KEY : SETTINGS_KEY);
 
 // The first built-in list whose questions have ids.
 const FIRST_TRIVIA_WITH_IDS = 3;
 
-export const saveSettings = (settings) => writeJson(SETTINGS_KEY, settings);
+export const saveSettings = (settings, key = SETTINGS_KEY) => writeJson(key, settings);
 
 // A newer built-in list replaces the saved copy of the old one; this TV's
 // on/off choices and the questions the family added here stay.
@@ -29,8 +32,8 @@ export const refreshWords = (saved, builtIn) => {
   return [...builtIn.map((w) => (off.has(w.id) || off.has(text(w)) ? { ...w, off: true } : w)), ...own];
 };
 
-export const loadSettings = () => {
-  const saved = readJson(SETTINGS_KEY);
+export const loadSettings = (key = SETTINGS_KEY) => {
+  const saved = readJson(key);
   // questions saved before the built-in ones changed give way to the new ones
   // (everything else this TV saved stays)
   const stale = Boolean(saved) && saved.triviaVersion !== TRIVIA_VERSION;
@@ -42,6 +45,6 @@ export const loadSettings = () => {
   const words = staleWords ? refreshWords(saved.words, createDefaultSettings().words) : saved && saved.words;
   const settings = normalizeSettings(saved && { ...saved, trivia, words });
   // keep a new admin PIN (and new defaults) for the next games
-  if (!saved || stale || staleWords || saved.adminPin !== settings.adminPin) saveSettings(settings);
+  if (!saved || stale || staleWords || saved.adminPin !== settings.adminPin) saveSettings(settings, key);
   return settings;
 };
