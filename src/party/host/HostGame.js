@@ -22,7 +22,7 @@ import SettingsPanel from './SettingsPanel';
 import AdminInvite from './AdminInvite';
 import useAdminBridge from './useAdminBridge';
 import { saveSettings, settingsKeyFor } from './settingsStore';
-import { openAnswerCards } from './classTools';
+import { openAnswerCards, openTeamSigns } from './classTools';
 import LobbyScreen from './screens/LobbyScreen';
 import ClassLobby from './screens/ClassLobby';
 import TapScreen from './screens/TapScreen';
@@ -318,7 +318,12 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
     { key: 'music', icon: musicOn ? '🎵' : '🎶', label: musicOn ? 'כיבוי המוזיקה' : 'הפעלת המוזיקה', run: () => setMusicOn((m) => !m) },
     { key: 'full', icon: '⛶', label: 'מסך מלא', run: toggleFullscreen },
     ...(onShowSaver ? [{ key: 'saver', icon: '🎈', label: 'שומר מסך', run: onShowSaver }] : []),
-    ...(state.classMode ? [{ key: 'cards', icon: '🖨️', label: 'כרטיסי תשובה להדפסה', run: openAnswerCards }] : []),
+    ...(state.classMode
+      ? [
+          { key: 'signs', icon: '🔺', label: 'שלטי הקבוצות להדפסה', run: openTeamSigns },
+          { key: 'cards', icon: '🖨️', label: 'כרטיסי תשובה להדפסה', run: openAnswerCards },
+        ]
+      : []),
     {
       key: 'fx',
       icon: liteFx ? '✨' : '🪶',

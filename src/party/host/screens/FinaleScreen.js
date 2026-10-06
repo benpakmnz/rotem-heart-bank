@@ -42,6 +42,16 @@ const Podium = ({ state }) => {
   );
 };
 
+// An ice pop for the class (it waits for them at the end of the day).
+const Popsicle = () => (
+  <svg className="hb-popsicle" viewBox="0 0 24 40" aria-hidden="true">
+    <rect x="9.5" y="22" width="5" height="17" rx="2.5" fill="#E9B98A" />
+    <path d="M4 11 A8 8 0 0 1 20 11 V27 A3 3 0 0 1 17 30 H7 A3 3 0 0 1 4 27 Z" fill="#FF5C9A" />
+    <path d="M4 17 H20 V21.5 H4 Z" fill="#FFD3E4" />
+    <ellipse cx="8.6" cy="11.5" rx="1.8" ry="4" fill="rgba(255,255,255,0.55)" />
+  </svg>
+);
+
 const FinaleScreen = ({ state }) => {
   const [showCloud, setShowCloud] = useState(false);
   const name = state.settings.birthdayName;
@@ -99,8 +109,14 @@ const FinaleScreen = ({ state }) => {
               <motion.div initial={{ scale: 0.2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 160, damping: 12 }}>
                 <GameTitle text="100% אהבה!" tone="gold" className="hb-finale-title" />
               </motion.div>
-              <motion.p className="hb-finale-sub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
-                האוצר מלא - {name} מוכנה לעוגה! 🎂
+              <motion.p className="hb-finale-sub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} data-testid="finale-sub">
+                {state.classMode ? (
+                  <>
+                    האוצר מלא - הכיתה מוכנה לקרטיבים שיחולקו בסוף היום! <Popsicle />
+                  </>
+                ) : (
+                  <>האוצר מלא - {name} מוכנה לעוגה! 🎂</>
+                )}
               </motion.p>
             </div>
           </div>

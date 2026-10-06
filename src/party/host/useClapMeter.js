@@ -5,14 +5,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // CLAPS_PER_SECOND at full volume (the engine's limit is 20 a second). The
 // scale comes from the room's quiet moments before the first turn and then
 // stays the same for every team. Without a microphone (or when the teacher
-// chooses so), presses of the space bar count instead.
+// chooses so), presses of the space bar count instead. The teacher's phone
+// can be the microphone too (phoneMic.js).
 
 export const CLAPS_PER_SECOND = 18;
 export const CLAPS_PER_KEY = 2;
 
 const DEFAULT_QUIET_DB = -62;
-const QUIET_SAMPLES = 200; // the last 10 seconds before the first turn
-const FRAME_MS = 50;
+export const QUIET_SAMPLES = 200; // the last 10 seconds before the first turn
+export const FRAME_MS = 50;
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
@@ -33,22 +34,29 @@ export const quietLevel = (samples) => {
   return sorted[Math.floor(sorted.length * 0.2)];
 };
 
-const rmsDb = (buf) => {
+export const rmsDb = (buf) => {
   let sum = 0;
   for (let i = 0; i < buf.length; i += 1) sum += buf[i] * buf[i];
   return 20 * Math.log10(Math.sqrt(sum / buf.length) + 1e-9);
 };
 
-const openMic = async () => {
+// The microphone through an analyser. A phone lets a page start its sound
+// only in a tap, so the teacher's phone makes its AudioContext there and
+// passes it in (`given`).
+export const openMic = async (given = null) => {
   const Ctx = window.AudioContext || window.webkitAudioContext;
+  const fail = (e) => {
+    if (given) given.close().catch(() => {});
+    throw e;
+  };
   if (!Ctx || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    throw Object.assign(new Error('no microphone support'), { name: 'NotSupportedError' });
+    fail(Object.assign(new Error('no microphone support'), { name: 'NotSupportedError' }));
   }
   // the raw sound: noise suppression would take the claps out
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
-  });
-  const ctx = new Ctx();
+  const stream = await navigator.mediaDevices
+    .getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
+    .catch(fail);
+  const ctx = given || new Ctx();
   const source = ctx.createMediaStreamSource(stream);
   const analyser = ctx.createAnalyser();
   analyser.fftSize = 2048;
@@ -60,6 +68,7 @@ const openMic = async () => {
   mute.connect(ctx.destination);
   return {
     ctx,
+    stream,
     analyser,
     buf: new Float32Array(analyser.fftSize),
     close: () => {
@@ -69,7 +78,7 @@ const openMic = async () => {
   };
 };
 
-const micStatus = (ctx) => (ctx.state === 'running' ? 'on' : 'paused');
+export const micStatus = (ctx) => (ctx.state === 'running' ? 'on' : 'paused');
 
 // The microphone for the clap stage (open while `enabled`).
 //   status: 'asking' (waiting for the browser's permission), 'on', 'paused'

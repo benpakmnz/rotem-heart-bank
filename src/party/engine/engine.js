@@ -16,7 +16,7 @@ import {
   CLASS_HUNT_HEARTS,
   CLASS_HUNT_PICKS,
 } from '../config/game';
-import { AVATARS } from '../config/avatars';
+import { TEAM_COLORS, teamColor } from '../config/teams';
 import { tapPoints, triviaPoints, topTappers, computeBankTarget, meterFraction } from '../lib/scoring';
 import { pick, shuffle } from '../lib/random';
 import { cleanText, normalizeWord, scrambleLetters, wordLetters, wordShape } from '../lib/text';
@@ -119,49 +119,43 @@ export const rankPlayers = (s) =>
   playerIds(s).sort((a, b) => (s.scores[b] || 0) - (s.scores[a] || 0));
 
 // ---------------------------------------------------------------------------
-// Class mode teams
+// Class mode teams: a colored heart each (config/teams.js), always listed in
+// the colors' order - the order of the turns too.
 
-export const MAX_TEAMS = 8;
-export const MAX_TEAM_NAME = 18;
-export const DEFAULT_TEAMS = [
-  { name: 'האריות', avatar: 'lion' },
-  { name: 'הדולפינים', avatar: 'dolphin' },
-  { name: 'הפרפרים', avatar: 'butterfly' },
-  { name: 'הדבורים', avatar: 'bee' },
-];
-// animals for new teams, in this order (then the rest of the avatars)
-const TEAM_ANIMALS = ['lion', 'dolphin', 'butterfly', 'bee', 'frog', 'penguin', 'owl', 'fox', 'tiger', 'turtle', 'koala', 'unicorn'];
+export const MAX_TEAMS = TEAM_COLORS.length;
+export const DEFAULT_TEAM_COUNT = 4;
 
-const freeAvatar = (s) => {
-  const used = new Set(playerIds(s).map((pid) => s.players[pid].avatar));
-  const order = [...TEAM_ANIMALS, ...AVATARS.map((a) => a.id)];
-  return order.find((id) => !used.has(id)) || order[0];
-};
+const usedColors = (s) => new Set(playerIds(s).map((pid) => s.players[pid].color));
 
-const addTeam = (s, team = {}) => {
-  if (playerIds(s).length >= MAX_TEAMS) return false;
+const addTeam = (s, color) => {
+  const used = usedColors(s);
+  const c = TEAM_COLORS.find((x) => x.id === color && !used.has(x.id)) || TEAM_COLORS.find((x) => !used.has(x.id));
+  if (!c || playerIds(s).length >= MAX_TEAMS) return false;
   s.teamSeq = (s.teamSeq || 0) + 1;
   const pid = `t${s.teamSeq}`;
-  const avatar = AVATARS.some((a) => a.id === team.avatar) ? team.avatar : freeAvatar(s);
-  s.players[pid] = {
-    name: cleanText(team.name, MAX_TEAM_NAME) || `קבוצה ${playerIds(s).length + 1}`,
-    avatar,
-    joinedAt: s.teamSeq,
-    online: true,
-  };
+  s.players[pid] = { name: c.name, color: c.id, joinedAt: TEAM_COLORS.indexOf(c) + 1, online: true };
   if (s.scores[pid] == null) s.scores[pid] = 0;
   return true;
 };
 
-const updateTeam = (s, pid, { name, avatar }) => {
-  const team = s.players[pid];
-  if (!team) return false;
-  if (name != null) {
-    const clean = cleanText(name, MAX_TEAM_NAME);
-    if (clean) team.name = clean;
-  }
-  if (avatar && AVATARS.some((a) => a.id === avatar)) team.avatar = avatar;
-  return true;
+// A game saved before the teams had colors (named teams with animals): every
+// team takes a color, in its order.
+export const restoreGame = (state) => {
+  if (!state || !state.classMode) return state;
+  const ids = playerIds(state);
+  if (ids.every((pid) => teamColor(state.players[pid].color))) return state;
+  const s = clone(state);
+  const used = new Set();
+  ids.forEach((pid) => {
+    const team = s.players[pid];
+    const own = teamColor(team.color);
+    const c = own && !used.has(own.id) ? own : TEAM_COLORS.find((x) => !used.has(x.id));
+    if (!c) return;
+    used.add(c.id);
+    s.players[pid] = { ...team, name: c.name, color: c.id, joinedAt: TEAM_COLORS.indexOf(c) + 1 };
+    delete s.players[pid].avatar;
+  });
+  return s;
 };
 
 // ---------------------------------------------------------------------------
@@ -171,7 +165,7 @@ export const createGame = ({ roomCode, settings, now, classMode = false }) => {
   const s = createState({ roomCode, settings, now });
   if (classMode) {
     s.classMode = true;
-    DEFAULT_TEAMS.forEach((team) => addTeam(s, team));
+    for (let i = 0; i < DEFAULT_TEAM_COUNT; i += 1) addTeam(s);
   }
   return s;
 };
@@ -1010,10 +1004,7 @@ export const reduce = (state, action, ctx) => {
       delete s.scores[action.pid];
       break;
     case 'addTeam':
-      changed = Boolean(s.classMode) && s.phase === 'lobby' && addTeam(s, action.team || {});
-      break;
-    case 'updateTeam':
-      changed = Boolean(s.classMode) && updateTeam(s, action.pid, action.team || {});
+      changed = Boolean(s.classMode) && s.phase === 'lobby' && addTeam(s, action.color);
       break;
     case 'classTap':
       changed = Boolean(s.classMode) && s.phase === 'tap' && classTap(s, action.pid, action.count, now);
@@ -1048,8 +1039,12 @@ export const reduce = (state, action, ctx) => {
 
 const publicData = (s) => {
   switch (s.phase) {
-    case 'tap':
-      return s.step === 'results' && s.tap.results ? { results: s.tap.results } : {};
+    case 'tap': {
+      const results = s.step === 'results' && s.tap.results ? { results: s.tap.results } : {};
+      // class mode: whose turn it is (the teacher's phone shows it while it listens)
+      if (s.classMode) return { order: s.tap.order || [], turn: s.tap.turn || 0, counts: s.tap.counts || {}, ...results };
+      return results;
+    }
     case 'trivia': {
       const cur = s.trivia.current;
       if (!cur || (s.step !== 'question' && s.step !== 'reveal')) return { total: s.trivia.total };

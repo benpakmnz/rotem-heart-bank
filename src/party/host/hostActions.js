@@ -65,7 +65,7 @@ const hostActions = (s) => {
       return {
         primary: null,
         secondary: [{ icon: '⏭', label: 'דילוג על המילה', action: SKIP }],
-        teamPick: cls ? { label: (name) => `${name} פיצחו!`, action: (pid) => ({ type: 'classSolve', pid }) } : null,
+        teamPick: cls ? { label: (name) => `${name} פיצח!`, action: (pid) => ({ type: 'classSolve', pid }) } : null,
       };
     case 'word:outcome':
       return { primary: { icon: '▶', label: lastWord ? 'לסיכום השלב' : 'למילה הבאה', action: NEXT }, secondary: [] };

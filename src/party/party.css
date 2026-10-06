@@ -419,6 +419,24 @@
   max-width: 10em;
 }
 
+/* a class mode team: its colored heart instead of an animal on a bubble */
+.hb-avatar-team .hb-avatar-bubble {
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  filter: drop-shadow(0 0.15em 0.3em rgba(10, 0, 30, 0.45));
+}
+
+.hb-avatar-team .hb-avatar-bubble > .hb-heart-icon {
+  width: 118%;
+  height: 118%;
+}
+
+.hb-avatar-team.hb-avatar-xl .hb-avatar-bubble,
+.hb-avatar-team.hb-avatar-xxl .hb-avatar-bubble {
+  filter: drop-shadow(0 0 0.35em rgba(255, 255, 255, 0.55)) drop-shadow(0 0.5em 1em rgba(10, 0, 30, 0.5));
+}
+
 /* ---------- timer ring ---------- */
 
 .hb-timer {

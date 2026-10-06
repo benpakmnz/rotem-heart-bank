@@ -1,4 +1,4 @@
-import { createGame, reduce, toPublic, privateMessages, nextDueAt, playableQuestions, nextPhase, playerBadges, mathExercise } from './engine';
+import { createGame, reduce, toPublic, privateMessages, nextDueAt, playableQuestions, nextPhase, playerBadges, mathExercise, restoreGame } from './engine';
 import { createDefaultSettings } from '../config/content';
 import { SCORING, CHARADES_PICK_MS, COUNTDOWN_MS, TAP_TALLY_MS, FINALE_FILL_MS, TRIVIA_GRACE_MS } from '../config/game';
 import { createRng } from '../lib/random';
@@ -554,34 +554,58 @@ describe('class mode (teams, no phones)', () => {
   };
   const teams = (g) => Object.keys(g.state.players).sort((a, b) => g.state.players[a].joinedAt - g.state.players[b].joinedAt);
 
-  test('starts with 4 teams; phones (players / inputs) are ignored', () => {
+  test('starts with 4 teams - a colored heart each; phones (players / inputs) are ignored', () => {
     const g = makeClass();
     expect(g.state.classMode).toBe(true);
-    expect(teams(g).map((pid) => g.state.players[pid].name)).toEqual(['האריות', 'הדולפינים', 'הפרפרים', 'הדבורים']);
+    expect(teams(g).map((pid) => g.state.players[pid].color)).toEqual(['red', 'blue', 'green', 'yellow']);
+    expect(teams(g).map((pid) => g.state.players[pid].name)).toEqual(['הלב האדום', 'הלב הכחול', 'הלב הירוק', 'הלב הצהוב']);
     const before = g.state;
     expect(g.dispatch({ type: 'players', players: PLAYERS })).toBe(before);
     expect(g.dispatch({ type: 'inputs', roundId: g.state.roundId, inputs: { a: { count: 5 } } })).toBe(before);
   });
 
-  test('the teacher adds, renames and removes teams in the lobby (up to 8)', () => {
+  test('the teacher adds and removes teams in the lobby: the next free color, up to 8, in the colors order', () => {
     const g = makeClass();
-    g.dispatch({ type: 'addTeam', team: { name: '  הנמרים הכי מהירים בכיתה ג׳  ' } });
-    const ids = teams(g);
-    expect(ids).toHaveLength(5);
-    const added = g.state.players[ids[4]];
-    expect(added.name.length).toBeLessThanOrEqual(18);
-    expect(added.avatar).not.toBe(g.state.players[ids[0]].avatar); // a free animal
-    g.dispatch({ type: 'updateTeam', pid: ids[0], team: { name: 'הלביאות', avatar: 'tiger' } });
-    expect(g.state.players[ids[0]]).toMatchObject({ name: 'הלביאות', avatar: 'tiger' });
-    g.dispatch({ type: 'updateTeam', pid: ids[0], team: { name: '   ', avatar: 'no-such' } });
-    expect(g.state.players[ids[0]]).toMatchObject({ name: 'הלביאות', avatar: 'tiger' });
-    g.dispatch({ type: 'removePlayer', pid: ids[1] });
-    expect(teams(g)).toHaveLength(4);
-    for (let i = 0; i < 6; i += 1) g.dispatch({ type: 'addTeam', team: {} });
+    g.dispatch({ type: 'addTeam' });
+    expect(g.state.players[teams(g)[4]]).toMatchObject({ color: 'orange', name: 'הלב הכתום' });
+    g.dispatch({ type: 'removePlayer', pid: teams(g)[1] }); // blue leaves
+    expect(teams(g).map((pid) => g.state.players[pid].color)).toEqual(['red', 'green', 'yellow', 'orange']);
+    g.dispatch({ type: 'addTeam' }); // blue comes back, in its place
+    expect(teams(g).map((pid) => g.state.players[pid].color)).toEqual(['red', 'blue', 'green', 'yellow', 'orange']);
+    g.dispatch({ type: 'addTeam', color: 'turquoise' }); // a color of choice
+    expect(g.state.players[teams(g)[5]].color).toBe('turquoise');
+    g.dispatch({ type: 'addTeam', color: 'red' }); // taken: the next free one
+    expect(teams(g).map((pid) => g.state.players[pid].color)).toEqual(['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'turquoise']);
+    g.dispatch({ type: 'addTeam' });
     expect(teams(g)).toHaveLength(8);
+    const full = g.state;
+    expect(g.dispatch({ type: 'addTeam' })).toBe(full); // 8 colors, 8 teams
+    expect(new Set(teams(g).map((pid) => g.state.players[pid].color)).size).toBe(8);
+    g.dispatch({ type: 'removePlayer', pid: teams(g)[7] });
     g.dispatch({ type: 'next' });
     const during = g.state;
-    expect(g.dispatch({ type: 'addTeam', team: { name: 'מאוחרים' } })).toBe(during); // only in the lobby
+    expect(g.dispatch({ type: 'addTeam' })).toBe(during); // only in the lobby
+  });
+
+  test('a game saved with the old named teams (animals) gets the colors', () => {
+    const g = makeClass();
+    const old = JSON.parse(JSON.stringify(g.state));
+    const ids = teams(g);
+    old.players = {
+      [ids[0]]: { name: 'האריות', avatar: 'lion', joinedAt: 1, online: true },
+      [ids[1]]: { name: 'הדולפינים', avatar: 'dolphin', joinedAt: 2, online: true },
+      [ids[2]]: { name: 'הנמרים', avatar: 'tiger', joinedAt: 3, online: true },
+    };
+    const restored = restoreGame(old);
+    expect(ids.slice(0, 3).map((pid) => restored.players[pid])).toEqual([
+      { name: 'הלב האדום', color: 'red', joinedAt: 1, online: true },
+      { name: 'הלב הכחול', color: 'blue', joinedAt: 2, online: true },
+      { name: 'הלב הירוק', color: 'green', joinedAt: 3, online: true },
+    ]);
+    expect(old.players[ids[0]].name).toBe('האריות'); // a copy
+    expect(restoreGame(g.state)).toBe(g.state); // colored teams stay as they are
+    const home = makeGame().state;
+    expect(restoreGame(home)).toBe(home); // the family game has no teams
   });
 
   test('clap meter: one team at a time, 10 hearts per clap, +500 to the loudest', () => {
@@ -601,6 +625,8 @@ describe('class mode (teams, no phones)', () => {
     g.dispatch({ type: 'classTap', pid: t1, count: 25 }); // the count only goes up
     g.dispatch({ type: 'classTap', pid: t2, count: 99 }); // not t2's turn
     expect(g.state.tap.counts).toEqual({ [t1]: 40 });
+    // the teacher's phone sees whose turn it is
+    expect(toPublic(g.state).data).toEqual({ order: [t1, t2, t3, t4], turn: 0, counts: { [t1]: 40 } });
     g.advance(10000);
     expect(g.state.step).toBe('turnDone');
     const scores = (pid) => g.state.scores[pid];

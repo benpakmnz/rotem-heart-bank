@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { SCORING } from '../../config/game';
 import { onlinePlayerIds, playerIds, tapCounts } from '../../engine/engine';
@@ -11,6 +11,7 @@ import { isLiteFx } from '../../lib/effects';
 import TimerRing from '../../shared/TimerRing';
 import useAnimatedNumber from '../../shared/useAnimatedNumber';
 import useClapMeter, { CLAPS_PER_KEY, CLAPS_PER_SECOND } from '../useClapMeter';
+import { PHONE_MIC_HEARD_PATH, usePhoneMicFeed } from '../phoneMic';
 import { isTypingTarget } from '../classTools';
 import { BigCountdown, PlayerChip, StageIntro, StageResults, TeamCountdown } from './common';
 
@@ -197,11 +198,17 @@ const release = (e, run) => {
   run();
 };
 
-// The microphone's state, its level right now and the mic / space bar switch.
-const MicPanel = ({ meter, compact = false }) => {
-  const { status, input, setInput, level, retry, resume } = meter;
+// What counts the claps (the teacher's phone, the computer's microphone or the
+// space bar), the sound's level right now, and the switch between them.
+const MicPanel = ({ meter, input, phone, onInput, compact = false }) => {
+  const { status, level, retry, resume } = meter;
   const canMic = status !== 'blocked' && status !== 'none';
-  const text = input === 'keys' && canMic ? '⌨️ נציג/ה של הקבוצה מקיש/ה על מקש הרווח - כמה שיותר מהר!' : MIC_TEXT[status];
+  let text = MIC_TEXT[status];
+  if (input === 'phone') text = '📱 הטלפון של המורה מקשיב - נסו למחוא כפיים!';
+  else if (input === 'keys' && canMic) text = '⌨️ נציג/ה של הקבוצה מקיש/ה על מקש הרווח - כמה שיותר מהר!';
+  let shownLevel = null;
+  if (input === 'phone') shownLevel = phone.level;
+  else if (input === 'mic' && status === 'on') shownLevel = level;
   return (
     <div className={`hb-mic hb-glass ${compact ? 'is-compact' : ''}`} data-testid="mic-panel" data-status={status} data-input={input}>
       {status === 'paused' && input === 'mic' ? (
@@ -211,17 +218,27 @@ const MicPanel = ({ meter, compact = false }) => {
       ) : (
         <span className="hb-mic-text">{text}</span>
       )}
-      {input === 'mic' && status === 'on' && <LevelBar level={level} />}
+      {shownLevel !== null && <LevelBar level={shownLevel} />}
       <div className="hb-mic-actions">
         <div className="hb-mic-switch" role="group" aria-label="איך סופרים את המחיאות">
-          <button type="button" className={input === 'mic' ? 'is-on' : ''} disabled={!canMic} onClick={(e) => release(e, () => setInput('mic'))}>
+          <button
+            type="button"
+            className={input === 'phone' ? 'is-on' : ''}
+            disabled={!phone.live}
+            title={phone.live ? '' : 'בטלפון: שליטה מהטלפון ← "🎤 הטלפון מקשיב"'}
+            onClick={(e) => release(e, () => onInput('phone'))}
+            data-testid="use-phone"
+          >
+            📱 טלפון
+          </button>
+          <button type="button" className={input === 'mic' ? 'is-on' : ''} disabled={!canMic} onClick={(e) => release(e, () => onInput('mic'))}>
             🎤 מיקרופון
           </button>
-          <button type="button" className={input === 'keys' ? 'is-on' : ''} onClick={(e) => release(e, () => setInput('keys'))} data-testid="use-keys">
+          <button type="button" className={input === 'keys' ? 'is-on' : ''} onClick={(e) => release(e, () => onInput('keys'))} data-testid="use-keys">
             ⌨️ מקש רווח
           </button>
         </div>
-        {status === 'blocked' && (
+        {status === 'blocked' && input !== 'phone' && (
           <button type="button" className="hb-link-btn" onClick={(e) => release(e, retry)}>
             🔄 לנסות שוב
           </button>
@@ -260,24 +277,28 @@ const TeamBoard = ({ state, current, live = 0 }) => {
 
 const teamOnTurn = (state) => (state.tap.order || [])[state.tap.turn];
 
-// One team's turn: the microphone (or the space bar) fills the heart. The
-// running count goes to the engine 4 times a second, and once more at the end.
-const ClassTapArena = ({ state, now, conn, dispatch, meter, pressRef }) => {
+// One team's turn: the microphone, the phone or the space bar fills the
+// heart. The running count goes to the engine 4 times a second, and once more
+// at the end. (The phone counts the turn itself; its count comes as it is.)
+const ClassTapArena = ({ state, now, conn, dispatch, meter, input, phone, pressRef }) => {
   const pid = teamOnTurn(state);
   const team = state.players[pid];
   const seconds = Number(state.settings.timings.classTapSeconds) || 10;
   const [claps, setClaps] = useState(() => (state.tap.counts || {})[pid] || 0);
   const [keyLevel, setKeyLevel] = useState(0);
   const rateRef = useRef(0);
-  const inputRef = useRef(meter.input);
-  inputRef.current = meter.input;
+  const inputRef = useRef(input);
+  inputRef.current = input;
   const levelRef = useRef(0);
-  levelRef.current = meter.input === 'mic' ? meter.level : keyLevel;
-  const start = useRef({ endsAt: state.endsAt, base: (state.tap.counts || {})[pid] || 0 });
+  if (input === 'mic') levelRef.current = meter.level;
+  else levelRef.current = input === 'phone' ? phone.level : keyLevel;
+  const start = useRef({ endsAt: state.endsAt, base: (state.tap.counts || {})[pid] || 0, roundId: state.roundId });
   const { frameRef } = meter;
+  const phoneRef = phone.feedRef;
 
-  useEffect(() => {
-    const { endsAt, base } = start.current;
+  // (before the screen shows the turn: a key pressed at its very start counts)
+  useLayoutEffect(() => {
+    const { endsAt, base, roundId } = start.current;
     const endLocal = performance.now() + Math.max(0, endsAt - conn.serverNow());
     const turn = { claps: base, sent: base, presses: [] };
     const counting = () => performance.now() <= endLocal;
@@ -300,6 +321,8 @@ const ClassTapArena = ({ state, now, conn, dispatch, meter, pressRef }) => {
     const id = setInterval(() => {
       ticks += 1;
       const t = performance.now();
+      const report = phoneRef.current;
+      if (inputRef.current === 'phone' && report && report.roundId === roundId) turn.claps = Math.max(turn.claps, Number(report.claps) || 0);
       turn.presses = turn.presses.filter((at) => t - at < 1000);
       setKeyLevel(Math.min(1, turn.presses.length / 8));
       setClaps(turn.claps);
@@ -312,7 +335,7 @@ const ClassTapArena = ({ state, now, conn, dispatch, meter, pressRef }) => {
       pressRef.current = null;
       send();
     };
-  }, [conn, dispatch, frameRef, pid, pressRef]);
+  }, [conn, dispatch, frameRef, phoneRef, pid, pressRef]);
 
   const level = levelRef.current;
   const fill = Math.min(1, claps / FULL_CLAPS);
@@ -338,22 +361,22 @@ const ClassTapArena = ({ state, now, conn, dispatch, meter, pressRef }) => {
           <strong>{fmt(Math.floor(claps))}</strong> מחיאות
           <span className="hb-tap-hearts"> = {fmt(Math.floor(claps) * SCORING.tapPerTap)} לבבות</span>
         </div>
-        <div className="hb-ctap-shout">{meter.input === 'keys' ? '⌨️ מהר מהר על מקש הרווח!' : '👏 חזק יותר! עוד! עוד!'}</div>
+        <div className="hb-ctap-shout">{input === 'keys' ? '⌨️ מהר מהר על מקש הרווח!' : '👏 חזק יותר! עוד! עוד!'}</div>
       </div>
     </div>
   );
 };
 
-const ClassTapCountdown = ({ state, now, meter }) => (
+const ClassTapCountdown = ({ state, now, input }) => (
   <TeamCountdown
     team={state.players[teamOnTurn(state)]}
     endsAt={state.endsAt}
     now={now}
-    caption={meter.input === 'keys' ? '⌨️ אצבע על מקש הרווח... מוכנים?' : '👏 ידיים למעלה... מוכנים למחוא כפיים?'}
+    caption={input === 'keys' ? '⌨️ אצבע על מקש הרווח... מוכנים?' : '👏 ידיים למעלה... מוכנים למחוא כפיים?'}
   />
 );
 
-const ClassTapDone = ({ state, meter }) => {
+const ClassTapDone = ({ state, mic }) => {
   const pid = teamOnTurn(state);
   const team = state.players[pid];
   const count = (state.tap.counts || {})[pid] || 0;
@@ -373,7 +396,7 @@ const ClassTapDone = ({ state, meter }) => {
           <span className="hb-tap-hearts"> = {fmt(count * SCORING.tapPerTap)} לבבות</span>
         </div>
         <div className="hb-ctap-next">{next ? `👉 התור הבא: ${next.name}` : '🏁 כל הקבוצות מחאו כפיים - לסיכום!'}</div>
-        <MicPanel meter={meter} compact />
+        <MicPanel {...mic} compact />
       </div>
     </div>
   );
@@ -381,14 +404,50 @@ const ClassTapDone = ({ state, meter }) => {
 
 // The whole clap stage: the microphone stays open from the intro to the last
 // turn. The space bar belongs to the clap meter here (the main button is on
-// Enter), and an Enter right after a turn doesn't start the next one.
+// Enter), and an Enter right after a turn doesn't start the next one. When the
+// teacher's phone starts listening it takes over (and hands back when it stops).
 const ClassTap = ({ state, now, conn, dispatch }) => {
-  const meter = useClapMeter(state.step !== 'results', state.step);
+  const playing = state.step !== 'results';
+  const meter = useClapMeter(playing, state.step);
+  const phone = usePhoneMicFeed(conn, state.settings.adminPin, playing);
+  const [phoneFirst, setPhoneFirst] = useState(true);
+  useEffect(() => {
+    if (phone.live) setPhoneFirst(true);
+  }, [phone.live]);
+  const input = phone.live && phoneFirst ? 'phone' : meter.input;
+  const { setInput } = meter;
+  const onInput = useCallback(
+    (next) => {
+      setPhoneFirst(next === 'phone');
+      if (next !== 'phone') setInput(next);
+    },
+    [setInput]
+  );
+  const mic = { meter, input, phone, onInput };
   const pressRef = useRef(null);
   const stateRef = useRef(state);
   stateRef.current = state;
-  const inputRef = useRef(meter.input);
-  inputRef.current = meter.input;
+  const inputRef = useRef(input);
+  inputRef.current = input;
+
+  // tell the phone what counts the claps
+  useEffect(() => {
+    if (!playing) return undefined;
+    const beat = () => conn.set(PHONE_MIC_HEARD_PATH, { input, at: conn.serverNow() });
+    beat();
+    const id = setInterval(beat, 1500);
+    return () => clearInterval(id);
+  }, [conn, input, playing]);
+
+  // the phone's last count of a turn comes a moment after the time is up
+  const pid = teamOnTurn(state);
+  const counted = (state.tap.counts || {})[pid] || 0;
+  const { feed } = phone;
+  useEffect(() => {
+    if (input !== 'phone' || state.step !== 'turnDone' || !feed || feed.roundId !== state.roundId) return;
+    const n = Math.floor(Number(feed.claps) || 0);
+    if (n > counted) dispatch({ type: 'classTap', pid, count: n });
+  }, [feed, input, state.step, state.roundId, pid, counted, dispatch]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -420,15 +479,15 @@ const ClassTap = ({ state, now, conn, dispatch }) => {
     case 'intro':
       return (
         <StageIntro state={state}>
-          <MicPanel meter={meter} />
+          <MicPanel {...mic} />
         </StageIntro>
       );
     case 'countdown':
-      return <ClassTapCountdown state={state} now={now} meter={meter} />;
+      return <ClassTapCountdown state={state} now={now} input={input} />;
     case 'active':
-      return <ClassTapArena state={state} now={now} conn={conn} dispatch={dispatch} meter={meter} pressRef={pressRef} />;
+      return <ClassTapArena state={state} now={now} conn={conn} dispatch={dispatch} meter={meter} input={input} phone={phone} pressRef={pressRef} />;
     case 'turnDone':
-      return <ClassTapDone state={state} meter={meter} />;
+      return <ClassTapDone state={state} mic={mic} />;
     default:
       return (
         <StageResults state={state}>

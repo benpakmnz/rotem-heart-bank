@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ANSWER_COLORS, heartKind, stageInfo, stageOrder, STAGE_IDS } from '../config/game';
 import { connectRoom } from '../net/room';
-import { useConnectionStatus, useRoomValue } from '../net/hooks';
+import { useConnectionStatus, useRoomValue, useServerNow } from '../net/hooks';
 import { ADMIN_PATH, isValidRoomCode, ROOM_CODE_LENGTH } from '../routes';
 import { readJson, writeJson } from '../lib/storage';
 import { randomId } from '../lib/random';
@@ -12,6 +12,8 @@ import { GlossyHeart } from '../shared/Heart';
 import PartyBackdrop from '../shared/PartyBackdrop';
 import PlayerPicker from '../shared/PlayerPicker';
 import SettingsPanel from '../host/SettingsPanel';
+import { PHONE_MIC_HEARD_PATH } from '../host/phoneMic';
+import usePhoneMic from './usePhoneMic';
 import ErrorBoundary from '../shared/ErrorBoundary';
 import '../player/player.css';
 import '../host/host.css';
@@ -224,9 +226,86 @@ const ClassHearts = ({ pick, math, send }) => {
   );
 };
 
+// Class mode's clap stage: the phone listens instead of the computer.
+const MIC_STATES = {
+  asking: '🎤 אשרו בחלון שנפתח את השימוש במיקרופון',
+  blocked: '🔇 המיקרופון חסום לאתר הזה. אפשר לאשר אותו בהגדרות הדפדפן (ליד הכתובת) ולנסות שוב.',
+  none: '🔇 לא מצאנו מיקרופון בטלפון הזה.',
+  stopped: '⏸️ הטלפון הפסיק להקשיב (המסך כבה, או שאפליקציה אחרת לקחה את המיקרופון).',
+};
+
+const TV_HEARS = {
+  phone: '✅ המחשב סופר את המחיאות מהטלפון',
+  mic: '⚠️ המחשב סופר עכשיו במיקרופון שלו - אפשר לבחור במסך "📱 טלפון"',
+  keys: '⚠️ המחשב סופר עכשיו במקש הרווח - אפשר לבחור במסך "📱 טלפון"',
+};
+
+const PhoneLevel = ({ level }) => (
+  <div className="hb-admin-vu" dir="ltr" aria-hidden="true">
+    {Array.from({ length: 16 }, (_, i) => (
+      <span key={i} className={level * 16 > i + 0.01 ? 'is-lit' : ''} style={{ '--hb-vu-hue': Math.round(130 - (i / 15) * 130) }} />
+    ))}
+  </div>
+);
+
+const PhoneMic = ({ conn, mic, state }) => {
+  const now = useServerNow(conn, 1000);
+  const heard = useRoomValue(conn, PHONE_MIC_HEARD_PATH);
+  const tvHears = heard && now - Number(heard.at) < 4000 ? heard.input : null;
+  const listening = mic.status === 'on' || mic.status === 'paused';
+  const data = state.data || {};
+  const pid = state.phase === 'tap' && Array.isArray(data.order) ? data.order[data.turn] : null;
+  const team = pid && state.teams ? state.teams[pid] : null;
+  const claps = mic.turn && mic.turn.roundId === state.roundId ? mic.turn.claps : 0;
+  let line = '👂 הטלפון מוכן - הוא יספור את המחיאות בשלב "מטר מחיאות הכפיים".';
+  if (state.phase === 'tap') {
+    if (team && state.step === 'countdown') line = `⏳ ${team.name} מתכוננים...`;
+    else if (team && state.step === 'active') line = `👏 ${team.name}: ${fmt(claps)} מחיאות!`;
+    else if (team && state.step === 'turnDone') line = `${team.name}: ${fmt(claps)} מחיאות`;
+    else line = '👂 מקשיב... רגע של שקט בכיתה לפני התור הראשון מכוון את המדידה.';
+  }
+  return (
+    <Section title="🎤 מחיאות הכפיים - דרך הטלפון" className="hb-admin-mic">
+      {listening ? (
+        <>
+          <PhoneLevel level={mic.level} />
+          {mic.status === 'paused' ? (
+            <button type="button" className="hb-btn hb-btn-primary hb-btn-block" onClick={mic.resume}>
+              ▶ להמשיך להקשיב
+            </button>
+          ) : (
+            <p className="hb-admin-mic-turn" data-testid="admin-mic-turn">
+              {line}
+            </p>
+          )}
+          {(tvHears || state.phase === 'tap') && (
+            <p className={`hb-admin-help ${tvHears === 'phone' ? 'is-good' : ''}`} data-testid="admin-mic-tv">
+              {TV_HEARS[tvHears] || '⏳ מחכים שהמחשב יתחבר לטלפון...'}
+            </p>
+          )}
+          <button type="button" className="hb-btn hb-btn-soft hb-btn-block" onClick={mic.stop} data-testid="admin-mic-stop">
+            ⏹ להפסיק להקשיב
+          </button>
+        </>
+      ) : (
+        <>
+          <p className="hb-admin-help">
+            {MIC_STATES[mic.status] || 'הטלפון יכול להקשיב למחיאות הכפיים במקום המחשב: מחזיקים אותו מול הקבוצה שבתור, כ-2 מטרים ממנה - באותו מרחק לכל הקבוצות.'}
+          </p>
+          {mic.status !== 'asking' && mic.status !== 'none' && (
+            <button type="button" className="hb-btn hb-btn-primary hb-btn-block" onClick={mic.start} data-testid="admin-mic-start">
+              {mic.status === 'off' ? '🎤 הטלפון מקשיב' : '🎤 להקשיב שוב'}
+            </button>
+          )}
+        </>
+      )}
+    </Section>
+  );
+};
+
 // ---------- the console ----------
 
-const Console = ({ conn, code, send, onLogout }) => {
+const Console = ({ conn, code, pin, send, onLogout }) => {
   const state = useRoomValue(conn, 'state');
   const view = useRoomValue(conn, 'admin/view');
   const joined = useRoomValue(conn, 'players', { throttleMs: 400 }) || {};
@@ -238,6 +317,14 @@ const Console = ({ conn, code, send, onLogout }) => {
   const [message, setMessage] = useState(null);
   const [settings, setSettings] = useState(null);
   const [showJump, setShowJump] = useState(false);
+  const mic = usePhoneMic(conn, state, pin);
+  // the phone listens in the clap stage (it can start in the lobby), and stops after it
+  const micStage =
+    classMode && (state.stages || []).includes('tap') && (state.phase === 'lobby' || (state.phase === 'tap' && state.step !== 'results'));
+  const { status: micStatus, stop: stopMic } = mic;
+  useEffect(() => {
+    if (!micStage && micStatus !== 'off') stopMic();
+  }, [micStage, micStatus, stopMic]);
 
   const flash = (text, good = false) => {
     setMessage({ text, good, at: Date.now() });
@@ -316,7 +403,7 @@ const Console = ({ conn, code, send, onLogout }) => {
                 onClick={() => run({ type: 'action', key: a.key, roundId: view.roundId, step: view.step }, a.key)}
                 data-testid={`admin-action-${a.key}`}
               >
-                <span>{a.icon}</span> {a.label}
+                <span>{a.heart ? <GlossyHeart from={a.heart[0]} to={a.heart[1]} /> : a.icon}</span> {a.label}
               </button>
             ))
           ) : (
@@ -334,6 +421,8 @@ const Console = ({ conn, code, send, onLogout }) => {
           </div>
         )}
       </Section>
+
+      {micStage && <PhoneMic conn={conn} mic={mic} state={state} />}
 
       {view && view.mark && <ClassMark mark={view.mark} players={players} send={run} />}
 
@@ -509,7 +598,7 @@ const AdminRoom = ({ code, pin, onFail, onLogout }) => {
       </div>
     );
   }
-  return <Console conn={conn} code={code} send={send} onLogout={onLogout} />;
+  return <Console conn={conn} code={code} pin={pin} send={send} onLogout={onLogout} />;
 };
 
 const hashPin = () => {

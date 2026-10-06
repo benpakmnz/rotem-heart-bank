@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { normalizeSettings } from '../config/content';
 import { avatarById } from '../config/avatars';
+import { teamColor } from '../config/teams';
 import { playerIds } from '../engine/engine';
 import hostActions from './hostActions';
 
@@ -13,9 +14,12 @@ export const adminView = (s) => {
   const actions = [];
   if (primary) actions.push({ key: 'primary', icon: primary.icon, label: primary.label, disabled: Boolean(primary.disabled), primary: true });
   if (teamPick) {
-    playerIds(s).forEach((pid) =>
-      actions.push({ key: `team:${pid}`, icon: avatarById(s.players[pid].avatar).emoji, label: teamPick.label(s.players[pid].name) })
-    );
+    playerIds(s).forEach((pid) => {
+      const team = s.players[pid];
+      const color = teamColor(team.color);
+      // a team's heart (the phone draws it in the team's colors)
+      actions.push({ key: `team:${pid}`, icon: color ? '' : avatarById(team.avatar).emoji, heart: color ? color.colors : null, label: teamPick.label(team.name) });
+    });
   }
   secondary.forEach((b, i) => actions.push({ key: `s${i}`, icon: b.icon, label: b.label, disabled: Boolean(b.disabled) }));
   const cur = s.phase === 'charades' && s.charades && s.charades.current;
