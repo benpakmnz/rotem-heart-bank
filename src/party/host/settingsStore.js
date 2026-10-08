@@ -1,4 +1,4 @@
-import { createDefaultSettings, normalizeSettings, TRIVIA_VERSION, WORDS_VERSION } from '../config/content';
+import { CLASS_CHARADES, CLASS_TRIVIA_CHANGES, CLASS_TRIVIA_IDS, createDefaultSettings, normalizeSettings, TRIVIA_VERSION, WORDS_VERSION } from '../config/content';
 import { readJson, writeJson } from '../lib/storage';
 
 // The content editor's result is kept on the TV computer for future games
@@ -38,6 +38,16 @@ export const refreshWords = (saved, builtIn) => {
 const CLASS_LEFT_OUT = ['word'];
 const CLASS_STAGES_VERSION = 1;
 
+// The class's questions (the others turned off) and charades - also once per
+// saved copy, so the teacher's later edits stay.
+const CLASS_CONTENT_VERSION = 1;
+export const classContent = (settings) => ({
+  ...settings,
+  trivia: settings.trivia.map((q) => (q.id ? { ...q, ...(CLASS_TRIVIA_CHANGES[q.id] || {}), off: !CLASS_TRIVIA_IDS.includes(q.id) } : q)),
+  charades: CLASS_CHARADES.slice(),
+  classContentVersion: CLASS_CONTENT_VERSION,
+});
+
 export const loadSettings = (key = SETTINGS_KEY) => {
   const saved = readJson(key);
   // questions saved before the built-in ones changed give way to the new ones
@@ -54,7 +64,9 @@ export const loadSettings = (key = SETTINGS_KEY) => {
   if (classStages) {
     settings = { ...settings, stages: settings.stages.filter((id) => !CLASS_LEFT_OUT.includes(id)), classStagesVersion: CLASS_STAGES_VERSION };
   }
+  const classTexts = key === CLASS_SETTINGS_KEY && (!saved || saved.classContentVersion !== CLASS_CONTENT_VERSION);
+  if (classTexts) settings = classContent(settings);
   // keep a new admin PIN (and new defaults) for the next games
-  if (!saved || stale || staleWords || classStages || saved.adminPin !== settings.adminPin) saveSettings(settings, key);
+  if (!saved || stale || staleWords || classStages || classTexts || saved.adminPin !== settings.adminPin) saveSettings(settings, key);
   return settings;
 };

@@ -1,5 +1,5 @@
-import { loadSettings, refreshTrivia, refreshWords } from './settingsStore';
-import { DEFAULT_CONTENT, TRIVIA_VERSION, WORDS_VERSION, createDefaultSettings, normalizeSettings } from '../config/content';
+import { CLASS_SETTINGS_KEY, loadSettings, refreshTrivia, refreshWords } from './settingsStore';
+import { CLASS_CHARADES, CLASS_TRIVIA_IDS, DEFAULT_CONTENT, TRIVIA_VERSION, WORDS_VERSION, createDefaultSettings, normalizeSettings } from '../config/content';
 import { playableQuestions, playableWords } from '../engine/engine';
 
 const KEY = 'hb-settings-v1';
@@ -92,4 +92,25 @@ test('class mode leaves out the word stage once; the teacher can turn it back on
   const back = { ...JSON.parse(window.localStorage.getItem(CLASS)), stages: ['tap', 'trivia', 'word'] };
   window.localStorage.setItem(CLASS, JSON.stringify(back));
   expect(loadSettings(CLASS).stages).toEqual(['tap', 'trivia', 'word']);
+});
+
+test('class mode: 8 questions for the class (the rest off), the short bike answers and simple charades', () => {
+  const settings = loadSettings(CLASS_SETTINGS_KEY);
+  expect(playableQuestions(settings).map((q) => q.q)).toEqual(DEFAULT_CONTENT.trivia.filter((q) => CLASS_TRIVIA_IDS.includes(q.id)).map((q) => q.q));
+  expect(playableQuestions(settings)).toHaveLength(8);
+  expect(settings.trivia).toHaveLength(DEFAULT_CONTENT.trivia.length); // still in the pool
+  const bike = settings.trivia.find((q) => q.id === 'bike');
+  expect(bike.options[bike.correct]).toBe('אבא - אבל בעיקר לבד');
+  expect(new Set(bike.options).size).toBe(4);
+  expect(settings.charades).toEqual(CLASS_CHARADES);
+  // the teacher's later edits stay
+  const edited = { ...settings, charades: ['לרקוד'], trivia: settings.trivia.map((q) => (q.id === 'nitzan' ? { ...q, off: false } : q)) };
+  window.localStorage.setItem(CLASS_SETTINGS_KEY, JSON.stringify(edited));
+  const again = loadSettings(CLASS_SETTINGS_KEY);
+  expect(again.charades).toEqual(['לרקוד']);
+  expect(playableQuestions(again)).toHaveLength(9);
+  // the family game is unchanged
+  const home = loadSettings();
+  expect(playableQuestions(home)).toHaveLength(DEFAULT_CONTENT.trivia.length);
+  expect(home.charades).toEqual(DEFAULT_CONTENT.charades);
 });

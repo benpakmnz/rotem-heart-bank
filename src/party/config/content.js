@@ -137,6 +137,39 @@ export const DEFAULT_CONTENT = {
   ],
 };
 
+// Class mode (a 2nd grade class): fewer questions about Rotem - the rest stay
+// in the pool, turned off - and simple charades a 7-year-old can read and act.
+export const CLASS_TRIVIA_IDS = ['unicorns', 'teeth', 'costume', 'subject', 'height', 'bike', 'cake', 'candy'];
+export const CLASS_TRIVIA_CHANGES = {
+  bike: { options: ['שחר', 'אמא', 'סבא', 'אבא - אבל בעיקר לבד'], correct: 3 },
+};
+export const CLASS_CHARADES = [
+  'לאכול גלידה 🍦',
+  'לכבות נרות על עוגה 🎂',
+  'לפתוח מתנה 🎁',
+  'לנפח בלון 🎈',
+  'לשחות 🏊',
+  'לרכוב על אופניים 🚲',
+  'לצחצח שיניים 🦷',
+  'לישון 😴',
+  'לקרוא ספר 📖',
+  'לשחק כדורגל ⚽',
+  'לנהוג באוטו 🚗',
+  'לשיר במיקרופון 🎤',
+  'לצייר ציור 🎨',
+  'תינוק שבוכה 👶',
+  'מלך עם כתר 👑',
+  'רובוט 🤖',
+  'קוף 🐒',
+  'כלב 🐶',
+  'חתול 🐱',
+  'ארנב שקופץ 🐰',
+  'פרפר 🦋',
+  'צפרדע 🐸',
+  'פיל 🐘',
+  'נחש 🐍',
+];
+
 // The admin's phone logs in with this PIN (see README). Random per TV.
 export const randomPin = () => String(1000 + Math.floor(Math.random() * 9000));
 
