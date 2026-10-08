@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ANSWER_COLORS, heartKind, stageInfo, stageOrder, STAGE_IDS } from '../config/game';
+import { ANSWER_COLORS, heartKind, MAX_BLESSING_LENGTH, stageInfo, stageOrder, STAGE_IDS } from '../config/game';
 import { connectRoom } from '../net/room';
 import { useConnectionStatus, useRoomValue, useServerNow } from '../net/hooks';
 import { ADMIN_PATH, isValidRoomCode, ROOM_CODE_LENGTH } from '../routes';
@@ -154,7 +154,7 @@ const HuntTools = ({ state, players, send }) => {
 const ClassMark = ({ mark, players, send }) => (
   <Section title="✋ איזה כרטיס כל קבוצה הרימה?">
     <div className="hb-admin-mark">
-      {mark.teams
+      {(mark.teams || [])
         .filter((t) => players[t.pid])
         .map((t) => (
           <div key={t.pid} className="hb-admin-mark-row">
@@ -182,6 +182,7 @@ const ClassMark = ({ mark, players, send }) => (
 );
 
 // Class mode's hearts board: the number the team called, then its answer.
+// (Firebase drops empty lists: no `picked` before the turn's first pick.)
 const ClassHearts = ({ pick, math, send }) => {
   if (math) {
     const text = `${math.a} ${math.op === '-' ? '−' : '+'} ${math.b}`;
@@ -214,7 +215,7 @@ const ClassHearts = ({ pick, math, send }) => {
             key={n}
             type="button"
             className="hb-btn hb-btn-soft"
-            disabled={pick.picked.includes(n)}
+            disabled={(pick.picked || []).includes(n)}
             onClick={() => send({ type: 'classPick', n }, `pick-${n}`)}
             data-testid={`admin-heart-${n}`}
           >
@@ -222,6 +223,58 @@ const ClassHearts = ({ pick, math, send }) => {
           </button>
         ))}
       </div>
+    </Section>
+  );
+};
+
+// Class mode's blessings: the teacher types the teams' words on the phone too.
+const ClassBlessings = ({ blessings, send }) => {
+  const [text, setText] = useState('');
+  const [sent, setSent] = useState(null);
+  const submit = async (word) => {
+    const clean = String(word || '').trim();
+    if (!clean) return;
+    const res = await send({ type: 'classBlessing', text: clean }, 'bless');
+    if (res.ok) {
+      setSent(clean);
+      if (clean === text.trim()) setText('');
+    }
+  };
+  return (
+    <Section title={`💌 מילה של ברכה (${blessings.count} בענן)`}>
+      <form
+        className="hb-admin-bless"
+        onSubmit={(e) => {
+          e.preventDefault();
+          submit(text);
+        }}
+      >
+        <input
+          className="hb-input"
+          value={text}
+          maxLength={MAX_BLESSING_LENGTH}
+          placeholder="מה הקבוצה מאחלת?"
+          aria-label="מילה של ברכה"
+          onChange={(e) => setText(e.target.value)}
+          data-testid="admin-bless-input"
+        />
+        <button type="submit" className="hb-btn hb-btn-primary hb-btn-block" disabled={!text.trim()} data-testid="admin-bless-send">
+          💌 לשלוח לענן
+        </button>
+      </form>
+      {sent && <p className="hb-admin-help is-good">✅ נשלח: {sent}</p>}
+      {(blessings.suggestions || []).length > 0 && (
+        <>
+          <p className="hb-admin-help">או לחיצה על מילה מוכנה:</p>
+          <div className="hb-admin-bless-chips">
+            {(blessings.suggestions || []).map((w) => (
+              <button key={w} type="button" className="hb-btn hb-btn-soft" onClick={() => submit(w)}>
+                {w}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </Section>
   );
 };
@@ -425,7 +478,7 @@ const Console = ({ conn, code, pin, send, onLogout }) => {
               </button>
             ))
           ) : (
-            <p className="hb-admin-help">{view && view.huntMath ? '👇 הזינו למטה את התשובה של הקבוצה' : 'אין כרגע כפתורים - המשחק רץ לבד ⏳'}</p>
+            <p className="hb-admin-help">{view && (view.huntMath || view.huntPick || view.blessings) ? '👇 ממשיכים למטה' : 'אין כרגע כפתורים - המשחק רץ לבד ⏳'}</p>
           )}
         </div>
         {view && view.concept && (
@@ -452,6 +505,8 @@ const Console = ({ conn, code, pin, send, onLogout }) => {
       )}
 
       {view && view.mark && <ClassMark mark={view.mark} players={players} send={run} />}
+
+      {view && view.blessings && <ClassBlessings blessings={view.blessings} send={run} />}
 
       {view && (view.huntPick || view.huntMath) && <ClassHearts pick={view.huntPick} math={view.huntMath} send={run} />}
 

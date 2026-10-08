@@ -37,6 +37,11 @@ export const adminView = (s) => {
     // class mode's hearts board: the numbers a team can still call, then the exercise (and its answer)
     huntPick: hunt && s.step === 'pick' ? { picked: hunt.picks.filter((p) => p.board === hunt.turn).map((p) => p.n), size: hunt.boards[hunt.turn].hearts.length } : null,
     huntMath: hunt && s.step === 'exercise' && hunt.current ? { n: hunt.current.n, a: hunt.current.a, b: hunt.current.b, op: hunt.current.op, answer: hunt.current.answer } : null,
+    // class mode: the blessing words, typed on the phone too
+    blessings:
+      s.classMode && s.phase === 'blessings' && s.step === 'write' && s.blessings
+        ? { count: s.blessings.list.length, suggestions: s.settings.blessingSuggestions || [] }
+        : null,
     // class mode: the cards the teams raised, entered from the phone too
     mark:
       s.classMode && question && (s.step === 'question' || s.step === 'mark')
@@ -110,6 +115,11 @@ const useAdminBridge = ({ conn, state, dispatch, onSaveSettings, onRemovePlayer 
           if (!s.classMode) return { ok: false, error: 'unknown' };
           dispatch({ type: 'classMath', value: cmd.value === null || cmd.value === undefined ? null : Number(cmd.value) });
           return { ok: true };
+        case 'classBlessing': {
+          if (!s.classMode) return { ok: false, error: 'unknown' };
+          const next = dispatch({ type: 'classBlessing', text: String(cmd.text || '') });
+          return next === s ? { ok: false, error: 'unavailable' } : { ok: true };
+        }
         case 'goto':
           dispatch({ type: 'goto', phase: String(cmd.phase || '') });
           return { ok: true };

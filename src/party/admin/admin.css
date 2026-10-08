@@ -449,3 +449,27 @@
     opacity: 0;
   }
 }
+
+/* class mode: blessings typed on the phone */
+.hb-admin-bless {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.hb-admin-bless-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.hb-admin-bless-chips .hb-btn {
+  font-size: 1rem;
+  padding: 0.45rem 0.9rem;
+}
+
+.hb-admin-card .hb-admin-help.is-good {
+  color: #86efac;
+  font-weight: 700;
+}
