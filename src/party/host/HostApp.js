@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { allocateRoom, connectRoom, transportMode } from '../net/room';
-import { createGame, PHASES, restoreGame } from '../engine/engine';
+import { createGame, PHASES, restoreGame, withSavedContent } from '../engine/engine';
 import { readJson, removeKey } from '../lib/storage';
 import { LogoHeart } from '../shared/Heart';
 import HostGame from './HostGame';
@@ -39,7 +39,8 @@ const bootHost = async (classMode) => {
     Date.now() - saved.savedAt < SESSION_MAX_AGE;
   if (fresh) {
     const conn = await connectRoom(saved.state.roomCode, { role: 'host', local: saved.mode === 'local' });
-    return { conn, initialState: restoreGame(saved.state), mode: saved.mode };
+    const settings = loadSettings(settingsKeyFor(classMode));
+    return { conn, initialState: withSavedContent(restoreGame(saved.state), settings), mode: saved.mode };
   }
   let conn;
   if (classMode && mode !== 'local') {

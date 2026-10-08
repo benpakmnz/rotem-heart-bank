@@ -1,4 +1,4 @@
-import { createGame, reduce, toPublic, privateMessages, nextDueAt, playableQuestions, nextPhase, playerBadges, mathExercise, restoreGame } from './engine';
+import { createGame, reduce, toPublic, privateMessages, nextDueAt, playableQuestions, nextPhase, playerBadges, mathExercise, restoreGame, withSavedContent } from './engine';
 import { createDefaultSettings } from '../config/content';
 import { SCORING, CHARADES_PICK_MS, COUNTDOWN_MS, TAP_TALLY_MS, FINALE_FILL_MS, TRIVIA_GRACE_MS } from '../config/game';
 import { createRng } from '../lib/random';
@@ -837,4 +837,17 @@ describe('class mode (teams, no phones)', () => {
     expect(g.state.target).toBeLessThan(200000);
     expect(toPublic(g.state).classMode).toBe(true);
   });
+});
+
+test('a resumed game takes the content saved since: all of it in the lobby, later only for stages not started', () => {
+  const settings = createDefaultSettings();
+  const g = createGame({ roomCode: '1234', settings, now: 1000, classMode: true });
+  const fresh = { ...createDefaultSettings(), charades: ['קוֹף 🐒'], trivia: [{ q: 'שְׁאֵלָה?', options: ['א', 'ב'], correct: 0 }], adminPin: '9999' };
+  const lobby = withSavedContent(g, fresh);
+  expect(lobby.settings.charades).toEqual(['קוֹף 🐒']);
+  expect(lobby.settings.trivia).toEqual(fresh.trivia);
+  expect(lobby.settings.adminPin).toBe(g.settings.adminPin); // the phone stays logged in
+  const later = withSavedContent({ ...g, phase: 'trivia', trivia: { total: 3 } }, fresh);
+  expect(later.settings.trivia).toBe(g.settings.trivia); // the trivia already began
+  expect(later.settings.charades).toEqual(['קוֹף 🐒']); // the charades not yet
 });

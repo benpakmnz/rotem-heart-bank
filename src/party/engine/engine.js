@@ -158,6 +158,23 @@ export const restoreGame = (state) => {
   return s;
 };
 
+// A game resumed after a refresh takes the content saved since it began (new
+// questions, charades, words): all of it while still in the lobby, and later
+// for the stages that haven't started yet.
+export const withSavedContent = (state, settings) => {
+  if (!state || !settings) return state;
+  if (state.phase === 'lobby') return { ...state, settings: { ...settings, adminPin: state.settings.adminPin } };
+  return {
+    ...state,
+    settings: {
+      ...state.settings,
+      ...(state.trivia ? {} : { trivia: settings.trivia }),
+      ...(state.charades ? {} : { charades: settings.charades }),
+      ...(state.word ? {} : { words: settings.words }),
+    },
+  };
+};
+
 // ---------------------------------------------------------------------------
 // State
 
