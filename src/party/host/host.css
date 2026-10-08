@@ -1578,3 +1578,14 @@
   color: #fff;
   box-shadow: 0 0 0 0.15em #fff, 0 0 1.2em rgba(249, 115, 22, 0.8);
 }
+
+/* class mode: the game moves on from the teacher's phone */
+.hb-phone-only {
+  align-self: center;
+  padding: 0.55em 1.1em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.3);
+  color: var(--hb-text-soft);
+  font-weight: 700;
+}

@@ -36,6 +36,8 @@ import HuntScreen from './screens/HuntScreen';
 import { playerBadges } from '../engine/engine';
 
 const MUTE_KEY = 'hb-muted';
+// class mode: the game moves on from the teacher's phone only (the menu can allow the TV too)
+const PHONE_ONLY_KEY = 'hb-class-phone-only';
 // 'on' / 'off'; never set: on, except in TV browsers (they struggle with it)
 const MUSIC_KEY = 'hb-music-v2';
 
@@ -109,11 +111,13 @@ const AwardsLayer = ({ awards, players, now }) => {
 
 // (the buttons rest a moment after each step, and the ones that end or skip a
 // turn ask for a second click)
-const HostControls = ({ actions, onAction, menu, stepKey }) => {
+const HostControls = ({ actions, onAction, menu, stepKey, phoneOnly }) => {
   const [open, setOpen] = useState(false);
   const cooling = useCooldown(stepKey);
   const confirm = useConfirmTap(stepKey);
-  const { primary, secondary } = actions;
+  // class mode: the buttons are on the teacher's phone only
+  const { primary, secondary } = phoneOnly ? { primary: null, secondary: [] } : actions;
+  const waiting = phoneOnly && (actions.primary || actions.secondary.length > 0);
   return (
     <div className="hb-controls">
       {primary && (
@@ -148,6 +152,11 @@ const HostControls = ({ actions, onAction, menu, stepKey }) => {
           </button>
         );
       })}
+      {waiting && (
+        <span className="hb-phone-only" data-testid="phone-only">
+          📱 ממשיכים מהטלפון
+        </span>
+      )}
       <div className="hb-menu-wrap">
         <button
           type="button"
@@ -235,6 +244,11 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
     const saved = readJson(MUSIC_KEY);
     return saved ? saved === 'on' : !isTvBrowser();
   });
+  const [phoneOnlyChosen, setPhoneOnlyChosen] = useState(() => readJson(PHONE_ONLY_KEY) !== false);
+  // (without the game server the phone can't connect: the TV keeps its buttons)
+  const phoneOnly = Boolean(state.classMode) && mode !== 'local' && phoneOnlyChosen;
+  const phoneOnlyRef = useRef(phoneOnly);
+  phoneOnlyRef.current = phoneOnly;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [notice, setNotice] = useState(null);
@@ -309,7 +323,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
       if (coveredRef.current || settingsOpen || isTyping(e.target) || e.repeat || e.defaultPrevented) return;
       if (e.key === 'Enter' || e.key === ' ') {
         const { primary } = actionsRef.current;
-        if (primary && !primary.disabled && Date.now() - stepAt.current >= COOLDOWN_MS) {
+        if (primary && !primary.disabled && !phoneOnlyRef.current && Date.now() - stepAt.current >= COOLDOWN_MS) {
           e.preventDefault();
           dispatch(primary.action);
         }
@@ -347,6 +361,20 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
     ...(onShowSaver ? [{ key: 'saver', icon: '🎈', label: 'שומר מסך', run: onShowSaver }] : []),
     ...(state.classMode
       ? [
+          ...(mode !== 'local'
+            ? [
+                {
+                  key: 'phone-only',
+                  icon: phoneOnly ? '🖱️' : '📱',
+                  label: phoneOnly ? 'לאפשר להתקדם גם מהמחשב' : 'להתקדם רק מהטלפון',
+                  run: () =>
+                    setPhoneOnlyChosen((v) => {
+                      writeJson(PHONE_ONLY_KEY, !v);
+                      return !v;
+                    }),
+                },
+              ]
+            : []),
           { key: 'signs', icon: '🔺', label: 'שלטי הקבוצות להדפסה', run: openTeamSigns },
           { key: 'cards', icon: '🖨️', label: 'כרטיסי תשובה להדפסה', run: openAnswerCards },
         ]
@@ -407,7 +435,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
       <main className="hb-tv-main" key={`${state.phase}`}>
         {renderScreen(screenProps)}
       </main>
-      <HostControls actions={actions} onAction={dispatch} menu={menu} stepKey={stepKey} />
+      <HostControls actions={actions} onAction={dispatch} menu={menu} stepKey={stepKey} phoneOnly={phoneOnly} />
       {state.phase !== 'lobby' && <AwardsLayer awards={state.awards} players={state.players} now={now} />}
       {settingsOpen && (
         <SettingsPanel
