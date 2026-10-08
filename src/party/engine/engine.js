@@ -123,7 +123,7 @@ export const rankPlayers = (s) =>
 // the colors' order - the order of the turns too.
 
 export const MAX_TEAMS = TEAM_COLORS.length;
-export const DEFAULT_TEAM_COUNT = 4;
+export const DEFAULT_TEAM_COUNT = 5;
 
 const usedColors = (s) => new Set(playerIds(s).map((pid) => s.players[pid].color));
 
@@ -138,13 +138,24 @@ const addTeam = (s, color) => {
   return true;
 };
 
-// A game saved before the teams had colors (named teams with animals): every
-// team takes a color, in its order.
+// The 4 teams a new class game started with before light blue, purple, pink,
+// green and yellow came first.
+const OLD_DEFAULT_COLORS = ['blue', 'green', 'red', 'yellow'];
+
+// A saved class game, resumed: teams saved before they had colors (named,
+// with animals) take colors in their order; a lobby still holding the old 4
+// default teams gets the new 5; and the teams follow the colors' order.
 export const restoreGame = (state) => {
   if (!state || !state.classMode) return state;
-  const ids = playerIds(state);
-  if (ids.every((pid) => teamColor(state.players[pid].color))) return state;
   const s = clone(state);
+  const ids = playerIds(s);
+  const colors = ids.map((pid) => s.players[pid].color).sort();
+  if (s.phase === 'lobby' && colors.join() === OLD_DEFAULT_COLORS.join()) {
+    s.players = {};
+    s.scores = {};
+    for (let i = 0; i < DEFAULT_TEAM_COUNT; i += 1) addTeam(s);
+    return s;
+  }
   const used = new Set();
   ids.forEach((pid) => {
     const team = s.players[pid];
@@ -155,7 +166,7 @@ export const restoreGame = (state) => {
     s.players[pid] = { ...team, name: c.name, color: c.id, joinedAt: TEAM_COLORS.indexOf(c) + 1 };
     delete s.players[pid].avatar;
   });
-  return s;
+  return JSON.stringify(s) === JSON.stringify(state) ? state : s;
 };
 
 // A game resumed after a refresh takes the content saved since it began (new

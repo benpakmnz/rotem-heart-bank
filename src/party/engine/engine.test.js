@@ -1,4 +1,4 @@
-import { createGame, reduce, toPublic, privateMessages, nextDueAt, playableQuestions, nextPhase, playerBadges, mathExercise, restoreGame, withSavedContent } from './engine';
+import { createGame, reduce, toPublic, privateMessages, nextDueAt, playableQuestions, nextPhase, playerBadges, mathExercise, restoreGame, withSavedContent, playerIds } from './engine';
 import { createDefaultSettings } from '../config/content';
 import { SCORING, CHARADES_PICK_MS, COUNTDOWN_MS, TAP_TALLY_MS, FINALE_FILL_MS, TRIVIA_GRACE_MS } from '../config/game';
 import { createRng } from '../lib/random';
@@ -539,9 +539,15 @@ describe('stage "hunt" - hidden hearts', () => {
 });
 
 describe('class mode (teams, no phones)', () => {
-  const makeClass = (settings = createDefaultSettings()) => {
+  // (most tests play with 4 teams; a new game has 5)
+  const makeClass = (settings = createDefaultSettings(), count = 4) => {
     const g = { now: 1000000, rng: createRng(11), state: null };
     g.state = createGame({ roomCode: '5678', settings, now: g.now, classMode: true });
+    playerIds(g.state)
+      .slice(count)
+      .forEach((pid) => {
+        g.state = reduce(g.state, { type: 'removePlayer', pid }, { now: g.now, rng: g.rng });
+      });
     g.dispatch = (action) => {
       g.state = reduce(g.state, action, { now: g.now, rng: g.rng });
       return g.state;
@@ -554,33 +560,31 @@ describe('class mode (teams, no phones)', () => {
   };
   const teams = (g) => Object.keys(g.state.players).sort((a, b) => g.state.players[a].joinedAt - g.state.players[b].joinedAt);
 
-  test('starts with 4 teams - a colored heart each; phones (players / inputs) are ignored', () => {
-    const g = makeClass();
+  test('starts with 5 teams - a colored heart each; phones (players / inputs) are ignored', () => {
+    const g = makeClass(undefined, 5);
     expect(g.state.classMode).toBe(true);
-    expect(teams(g).map((pid) => g.state.players[pid].color)).toEqual(['red', 'blue', 'green', 'yellow']);
-    expect(teams(g).map((pid) => g.state.players[pid].name)).toEqual(['הלב האדום', 'הלב הכחול', 'הלב הירוק', 'הלב הצהוב']);
+    expect(teams(g).map((pid) => g.state.players[pid].color)).toEqual(['turquoise', 'purple', 'pink', 'green', 'yellow']);
+    expect(teams(g).map((pid) => g.state.players[pid].name)).toEqual(['הלב התכלת', 'הלב הסגול', 'הלב הוורוד', 'הלב הירוק', 'הלב הצהוב']);
     const before = g.state;
     expect(g.dispatch({ type: 'players', players: PLAYERS })).toBe(before);
     expect(g.dispatch({ type: 'inputs', roundId: g.state.roundId, inputs: { a: { count: 5 } } })).toBe(before);
   });
 
   test('the teacher adds and removes teams in the lobby: the next free color, up to 8, in the colors order', () => {
-    const g = makeClass();
+    const g = makeClass(undefined, 5);
+    const colors = () => teams(g).map((pid) => g.state.players[pid].color);
     g.dispatch({ type: 'addTeam' });
-    expect(g.state.players[teams(g)[4]]).toMatchObject({ color: 'orange', name: 'הלב הכתום' });
-    g.dispatch({ type: 'removePlayer', pid: teams(g)[1] }); // blue leaves
-    expect(teams(g).map((pid) => g.state.players[pid].color)).toEqual(['red', 'green', 'yellow', 'orange']);
-    g.dispatch({ type: 'addTeam' }); // blue comes back, in its place
-    expect(teams(g).map((pid) => g.state.players[pid].color)).toEqual(['red', 'blue', 'green', 'yellow', 'orange']);
-    g.dispatch({ type: 'addTeam', color: 'turquoise' }); // a color of choice
-    expect(g.state.players[teams(g)[5]].color).toBe('turquoise');
-    g.dispatch({ type: 'addTeam', color: 'red' }); // taken: the next free one
-    expect(teams(g).map((pid) => g.state.players[pid].color)).toEqual(['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'turquoise']);
-    g.dispatch({ type: 'addTeam' });
-    expect(teams(g)).toHaveLength(8);
+    expect(g.state.players[teams(g)[5]]).toMatchObject({ color: 'red', name: 'הלב האדום' });
+    g.dispatch({ type: 'removePlayer', pid: teams(g)[1] }); // purple leaves
+    expect(colors()).toEqual(['turquoise', 'pink', 'green', 'yellow', 'red']);
+    g.dispatch({ type: 'addTeam' }); // purple comes back, in its place
+    expect(colors()).toEqual(['turquoise', 'purple', 'pink', 'green', 'yellow', 'red']);
+    g.dispatch({ type: 'addTeam', color: 'orange' }); // a color of choice
+    expect(colors()).toEqual(['turquoise', 'purple', 'pink', 'green', 'yellow', 'red', 'orange']);
+    g.dispatch({ type: 'addTeam', color: 'turquoise' }); // taken: the next free one
+    expect(colors()).toEqual(['turquoise', 'purple', 'pink', 'green', 'yellow', 'red', 'blue', 'orange']);
     const full = g.state;
     expect(g.dispatch({ type: 'addTeam' })).toBe(full); // 8 colors, 8 teams
-    expect(new Set(teams(g).map((pid) => g.state.players[pid].color)).size).toBe(8);
     g.dispatch({ type: 'removePlayer', pid: teams(g)[7] });
     g.dispatch({ type: 'next' });
     const during = g.state;
@@ -598,12 +602,21 @@ describe('class mode (teams, no phones)', () => {
     };
     const restored = restoreGame(old);
     expect(ids.slice(0, 3).map((pid) => restored.players[pid])).toEqual([
-      { name: 'הלב האדום', color: 'red', joinedAt: 1, online: true },
-      { name: 'הלב הכחול', color: 'blue', joinedAt: 2, online: true },
-      { name: 'הלב הירוק', color: 'green', joinedAt: 3, online: true },
+      { name: 'הלב התכלת', color: 'turquoise', joinedAt: 1, online: true },
+      { name: 'הלב הסגול', color: 'purple', joinedAt: 2, online: true },
+      { name: 'הלב הוורוד', color: 'pink', joinedAt: 3, online: true },
     ]);
     expect(old.players[ids[0]].name).toBe('האריות'); // a copy
     expect(restoreGame(g.state)).toBe(g.state); // colored teams stay as they are
+    // a lobby saved with the old 4 default teams (red, blue, green, yellow) gets the new 4
+    const oldDefaults = JSON.parse(JSON.stringify(g.state));
+    delete oldDefaults.players[ids[4]];
+    ['red', 'blue', 'green', 'yellow'].forEach((color, i) => {
+      oldDefaults.players[ids[i]] = { ...oldDefaults.players[ids[i]], color, joinedAt: 10 + i };
+    });
+    const renewed = restoreGame(oldDefaults);
+    expect(playerIds(renewed).map((pid) => renewed.players[pid].color)).toEqual(['turquoise', 'purple', 'pink', 'green', 'yellow']);
+    expect(restoreGame({ ...oldDefaults, phase: 'tap' }).players[ids[0]].color).toBe('red'); // a game under way keeps its teams
     const home = makeGame().state;
     expect(restoreGame(home)).toBe(home); // the family game has no teams
   });
