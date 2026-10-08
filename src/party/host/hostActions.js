@@ -3,6 +3,7 @@ import { nextPhase, playerIds } from '../engine/engine';
 
 const NEXT = { type: 'next' };
 const SKIP = { type: 'skip' };
+// (a button with confirm: true asks for a second tap - it ends or skips a turn)
 
 // The buttons the host (whoever holds the TV remote/mouse) sees right now.
 // primary also runs on Enter/Space. teamPick (class mode): one button per
@@ -33,7 +34,7 @@ const hostActions = (s) => {
   switch (`${s.phase}:${s.step}`) {
     case 'tap:countdown':
     case 'tap:active':
-      return { primary: null, secondary: [{ icon: '⏭', label: cls ? 'סיום התור' : 'סיום מוקדם', action: SKIP }] };
+      return { primary: null, secondary: [{ icon: '⏭', label: cls ? 'סיום התור' : 'סיום מוקדם', action: SKIP, confirm: true }] };
     case 'tap:turnDone': {
       const next = s.players[(s.tap.order || [])[s.tap.turn + 1]];
       return { primary: { icon: next ? '👏' : '▶', label: next ? `התור של ${next.name}` : 'לסיכום השלב', action: NEXT }, secondary: [] };
@@ -51,7 +52,7 @@ const hostActions = (s) => {
         primary: { icon: '⏱', label: 'הפעלת השעון', action: NEXT },
         secondary: [
           { icon: '🔄', label: cls ? 'קבוצה אחרת' : 'מציג אחר', action: { type: 'repick' } },
-          { icon: '⏭', label: 'דילוג', action: SKIP },
+          { icon: '⏭', label: 'דילוג', action: SKIP, confirm: true },
         ],
       };
     case 'charades:perform':
@@ -64,7 +65,7 @@ const hostActions = (s) => {
     case 'word:play':
       return {
         primary: null,
-        secondary: [{ icon: '⏭', label: 'דילוג על המילה', action: SKIP }],
+        secondary: [{ icon: '⏭', label: 'דילוג על המילה', action: SKIP, confirm: true }],
         teamPick: cls ? { label: (name) => `${name} פיצח!`, action: (pid) => ({ type: 'classSolve', pid }) } : null,
       };
     case 'word:outcome':
@@ -73,7 +74,7 @@ const hostActions = (s) => {
       return { primary: { icon: '🏁', label: 'סיום החיפוש', action: NEXT }, secondary: [] };
     // class mode: a team picks numbered hearts and answers their exercises
     case 'hunt:pick':
-      return { primary: null, secondary: [{ icon: '⏭', label: 'סיום התור', action: SKIP }] };
+      return { primary: null, secondary: [{ icon: '⏭', label: 'סיום התור', action: SKIP, confirm: true }] };
     case 'hunt:reveal':
       return { primary: { icon: '▶', label: 'המשך', action: NEXT }, secondary: [] };
     case 'hunt:turnDone': {

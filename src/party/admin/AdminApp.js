@@ -14,6 +14,7 @@ import PlayerPicker from '../shared/PlayerPicker';
 import SettingsPanel from '../host/SettingsPanel';
 import { PHONE_MIC_HEARD_PATH } from '../host/phoneMic';
 import usePhoneMic from './usePhoneMic';
+import useCooldown, { useConfirmTap } from '../shared/useCooldown';
 import ErrorBoundary from '../shared/ErrorBoundary';
 import '../player/player.css';
 import '../host/host.css';
@@ -183,7 +184,7 @@ const ClassMark = ({ mark, players, send }) => (
 
 // Class mode's hearts board: the number the team called, then its answer.
 // (Firebase drops empty lists: no `picked` before the turn's first pick.)
-const ClassHearts = ({ pick, math, send }) => {
+const ClassHearts = ({ pick, math, send, cooling }) => {
   if (math) {
     const text = `${math.a} ${math.op === '-' ? '−' : '+'} ${math.b}`;
     return (
@@ -196,7 +197,7 @@ const ClassHearts = ({ pick, math, send }) => {
         </p>
         <div className="hb-admin-pad" dir="ltr">
           {Array.from({ length: 21 }, (_, v) => (
-            <button key={v} type="button" className="hb-btn hb-btn-soft" onClick={() => send({ type: 'classMath', value: v }, `math-${v}`)} data-testid={`admin-pad-${v}`}>
+            <button key={v} type="button" className="hb-btn hb-btn-soft" disabled={cooling} onClick={() => send({ type: 'classMath', value: v }, `math-${v}`)} data-testid={`admin-pad-${v}`}>
               {v}
             </button>
           ))}
@@ -215,7 +216,7 @@ const ClassHearts = ({ pick, math, send }) => {
             key={n}
             type="button"
             className="hb-btn hb-btn-soft"
-            disabled={(pick.picked || []).includes(n)}
+            disabled={cooling || (pick.picked || []).includes(n)}
             onClick={() => send({ type: 'classPick', n }, `pick-${n}`)}
             data-testid={`admin-heart-${n}`}
           >
@@ -385,6 +386,10 @@ const Console = ({ conn, code, pin, send, onLogout }) => {
   const [settings, setSettings] = useState(null);
   const [showJump, setShowJump] = useState(false);
   const mic = usePhoneMic(conn, state, pin);
+  // the buttons rest a moment after each step; ending or skipping a turn asks for a second tap
+  const stepKey = view ? `${view.phase}:${view.step}:${view.roundId}` : '';
+  const cooling = useCooldown(stepKey);
+  const confirm = useConfirmTap(stepKey);
   // the charades concept pops up once per turn (and again on a tap)
   const [closedConcept, setClosedConcept] = useState(null);
   const conceptKey = view && view.concept ? `${view.roundId}:${view.concept}` : null;
@@ -465,18 +470,24 @@ const Console = ({ conn, code, pin, send, onLogout }) => {
         </div>
         <div className="hb-admin-actions">
           {view && view.actions && view.actions.length ? (
-            view.actions.map((a) => (
-              <button
-                key={a.key}
-                type="button"
-                className={`hb-btn ${a.primary ? 'hb-btn-primary' : 'hb-btn-soft'} hb-admin-action`}
-                disabled={a.disabled || busy === a.key}
-                onClick={() => run({ type: 'action', key: a.key, roundId: view.roundId, step: view.step }, a.key)}
-                data-testid={`admin-action-${a.key}`}
-              >
-                <span>{a.heart ? <GlossyHeart from={a.heart[0]} to={a.heart[1]} /> : a.icon}</span> {a.label}
-              </button>
-            ))
+            view.actions.map((a) => {
+              const armed = confirm.armed === a.key;
+              return (
+                <button
+                  key={a.key}
+                  type="button"
+                  className={`hb-btn ${a.primary ? 'hb-btn-primary' : 'hb-btn-soft'} hb-admin-action ${armed ? 'is-armed' : ''}`}
+                  disabled={a.disabled || busy === a.key || cooling}
+                  onClick={() => {
+                    if (confirm.tap(a.key, a.confirm)) run({ type: 'action', key: a.key, roundId: view.roundId, step: view.step }, a.key);
+                  }}
+                  data-testid={`admin-action-${a.key}`}
+                >
+                  <span>{armed ? '⚠️' : a.heart ? <GlossyHeart from={a.heart[0]} to={a.heart[1]} /> : a.icon}</span>{' '}
+                  {armed ? `לחצו שוב: ${a.label}` : a.label}
+                </button>
+              );
+            })
           ) : (
             <p className="hb-admin-help">{view && (view.huntMath || view.huntPick || view.blessings) ? '👇 ממשיכים למטה' : 'אין כרגע כפתורים - המשחק רץ לבד ⏳'}</p>
           )}
@@ -508,7 +519,7 @@ const Console = ({ conn, code, pin, send, onLogout }) => {
 
       {view && view.blessings && <ClassBlessings blessings={view.blessings} send={run} />}
 
-      {view && (view.huntPick || view.huntMath) && <ClassHearts pick={view.huntPick} math={view.huntMath} send={run} />}
+      {view && (view.huntPick || view.huntMath) && <ClassHearts pick={view.huntPick} math={view.huntMath} send={run} cooling={cooling} />}
 
       {state && !classMode && state.phase === 'hunt' && (state.step === 'search' || state.step === 'results') && (
         <HuntTools state={state} players={players} send={run} />

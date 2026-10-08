@@ -22,6 +22,7 @@ import SettingsPanel from './SettingsPanel';
 import AdminInvite from './AdminInvite';
 import useAdminBridge from './useAdminBridge';
 import { saveSettings, settingsKeyFor } from './settingsStore';
+import useCooldown, { COOLDOWN_MS, useConfirmTap } from '../shared/useCooldown';
 import { openAnswerCards, openTeamSigns } from './classTools';
 import LobbyScreen from './screens/LobbyScreen';
 import ClassLobby from './screens/ClassLobby';
@@ -106,8 +107,12 @@ const AwardsLayer = ({ awards, players, now }) => {
   );
 };
 
-const HostControls = ({ actions, onAction, menu }) => {
+// (the buttons rest a moment after each step, and the ones that end or skip a
+// turn ask for a second click)
+const HostControls = ({ actions, onAction, menu, stepKey }) => {
   const [open, setOpen] = useState(false);
+  const cooling = useCooldown(stepKey);
+  const confirm = useConfirmTap(stepKey);
   const { primary, secondary } = actions;
   return (
     <div className="hb-controls">
@@ -115,18 +120,34 @@ const HostControls = ({ actions, onAction, menu }) => {
         <button
           type="button"
           className="hb-btn hb-btn-primary hb-btn-lg"
-          disabled={primary.disabled}
-          onClick={() => onAction(primary.action)}
+          disabled={primary.disabled || cooling}
+          onClick={(e) => {
+            e.currentTarget.blur();
+            onAction(primary.action);
+          }}
           data-testid="host-primary"
         >
           <span className="hb-btn-icon">{primary.icon}</span> {primary.label}
         </button>
       )}
-      {secondary.map((b) => (
-        <button key={b.label} type="button" className="hb-btn hb-btn-soft" disabled={b.disabled} onClick={() => onAction(b.action)}>
-          <span className="hb-btn-icon">{b.icon}</span> {b.label}
-        </button>
-      ))}
+      {secondary.map((b) => {
+        const armed = confirm.armed === b.label;
+        return (
+          <button
+            key={b.label}
+            type="button"
+            className={`hb-btn hb-btn-soft ${armed ? 'is-armed' : ''}`}
+            disabled={b.disabled || cooling}
+            onClick={(e) => {
+              e.currentTarget.blur();
+              if (confirm.tap(b.label, b.confirm)) onAction(b.action);
+            }}
+            data-testid={b.confirm ? 'host-confirm' : undefined}
+          >
+            <span className="hb-btn-icon">{armed ? '⚠️' : b.icon}</span> {armed ? `לחצו שוב: ${b.label}` : b.label}
+          </button>
+        );
+      })}
       <div className="hb-menu-wrap">
         <button
           type="button"
@@ -270,6 +291,12 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
   const actions = hostActions(state);
   const actionsRef = useRef(actions);
   actionsRef.current = actions;
+  // Enter, like the main button, rests a moment after each step
+  const stepKey = `${state.phase}:${state.step}:${state.roundId}`;
+  const stepAt = useRef(0);
+  useEffect(() => {
+    stepAt.current = Date.now();
+  }, [stepKey]);
 
   const toggleFullscreen = useCallback(() => {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
@@ -282,7 +309,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
       if (coveredRef.current || settingsOpen || isTyping(e.target) || e.repeat || e.defaultPrevented) return;
       if (e.key === 'Enter' || e.key === ' ') {
         const { primary } = actionsRef.current;
-        if (primary && !primary.disabled) {
+        if (primary && !primary.disabled && Date.now() - stepAt.current >= COOLDOWN_MS) {
           e.preventDefault();
           dispatch(primary.action);
         }
@@ -380,7 +407,7 @@ const HostGame = ({ conn, state, dispatch, mode, onNewGame, covered = false, onS
       <main className="hb-tv-main" key={`${state.phase}`}>
         {renderScreen(screenProps)}
       </main>
-      <HostControls actions={actions} onAction={dispatch} menu={menu} />
+      <HostControls actions={actions} onAction={dispatch} menu={menu} stepKey={stepKey} />
       {state.phase !== 'lobby' && <AwardsLayer awards={state.awards} players={state.players} now={now} />}
       {settingsOpen && (
         <SettingsPanel

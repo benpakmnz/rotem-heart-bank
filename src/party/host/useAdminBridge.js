@@ -21,7 +21,7 @@ export const adminView = (s) => {
       actions.push({ key: `team:${pid}`, icon: color ? '' : avatarById(team.avatar).emoji, heart: color ? color.colors : null, label: teamPick.label(team.name) });
     });
   }
-  secondary.forEach((b, i) => actions.push({ key: `s${i}`, icon: b.icon, label: b.label, disabled: Boolean(b.disabled) }));
+  secondary.forEach((b, i) => actions.push({ key: `s${i}`, icon: b.icon, label: b.label, disabled: Boolean(b.disabled), confirm: Boolean(b.confirm) }));
   const cur = s.phase === 'charades' && s.charades && s.charades.current;
   const question = s.phase === 'trivia' && s.trivia && s.trivia.current;
   const word = s.phase === 'word' && s.word && s.word.current;

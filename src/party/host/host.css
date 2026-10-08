@@ -1571,3 +1571,10 @@
     width: 44px;
   }
 }
+
+/* a button that ends or skips a turn, waiting for its second tap */
+.hb-btn.is-armed {
+  background: linear-gradient(180deg, #ffb347, #f97316);
+  color: #fff;
+  box-shadow: 0 0 0 0.15em #fff, 0 0 1.2em rgba(249, 115, 22, 0.8);
+}
