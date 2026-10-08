@@ -96,11 +96,21 @@ test('class mode leaves out the word stage once; the teacher can turn it back on
 
 test('class mode: 8 questions for the class (the rest off), the short bike answers and simple charades', () => {
   const settings = loadSettings(CLASS_SETTINGS_KEY);
-  expect(playableQuestions(settings).map((q) => q.q)).toEqual(DEFAULT_CONTENT.trivia.filter((q) => CLASS_TRIVIA_IDS.includes(q.id)).map((q) => q.q));
+  const on = settings.trivia.filter((q) => !q.off);
+  expect(on.map((q) => q.id)).toEqual(DEFAULT_CONTENT.trivia.map((q) => q.id).filter((id) => CLASS_TRIVIA_IDS.includes(id)));
+  // with niqqud (the spelling that goes with it), the same right answers
+  const plainCount = (text) => text.replace(/[\u0591-\u05C7]/g, '').length;
+  on.forEach((q) => {
+    const plain = DEFAULT_CONTENT.trivia.find((d) => d.id === q.id);
+    expect(q.q).toMatch(/[\u05B0-\u05BC]/);
+    expect(Math.abs(plainCount(q.q) - plain.q.length)).toBeLessThanOrEqual(3);
+    expect(q.options).toHaveLength(4);
+    expect(q.correct).toBe(plain.correct);
+  });
   expect(playableQuestions(settings)).toHaveLength(8);
   expect(settings.trivia).toHaveLength(DEFAULT_CONTENT.trivia.length); // still in the pool
   const bike = settings.trivia.find((q) => q.id === 'bike');
-  expect(bike.options[bike.correct]).toBe('אבא - אבל בעיקר לבד');
+  expect(bike.options[bike.correct]).toBe('אַבָּא - אֲבָל בְּעִקָּר לְבַד');
   expect(new Set(bike.options).size).toBe(4);
   expect(settings.charades).toEqual(CLASS_CHARADES);
   // the teacher's later edits stay

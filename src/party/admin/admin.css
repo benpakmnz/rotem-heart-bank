@@ -87,6 +87,12 @@
 }
 
 .hb-admin-secret {
+  display: block;
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
   margin-top: 0.8rem;
   background: #fff;
   color: var(--hb-ink);
@@ -397,4 +403,49 @@
 .hb-admin-mic .hb-admin-help.is-good {
   color: #86efac;
   font-weight: 700;
+}
+
+/* class mode: the charades concept, big, to show the child who acts it */
+.hb-phone.hb-admin > .hb-admin-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(20, 4, 40, 0.82);
+  backdrop-filter: blur(4px);
+}
+
+.hb-admin-popup-card {
+  width: 100%;
+  max-width: 26rem;
+  background: #fff;
+  color: var(--hb-ink);
+  border-radius: 1.6rem;
+  padding: 1.4rem 1.2rem 1.2rem;
+  box-shadow: 0 0 0 0.3rem var(--hb-gold), 0 1.2rem 3rem rgba(0, 0, 0, 0.5);
+  text-align: center;
+  animation: hb-admin-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.hb-admin-popup-label {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #7c3aed;
+}
+
+.hb-admin-popup-concept {
+  margin: 1.6rem 0 1.8rem;
+  font-family: 'Rubik', sans-serif;
+  font-weight: 700;
+  font-size: 3rem;
+  line-height: 1.5;
+}
+
+@keyframes hb-admin-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
 }

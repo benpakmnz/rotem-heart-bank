@@ -1299,3 +1299,12 @@
   vertical-align: -0.25em;
   filter: drop-shadow(0 0.08em 0.15em rgba(10, 0, 30, 0.4));
 }
+
+/* the charades concepts have niqqud: Rubik places the marks well */
+.hb-peek-card strong,
+.hb-charades-concept strong,
+.hb-charades-summary-concept {
+  font-family: 'Rubik', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1.45;
+}

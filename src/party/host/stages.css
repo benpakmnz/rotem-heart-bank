@@ -350,7 +350,7 @@
   font-weight: 800;
   text-align: center;
   text-wrap: balance;
-  line-height: 1.25;
+  line-height: 1.4; /* room for niqqud */
   background: #fff;
   color: var(--hb-ink);
   border-radius: 0.6em;

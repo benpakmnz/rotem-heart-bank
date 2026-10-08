@@ -303,6 +303,20 @@ const PhoneMic = ({ conn, mic, state }) => {
   );
 };
 
+// Class mode: a new charades turn pops the secret concept up big, so the
+// teacher can show the phone to the child who comes up to act it.
+const ConceptPopup = ({ concept, team, onClose }) => (
+  <div className="hb-admin-popup" role="dialog" aria-modal="true" data-testid="admin-concept-popup">
+    <div className="hb-admin-popup-card">
+      <div className="hb-admin-popup-label">🤫 הַמּוּשָּׂג הַסּוֹדִי{team ? ` · ${team.name}` : ''}</div>
+      <div className="hb-admin-popup-concept">{concept}</div>
+      <button type="button" className="hb-btn hb-btn-primary hb-btn-block" onClick={onClose} data-testid="admin-concept-close">
+        ✔ הבנתי - סגירה
+      </button>
+    </div>
+  </div>
+);
+
 // ---------- the console ----------
 
 const Console = ({ conn, code, pin, send, onLogout }) => {
@@ -318,6 +332,10 @@ const Console = ({ conn, code, pin, send, onLogout }) => {
   const [settings, setSettings] = useState(null);
   const [showJump, setShowJump] = useState(false);
   const mic = usePhoneMic(conn, state, pin);
+  // the charades concept pops up once per turn (and again on a tap)
+  const [closedConcept, setClosedConcept] = useState(null);
+  const conceptKey = view && view.concept ? `${view.roundId}:${view.concept}` : null;
+  const conceptPopup = classMode && conceptKey && view.step !== 'outcome' && closedConcept !== conceptKey;
   // the phone listens in the clap stage (it can start in the lobby), and stops after it
   const micStage =
     classMode && (state.stages || []).includes('tap') && (state.phase === 'lobby' || (state.phase === 'tap' && state.step !== 'results'));
@@ -411,9 +429,10 @@ const Console = ({ conn, code, pin, send, onLogout }) => {
           )}
         </div>
         {view && view.concept && (
-          <div className="hb-admin-secret">
+          <button type="button" className="hb-admin-secret" onClick={() => setClosedConcept(null)} data-testid="admin-concept">
             🤫 המושג בפנטומימה: <b>{view.concept}</b>
-          </div>
+            {classMode && <small> · 👁 להראות בגדול</small>}
+          </button>
         )}
         {view && view.answer && (
           <div className="hb-admin-secret" data-testid="admin-word-answer">
@@ -423,6 +442,14 @@ const Console = ({ conn, code, pin, send, onLogout }) => {
       </Section>
 
       {micStage && <PhoneMic conn={conn} mic={mic} state={state} />}
+
+      {conceptPopup && (
+        <ConceptPopup
+          concept={view.concept}
+          team={state.data && players[state.data.performerId]}
+          onClose={() => setClosedConcept(conceptKey)}
+        />
+      )}
 
       {view && view.mark && <ClassMark mark={view.mark} players={players} send={run} />}
 

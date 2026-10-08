@@ -40,7 +40,7 @@ const CLASS_STAGES_VERSION = 1;
 
 // The class's questions (the others turned off) and charades - also once per
 // saved copy, so the teacher's later edits stay.
-const CLASS_CONTENT_VERSION = 2; // 2: shorter charades
+const CLASS_CONTENT_VERSION = 4; // 2: shorter charades, 3-4: with niqqud
 export const classContent = (settings) => ({
   ...settings,
   trivia: settings.trivia.map((q) => (q.id ? { ...q, ...(CLASS_TRIVIA_CHANGES[q.id] || {}), off: !CLASS_TRIVIA_IDS.includes(q.id) } : q)),
